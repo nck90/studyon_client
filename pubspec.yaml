@@ -1,0 +1,14 @@
+name: studyon_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+
+workspace:
+  - apps/studyon_client
+  - packages/core
+  - packages/models
+  - packages/api_client
+  - packages/auth
+  - packages/design_system
+  - packages/realtime

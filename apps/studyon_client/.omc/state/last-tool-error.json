@@ -1,0 +1,7 @@
+{
+  "tool_name": "Read",
+  "tool_input_preview": "{\"file_path\":\"/Users/bagjun-won/studyon/apps/studyon_client/packages/design_system/lib/src/theme/app_spacing.dart\"}",
+  "error": "File does not exist. Note: your current working directory is /Users/bagjun-won/studyon/apps/studyon_client.",
+  "timestamp": "2026-04-14T13:08:15.271Z",
+  "retry_count": 2
+}

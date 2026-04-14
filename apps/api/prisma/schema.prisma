@@ -1,0 +1,747 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  ADMIN
+  DIRECTOR
+  DISPLAY
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  DELETED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  LEAVE
+  GRADUATED
+}
+
+enum SeatStatus {
+  AVAILABLE
+  OCCUPIED
+  RESERVED
+  LOCKED
+}
+
+enum DeviceType {
+  TABLET
+  MOBILE
+  WEB
+  TV
+}
+
+enum DeviceStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum SessionStatus {
+  ACTIVE
+  EXPIRED
+  LOGGED_OUT
+  REVOKED
+}
+
+enum LoginMethod {
+  STUDENT_NO_NAME
+  QR
+  AUTO
+  ADMIN_PASSWORD
+}
+
+enum QrTokenType {
+  STUDENT_LOGIN
+  SEAT_LOGIN
+}
+
+enum AttendanceFlag {
+  NONE
+  LATE
+  EARLY_LEAVE
+}
+
+enum AttendanceStatus {
+  NOT_CHECKED_IN
+  CHECKED_IN
+  CHECKED_OUT
+  ABSENT
+}
+
+enum SeatAssignmentType {
+  FIXED
+  TEMPORARY
+  DAILY
+}
+
+enum SeatChangeRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum StudyPlanPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum StudyPlanStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum StudySessionStatus {
+  READY
+  ACTIVE
+  PAUSED
+  COMPLETED
+  AUTO_CLOSED
+}
+
+enum NotificationType {
+  NOTICE
+  ABSENCE
+  LEAVE_TIME
+  BREAK_OVER
+  GOAL_SHORTFALL
+}
+
+enum NotificationChannel {
+  IN_APP
+  PUSH
+  TV
+}
+
+enum NotificationTargetScope {
+  STUDENT
+  CLASS
+  GROUP
+  ALL
+  ADMIN
+}
+
+enum NotificationStatus {
+  DRAFT
+  SCHEDULED
+  SENT
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+  READ
+}
+
+enum RankingType {
+  STUDY_TIME
+  STUDY_VOLUME
+  ATTENDANCE_STREAK
+}
+
+enum RankingPeriodType {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum BadgeType {
+  ATTENDANCE
+  STUDY_TIME
+  ACHIEVEMENT
+  EVENT
+}
+
+enum DisplayScreen {
+  RANKING
+  STATUS
+  MOTIVATION
+}
+
+model User {
+  id                   String                @id @default(uuid()) @db.Uuid
+  role                 UserRole
+  status               UserStatus            @default(ACTIVE)
+  name                 String                @db.VarChar(100)
+  phone                String?               @db.VarChar(30)
+  lastLoginAt          DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  student              Student?
+  adminUser            AdminUser?
+  authSessions         AuthSession[]
+  notifications        NotificationReceipt[]
+  createdAttendance    Attendance[]          @relation("AttendanceCreatedBy")
+  auditLogs            AdminAuditLog[]       @relation("AuditActor")
+  createdSettings      AppSetting[]          @relation("AppSettingUpdatedBy")
+  attendancePolicies   AttendancePolicy[]    @relation("AttendancePolicyCreatedBy")
+  rankingPolicies      RankingPolicy[]       @relation("RankingPolicyCreatedBy")
+  tvDisplaySettings    TvDisplaySetting[]    @relation("TvDisplaySettingUpdatedBy")
+  createdNotifications Notification[]        @relation("NotificationCreatedBy")
+
+  @@map("users")
+}
+
+model Student {
+  id                 String                 @id @default(uuid()) @db.Uuid
+  userId             String                 @unique @db.Uuid
+  studentNo          String                 @unique @db.VarChar(50)
+  gradeId            String?                @db.Uuid
+  classId            String?                @db.Uuid
+  groupId            String?                @db.Uuid
+  assignedSeatId     String?                @db.Uuid
+  enrollmentStatus   EnrollmentStatus       @default(ACTIVE)
+  joinedAt           DateTime?
+  memo               String?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grade              Grade?                 @relation(fields: [gradeId], references: [id])
+  class              Class?                 @relation(fields: [classId], references: [id])
+  group              Group?                 @relation(fields: [groupId], references: [id])
+  assignedSeat       Seat?                  @relation("StudentAssignedSeat", fields: [assignedSeatId], references: [id])
+  currentSeatUsage   Seat[]                 @relation("SeatCurrentStudent")
+  authSessions       AuthSession[]
+  qrLoginTokens      QrLoginToken[]
+  attendances        Attendance[]
+  seatAssignments    SeatAssignment[]
+  seatChangeRequests SeatChangeRequest[]
+  studyPlans         StudyPlan[]
+  studySessions      StudySession[]
+  studyLogs          StudyLog[]
+  dailyMetrics       DailyStudentMetric[]
+  weeklyMetrics      WeeklyStudentMetric[]
+  monthlyMetrics     MonthlyStudentMetric[]
+  rankingItems       RankingSnapshotItem[]
+  studentBadges      StudentBadge[]
+
+  @@index([classId])
+  @@index([groupId])
+  @@index([assignedSeatId])
+  @@map("students")
+}
+
+model AdminUser {
+  id                    String    @id @default(uuid()) @db.Uuid
+  userId                String    @unique @db.Uuid
+  adminType             UserRole
+  email                 String    @unique @db.VarChar(255)
+  passwordHash          String    @db.VarChar(255)
+  lastPasswordChangedAt DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admin_users")
+}
+
+model Grade {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @db.VarChar(50)
+  sortOrder Int
+  createdAt DateTime  @default(now())
+  classes   Class[]
+  students  Student[]
+
+  @@map("grades")
+}
+
+model Class {
+  id        String    @id @default(uuid()) @db.Uuid
+  gradeId   String?   @db.Uuid
+  name      String    @db.VarChar(100)
+  sortOrder Int
+  createdAt DateTime  @default(now())
+  grade     Grade?    @relation(fields: [gradeId], references: [id])
+  groups    Group[]
+  students  Student[]
+
+  @@index([gradeId])
+  @@map("classes")
+}
+
+model Group {
+  id        String    @id @default(uuid()) @db.Uuid
+  classId   String?   @db.Uuid
+  name      String    @db.VarChar(100)
+  sortOrder Int
+  createdAt DateTime  @default(now())
+  class     Class?    @relation(fields: [classId], references: [id])
+  students  Student[]
+
+  @@index([classId])
+  @@map("groups")
+}
+
+model Seat {
+  id                 String              @id @default(uuid()) @db.Uuid
+  seatNo             String              @unique @db.VarChar(30)
+  zone               String?             @db.VarChar(50)
+  status             SeatStatus          @default(AVAILABLE)
+  isActive           Boolean             @default(true)
+  currentStudentId   String?             @db.Uuid
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  currentStudent     Student?            @relation("SeatCurrentStudent", fields: [currentStudentId], references: [id])
+  assignedStudents   Student[]           @relation("StudentAssignedSeat")
+  devices            Device[]
+  attendances        Attendance[]
+  seatAssignments    SeatAssignment[]
+  seatChangeRequests SeatChangeRequest[] @relation("ToSeat")
+  fromSeatRequests   SeatChangeRequest[] @relation("FromSeat")
+
+  @@index([status])
+  @@index([currentStudentId])
+  @@map("seats")
+}
+
+model Device {
+  id           String         @id @default(uuid()) @db.Uuid
+  deviceCode   String         @unique @db.VarChar(100)
+  deviceType   DeviceType
+  seatId       String?        @db.Uuid
+  status       DeviceStatus   @default(ACTIVE)
+  lastSeenAt   DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  seat         Seat?          @relation(fields: [seatId], references: [id])
+  authSessions AuthSession[]
+  qrTokens     QrLoginToken[]
+
+  @@map("devices")
+}
+
+model AuthSession {
+  id                String        @id @default(uuid()) @db.Uuid
+  userId            String        @db.Uuid
+  studentId         String?       @db.Uuid
+  deviceId          String?       @db.Uuid
+  loginMethod       LoginMethod
+  sessionStatus     SessionStatus @default(ACTIVE)
+  duplicateReplaced Boolean       @default(false)
+  startedAt         DateTime      @default(now())
+  lastActivityAt    DateTime      @default(now())
+  endedAt           DateTime?
+  createdAt         DateTime      @default(now())
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  student           Student?      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  device            Device?       @relation(fields: [deviceId], references: [id])
+
+  @@index([userId])
+  @@index([studentId])
+  @@index([sessionStatus])
+  @@index([lastActivityAt])
+  @@map("auth_sessions")
+}
+
+model QrLoginToken {
+  id        String      @id @default(uuid()) @db.Uuid
+  studentId String?     @db.Uuid
+  deviceId  String?     @db.Uuid
+  token     String      @unique @db.VarChar(255)
+  tokenType QrTokenType
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime    @default(now())
+  student   Student?    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  device    Device?     @relation(fields: [deviceId], references: [id])
+
+  @@map("qr_login_tokens")
+}
+
+model Attendance {
+  id               String           @id @default(uuid()) @db.Uuid
+  studentId        String           @db.Uuid
+  attendanceDate   DateTime         @db.Date
+  checkInAt        DateTime?
+  checkOutAt       DateTime?
+  stayMinutes      Int              @default(0)
+  lateStatus       AttendanceFlag   @default(NONE)
+  earlyLeaveStatus AttendanceFlag   @default(NONE)
+  attendanceStatus AttendanceStatus @default(NOT_CHECKED_IN)
+  seatId           String?          @db.Uuid
+  createdById      String?          @db.Uuid
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  student          Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  seat             Seat?            @relation(fields: [seatId], references: [id])
+  createdBy        User?            @relation("AttendanceCreatedBy", fields: [createdById], references: [id])
+  studySessions    StudySession[]
+
+  @@unique([studentId, attendanceDate])
+  @@index([attendanceDate])
+  @@index([seatId])
+  @@index([studentId, attendanceStatus])
+  @@map("attendances")
+}
+
+model SeatAssignment {
+  id             String             @id @default(uuid()) @db.Uuid
+  studentId      String             @db.Uuid
+  seatId         String             @db.Uuid
+  assignmentType SeatAssignmentType
+  assignedById   String?            @db.Uuid
+  startedAt      DateTime           @default(now())
+  endedAt        DateTime?
+  isCurrent      Boolean            @default(true)
+  createdAt      DateTime           @default(now())
+  student        Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  seat           Seat               @relation(fields: [seatId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([seatId])
+  @@index([isCurrent])
+  @@map("seat_assignments")
+}
+
+model SeatChangeRequest {
+  id              String                  @id @default(uuid()) @db.Uuid
+  studentId       String                  @db.Uuid
+  fromSeatId      String?                 @db.Uuid
+  toSeatId        String                  @db.Uuid
+  requestStatus   SeatChangeRequestStatus @default(PENDING)
+  requestedReason String?
+  reviewedById    String?                 @db.Uuid
+  reviewedAt      DateTime?
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  student         Student                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  fromSeat        Seat?                   @relation("FromSeat", fields: [fromSeatId], references: [id])
+  toSeat          Seat                    @relation("ToSeat", fields: [toSeatId], references: [id])
+
+  @@map("seat_change_requests")
+}
+
+model StudyPlan {
+  id            String            @id @default(uuid()) @db.Uuid
+  studentId     String            @db.Uuid
+  planDate      DateTime          @db.Date
+  subjectName   String            @db.VarChar(100)
+  title         String            @db.VarChar(255)
+  description   String?
+  targetMinutes Int               @default(0)
+  priority      StudyPlanPriority @default(MEDIUM)
+  status        StudyPlanStatus   @default(PLANNED)
+  completedAt   DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  student       Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studySessions StudySession[]
+  studyLogs     StudyLog[]
+
+  @@index([studentId, planDate])
+  @@index([planDate])
+  @@index([status])
+  @@map("study_plans")
+}
+
+model StudySession {
+  id               String             @id @default(uuid()) @db.Uuid
+  studentId        String             @db.Uuid
+  attendanceId     String?            @db.Uuid
+  linkedPlanId     String?            @db.Uuid
+  sessionDate      DateTime           @db.Date
+  status           StudySessionStatus @default(READY)
+  startedAt        DateTime?
+  endedAt          DateTime?
+  studyMinutes     Int                @default(0)
+  breakMinutes     Int                @default(0)
+  autoClosedReason String?            @db.VarChar(50)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  student          Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  attendance       Attendance?        @relation(fields: [attendanceId], references: [id])
+  linkedPlan       StudyPlan?         @relation(fields: [linkedPlanId], references: [id])
+  studyBreaks      StudyBreak[]
+  studyLogs        StudyLog[]
+
+  @@index([studentId, sessionDate])
+  @@index([attendanceId])
+  @@index([status])
+  @@index([linkedPlanId])
+  @@map("study_sessions")
+}
+
+model StudyBreak {
+  id             String       @id @default(uuid()) @db.Uuid
+  studySessionId String       @db.Uuid
+  startedAt      DateTime
+  endedAt        DateTime?
+  breakMinutes   Int          @default(0)
+  createdAt      DateTime     @default(now())
+  studySession   StudySession @relation(fields: [studySessionId], references: [id], onDelete: Cascade)
+
+  @@index([studySessionId])
+  @@map("study_breaks")
+}
+
+model StudyLog {
+  id              String        @id @default(uuid()) @db.Uuid
+  studentId       String        @db.Uuid
+  planId          String?       @db.Uuid
+  studySessionId  String?       @db.Uuid
+  logDate         DateTime      @db.Date
+  subjectName     String        @db.VarChar(100)
+  pagesCompleted  Int           @default(0)
+  problemsSolved  Int           @default(0)
+  progressPercent Decimal       @default(0) @db.Decimal(5, 2)
+  isCompleted     Boolean       @default(false)
+  memo            String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  student         Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  plan            StudyPlan?    @relation(fields: [planId], references: [id])
+  studySession    StudySession? @relation(fields: [studySessionId], references: [id])
+
+  @@index([studentId, logDate])
+  @@index([planId])
+  @@index([studySessionId])
+  @@map("study_logs")
+}
+
+model DailyStudentMetric {
+  id                String           @id @default(uuid()) @db.Uuid
+  studentId         String           @db.Uuid
+  metricDate        DateTime         @db.Date
+  attendanceMinutes Int              @default(0)
+  studyMinutes      Int              @default(0)
+  breakMinutes      Int              @default(0)
+  targetMinutes     Int              @default(0)
+  achievedRate      Decimal          @default(0) @db.Decimal(5, 2)
+  pagesCompleted    Int              @default(0)
+  problemsSolved    Int              @default(0)
+  studySessionCount Int              @default(0)
+  attendanceStatus  AttendanceStatus @default(ABSENT)
+  streakDays        Int              @default(0)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  student           Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, metricDate])
+  @@index([metricDate])
+  @@index([studentId])
+  @@map("daily_student_metrics")
+}
+
+model WeeklyStudentMetric {
+  id             String   @id @default(uuid()) @db.Uuid
+  studentId      String   @db.Uuid
+  weekStartDate  DateTime @db.Date
+  studyMinutes   Int      @default(0)
+  attendanceDays Int      @default(0)
+  targetMinutes  Int      @default(0)
+  achievedRate   Decimal  @default(0) @db.Decimal(5, 2)
+  pagesCompleted Int      @default(0)
+  problemsSolved Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, weekStartDate])
+  @@map("weekly_student_metrics")
+}
+
+model MonthlyStudentMetric {
+  id             String   @id @default(uuid()) @db.Uuid
+  studentId      String   @db.Uuid
+  monthKey       String   @db.VarChar(7)
+  studyMinutes   Int      @default(0)
+  attendanceDays Int      @default(0)
+  targetMinutes  Int      @default(0)
+  achievedRate   Decimal  @default(0) @db.Decimal(5, 2)
+  pagesCompleted Int      @default(0)
+  problemsSolved Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, monthKey])
+  @@map("monthly_student_metrics")
+}
+
+model RankingSnapshot {
+  id          String                @id @default(uuid()) @db.Uuid
+  rankingType RankingType
+  periodType  RankingPeriodType
+  periodKey   String                @db.VarChar(20)
+  generatedAt DateTime              @default(now())
+  createdAt   DateTime              @default(now())
+  items       RankingSnapshotItem[]
+
+  @@index([rankingType, periodType, periodKey])
+  @@map("ranking_snapshots")
+}
+
+model RankingSnapshotItem {
+  id                String          @id @default(uuid()) @db.Uuid
+  rankingSnapshotId String          @db.Uuid
+  studentId         String          @db.Uuid
+  rankNo            Int
+  score             Decimal         @db.Decimal(12, 2)
+  subScore1         Decimal         @default(0) @db.Decimal(12, 2)
+  subScore2         Decimal         @default(0) @db.Decimal(12, 2)
+  createdAt         DateTime        @default(now())
+  rankingSnapshot   RankingSnapshot @relation(fields: [rankingSnapshotId], references: [id], onDelete: Cascade)
+  student           Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([rankingSnapshotId, studentId])
+  @@unique([rankingSnapshotId, rankNo])
+  @@index([studentId])
+  @@index([rankNo])
+  @@map("ranking_snapshot_items")
+}
+
+model Badge {
+  id            String         @id @default(uuid()) @db.Uuid
+  code          String         @unique @db.VarChar(50)
+  name          String         @db.VarChar(100)
+  description   String?
+  badgeType     BadgeType
+  iconUrl       String?
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  studentBadges StudentBadge[]
+
+  @@map("badges")
+}
+
+model StudentBadge {
+  id        String   @id @default(uuid()) @db.Uuid
+  studentId String   @db.Uuid
+  badgeId   String   @db.Uuid
+  awardedAt DateTime @default(now())
+  reason    String?
+  createdAt DateTime @default(now())
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([badgeId])
+  @@map("student_badges")
+}
+
+model Notification {
+  id               String                  @id @default(uuid()) @db.Uuid
+  notificationType NotificationType
+  channel          NotificationChannel
+  title            String                  @db.VarChar(255)
+  body             String
+  targetScope      NotificationTargetScope
+  createdById      String?                 @db.Uuid
+  scheduledAt      DateTime?
+  sentAt           DateTime?
+  status           NotificationStatus      @default(DRAFT)
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  createdBy        User?                   @relation("NotificationCreatedBy", fields: [createdById], references: [id])
+  receipts         NotificationReceipt[]
+
+  @@index([notificationType])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("notifications")
+}
+
+model NotificationReceipt {
+  id             String         @id @default(uuid()) @db.Uuid
+  notificationId String         @db.Uuid
+  userId         String         @db.Uuid
+  deliveryStatus DeliveryStatus @default(PENDING)
+  deliveredAt    DateTime?
+  readAt         DateTime?
+  createdAt      DateTime       @default(now())
+  notification   Notification   @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([notificationId])
+  @@index([userId])
+  @@index([deliveryStatus])
+  @@map("notification_receipts")
+}
+
+model AdminAuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  actorUserId String   @db.Uuid
+  actionType  String   @db.VarChar(50)
+  targetType  String   @db.VarChar(50)
+  targetId    String?  @db.Uuid
+  beforeData  Json?
+  afterData   Json?
+  createdAt   DateTime @default(now())
+  actor       User     @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: Cascade)
+
+  @@index([actorUserId])
+  @@index([actionType])
+  @@index([targetType, targetId])
+  @@map("admin_audit_logs")
+}
+
+model AppSetting {
+  id           String   @id @default(uuid()) @db.Uuid
+  settingKey   String   @unique @db.VarChar(100)
+  settingValue Json
+  updatedById  String?  @db.Uuid
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedBy    User?    @relation("AppSettingUpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("app_settings")
+}
+
+model AttendancePolicy {
+  id                       String   @id @default(uuid()) @db.Uuid
+  policyName               String   @db.VarChar(100)
+  lateCutoffTime           String   @db.VarChar(10)
+  earlyLeaveCutoffTime     String   @db.VarChar(10)
+  autoCheckoutEnabled      Boolean  @default(false)
+  autoCheckoutAfterMinutes Int?
+  isActive                 Boolean  @default(true)
+  createdById              String?  @db.Uuid
+  createdAt                DateTime @default(now())
+  createdBy                User?    @relation("AttendancePolicyCreatedBy", fields: [createdById], references: [id])
+
+  @@map("attendance_policies")
+}
+
+model RankingPolicy {
+  id                String   @id @default(uuid()) @db.Uuid
+  policyName        String   @db.VarChar(100)
+  studyTimeWeight   Decimal  @db.Decimal(8, 2)
+  studyVolumeWeight Decimal  @db.Decimal(8, 2)
+  attendanceWeight  Decimal  @db.Decimal(8, 2)
+  tieBreakerRule    Json
+  isActive          Boolean  @default(true)
+  createdById       String?  @db.Uuid
+  createdAt         DateTime @default(now())
+  createdBy         User?    @relation("RankingPolicyCreatedBy", fields: [createdById], references: [id])
+
+  @@map("ranking_policies")
+}
+
+model TvDisplaySetting {
+  id                      String        @id @default(uuid()) @db.Uuid
+  activeScreen            DisplayScreen @default(RANKING)
+  rotationEnabled         Boolean       @default(true)
+  rotationIntervalSeconds Int           @default(30)
+  displayOptions          Json
+  updatedById             String?       @db.Uuid
+  updatedAt               DateTime      @updatedAt
+  createdAt               DateTime      @default(now())
+  updatedBy               User?         @relation("TvDisplaySettingUpdatedBy", fields: [updatedById], references: [id])
+
+  @@map("tv_display_settings")
+}

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Study Flow - Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#d7e2ff",
+                        "primary-fixed-dim": "#acc7ff",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed": "#001a40",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#fefcff",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed-variant": "#2e4672",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface": "#f8f9fa",
+                        "secondary-fixed": "#d7e2ff",
+                        "surface-variant": "#e1e3e4",
+                        "on-background": "#191c1d",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#005bbe",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "outline-variant": "#c1c6d6",
+                        "tertiary-fixed": "#ffdbc8",
+                        "surface-container-low": "#f3f4f5",
+                        "secondary-container": "#b5ccff",
+                        "primary-container": "#1071e5",
+                        "secondary-fixed-dim": "#afc7fa",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f8f9fa",
+                        "on-secondary-container": "#3e5682",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "surface-container": "#edeeef",
+                        "secondary": "#475e8b",
+                        "tertiary-container": "#ba5900",
+                        "tertiary": "#944600",
+                        "inverse-surface": "#2e3132",
+                        "on-tertiary-container": "#fffbff",
+                        "on-primary-fixed-variant": "#004491",
+                        "on-tertiary-fixed": "#311300",
+                        "on-secondary": "#ffffff",
+                        "outline": "#727785",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "primary": "#0059b9",
+                        "background": "#f8f9fa",
+                        "surface-container-highest": "#e1e3e4",
+                        "surface-dim": "#d9dadb",
+                        "on-surface-variant": "#414754",
+                        "on-secondary-fixed": "#001a40",
+                        "surface-container-high": "#e7e8e9",
+                        "inverse-primary": "#acc7ff",
+                        "on-surface": "#191c1d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tap-highlight-transparent { -webkit-tap-highlight-color: transparent; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-none">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
+<img alt="User profile portrait" class="w-full h-full object-cover" data-alt="Close up portrait of a young Korean man with a friendly smile, natural soft lighting, clean professional photography style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2bAuap9BN9IImqWXHhBFpQ5MEpcZudx_N3J8nVVxrU-sEZYYaXsn15-mYjopZqgZwFZ_5flAUiKhg6fDzDZwS-MIRzmYIF-2Ea4dRPCYT6NWbwDrNeLRvW7jIewWVWrchh-4T4Pyy4krTzy_-hibtm3SBrTCxuoapLaTy-HZIdeDtkIhmsEtuiJqazuyu8J286tcpT7VP1O3qD1q2tqS0Dx_wT3cnYmE_BMa4QGDZzcr63DBLmahfweu-V0AOHtWxGAvZIRm0IUq3"/>
+</div>
+<span class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 font-headline">Study Flow</span>
+</div>
+<button class="active:scale-95 transition-transform hover:opacity-80">
+<span class="material-symbols-outlined text-blue-600 dark:text-blue-400" data-icon="notifications">notifications</span>
+</button>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-2xl mx-auto space-y-6">
+<!-- User Greeting & Status Section -->
+<section class="flex justify-between items-end mb-8">
+<div class="space-y-1">
+<h1 class="text-2xl font-bold font-headline tracking-tight text-on-surface">Hello, Minsu</h1>
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed text-xs font-semibold">7-day streak</span>
+<span class="text-on-surface-variant text-sm font-medium">You're doing great!</span>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs text-on-surface-variant font-bold uppercase tracking-widest mb-1">Today</p>
+<p class="text-sm font-semibold">Oct 24, Thursday</p>
+</div>
+</section>
+<!-- Main Card: Today's Study Time -->
+<div class="bg-surface-container-lowest rounded-[32px] p-8 shadow-[0_8px_40px_rgba(0,0,0,0.02)] relative overflow-hidden">
+<div class="relative z-10">
+<p class="text-on-surface-variant text-sm font-semibold mb-2">Total Study Time</p>
+<h2 class="text-5xl font-black font-headline text-primary tracking-tighter mb-8">
+                    2<span class="text-3xl font-bold ml-1 mr-3 text-on-surface">h</span>14<span class="text-3xl font-bold ml-1 text-on-surface">m</span>
+</h2>
+<div class="flex flex-col sm:flex-row gap-3">
+<button class="flex-1 bg-primary text-on-primary py-4 px-6 rounded-2xl font-bold text-base active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-[20px]" data-icon="play_arrow" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                        Start Study
+                    </button>
+<button class="flex-1 bg-surface-container-high text-on-surface py-4 px-6 rounded-2xl font-bold text-base active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]" data-icon="how_to_reg">how_to_reg</span>
+                        Check-in
+                    </button>
+</div>
+</div>
+<!-- Decorative soft circle -->
+<div class="absolute -right-16 -top-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl"></div>
+</div>
+<!-- Today's Goal Section -->
+<div class="bg-surface-container-low rounded-[28px] p-6 space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="font-bold text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="target">target</span>
+                    Today's Goal
+                </h3>
+<span class="text-primary font-black text-sm">74%</span>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium text-on-surface-variant">Math Chapter 3 Practice</span>
+<span class="text-xs font-semibold text-on-surface-variant">11/15 items</span>
+</div>
+<div class="w-full h-3 bg-white rounded-full overflow-hidden p-0.5">
+<div class="h-full bg-primary rounded-full" style="width: 74%"></div>
+</div>
+</div>
+</div>
+<!-- Quick Info Row (Bento Style) -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest p-6 rounded-[28px] shadow-sm flex flex-col justify-between aspect-square">
+<div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-orange-500" data-icon="psychology" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div>
+<p class="text-xs font-bold text-on-surface-variant mb-1">Focus Score</p>
+<p class="text-2xl font-black font-headline text-on-surface">92<span class="text-sm font-bold text-on-surface-variant ml-0.5">/100</span></p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-[28px] shadow-sm flex flex-col justify-between aspect-square">
+<div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-500" data-icon="toll" style="font-variation-settings: 'FILL' 1;">toll</span>
+</div>
+<div>
+<p class="text-xs font-bold text-on-surface-variant mb-1">Earned Points</p>
+<p class="text-2xl font-black font-headline text-on-surface">1,250<span class="text-sm font-bold text-on-surface-variant ml-0.5">P</span></p>
+</div>
+</div>
+</div>
+<!-- Ranking Preview -->
+<div class="bg-white border border-outline-variant/10 rounded-[28px] p-6 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-yellow-400/10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-yellow-600" data-icon="leaderboard" style="font-variation-settings: 'FILL' 1;">leaderboard</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Today's Rank #3</h4>
+<p class="text-xs text-on-surface-variant">Top 5% among peer group</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="chevron_right">chevron_right</span>
+</div>
+<!-- Premium Banner -->
+<div class="relative bg-slate-900 rounded-[32px] p-8 overflow-hidden group">
+<div class="relative z-10 flex flex-col h-full justify-between gap-6">
+<div>
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest mb-4">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                        Premium
+                    </div>
+<h3 class="text-2xl font-black font-headline text-white leading-tight">Premium Management Service</h3>
+<p class="text-slate-400 text-sm mt-2 font-medium">Unlock deep focus analytics &amp; expert AI tutoring support.</p>
+</div>
+<button class="w-fit bg-white text-slate-900 px-6 py-3 rounded-2xl font-bold text-sm active:scale-95 transition-transform">
+                    Upgrade Now
+                </button>
+</div>
+<!-- Dynamic abstract visual -->
+<div class="absolute -right-12 -bottom-12 w-48 h-48 bg-blue-600/20 rounded-full blur-3xl"></div>
+<img class="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:scale-105 transition-transform duration-700" data-alt="Abstract aesthetic minimal library or study workspace, soft blue ambient light, high-end architectural photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDm0NHRfDIyefczfHc37OUIXEH1VQuaC_8WECaEd3mxkXNK2eOMUqMFV0S8fOZZyMhFlsEZIrhJNlHLfX7ky2qSprVCs6SFVgnbE3Oa5weY4zGPgyPT09Nv2ZQ-maEd6wLp2B6A-Uuqlz-EuYlRzEGBMeDJVcARFZcS3TARFYhrjiC7GzJx1Cfl6bL3mTmo_tcUVB-K1Fm3PkDwpbJ9iKk0intxbT7MC6d5P2zfAV0M84HaOi-RFAfZs6O3tzN_qm087oPxdNNSgFnc"/>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-t-[32px] shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
+<div class="fixed bottom-0 left-0 w-full flex justify-around items-center pt-3 pb-8 px-8">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 transition-all tap-highlight-transparent active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-['Inter'] text-[11px] font-semibold">Home</span>
+</a>
+<!-- Records -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-blue-500 transition-all tap-highlight-transparent active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="analytics">analytics</span>
+<span class="font-['Inter'] text-[11px] font-semibold">Records</span>
+</a>
+<!-- Ranking -->
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-blue-500 transition-all tap-highlight-transparent active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1" data-icon="leaderboard">leaderboard</span>
+<span class="font-['Inter'] text-[11px] font-semibold">Ranking</span>
+</a>
+</div>
+</nav>
+</body></html>

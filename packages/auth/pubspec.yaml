@@ -1,0 +1,22 @@
+name: studyon_auth
+description: Authentication and token management for STUDYON
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: '>=3.38.0'
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.0
+  flutter_secure_storage: ^9.2.0
+  studyon_core:
+    path: ../core
+  studyon_api_client:
+    path: ../api_client
+  studyon_models:
+    path: ../models

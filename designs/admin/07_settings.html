@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin Console - 시스템 설정</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#743500",
+                        "surface-container-high": "#e7e8e9",
+                        "primary-fixed": "#d7e2ff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#fffbff",
+                        "on-secondary-container": "#3e5682",
+                        "tertiary": "#944600",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#d7e2ff",
+                        "on-background": "#191c1d",
+                        "on-secondary": "#ffffff",
+                        "on-primary-fixed-variant": "#004491",
+                        "inverse-primary": "#acc7ff",
+                        "background": "#f8f9fa",
+                        "secondary-fixed-dim": "#afc7fa",
+                        "primary": "#0059b9",
+                        "surface": "#f8f9fa",
+                        "surface-tint": "#005bbe",
+                        "surface-container-low": "#f3f4f5",
+                        "inverse-surface": "#2e3132",
+                        "surface-container": "#edeeef",
+                        "on-surface": "#191c1d",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#fefcff",
+                        "on-secondary-fixed": "#001a40",
+                        "primary-container": "#1071e5",
+                        "on-secondary-fixed-variant": "#2e4672",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#f8f9fa",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "secondary-container": "#b5ccff",
+                        "outline-variant": "#c1c6d6",
+                        "on-primary-fixed": "#001a40",
+                        "secondary": "#475e8b",
+                        "tertiary-fixed": "#ffdbc8",
+                        "primary-fixed-dim": "#acc7ff",
+                        "tertiary-container": "#ba5900",
+                        "surface-dim": "#d9dadb",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#311300",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#e1e3e4",
+                        "inverse-on-surface": "#f0f1f2",
+                        "outline": "#727785",
+                        "on-surface-variant": "#414754",
+                        "surface-container-highest": "#e1e3e4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- TopNavBar Cluster -->
+<header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl w-full sticky top-0 z-50 shadow-sm shadow-blue-900/5 flex items-center justify-between px-8 h-16 w-full font-['Plus_Jakarta_Sans'] antialiased">
+<div class="flex items-center gap-8">
+<span class="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50">Admin Console</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-blue-600 font-semibold border-b-2 border-blue-600 py-5" href="#">Dashboard</a>
+<a class="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 py-5 transition-colors" href="#">Users</a>
+<a class="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 py-5 transition-colors" href="#">Reports</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined text-slate-500">help</span>
+</button>
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined text-slate-500">settings</span>
+</button>
+<img alt="Admin Avatar" class="w-8 h-8 rounded-full border border-slate-200" data-alt="professional portrait of a middle-aged man in a minimalist office setting, clean lighting, blurred bookshelf background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIXrqnXO8LWiOSTgHMBr8k1VYKxFiWibDSMdGyI9Y6QDiU0BkoqiOgVKJ2qWz4sl68pjhFISG1Dp0_cLQeZSwq1pxbfAleOako6C55l3CVS33aOurqfotMkwrtMTwPZmOErqTGSN2z3kEcKuAL0WULXwr6hRMjx6CKVK00GVPdRlOF3nHfJGVFRrMZg8Oh2HNMEishVvD_SBtItP5KrGTipkkhaBoLPGIOBAkvKDCR_dhRwVWRsq9jKVtB6QclgZdpNvYXWTl-sm1f"/>
+</div>
+</header>
+<div class="flex min-h-screen">
+<!-- SideNavBar Cluster -->
+<aside class="h-screen w-64 fixed left-0 top-16 bg-slate-50 dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex flex-col p-4 gap-2 font-['Inter'] text-sm tracking-wide">
+<div class="mb-6 px-2">
+<p class="text-blue-600 font-bold">Management</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">System Administrator</p>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 text-blue-600 font-bold rounded-xl shadow-sm transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">meeting_room</span>
+<span>Room Info</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-xl hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">schedule</span>
+<span>Hours</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-xl hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">event_seat</span>
+<span>Seats</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-xl hover:translate-x-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">notifications</span>
+<span>Notifications</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 flex-1 p-8 pb-32">
+<div class="max-w-5xl mx-auto">
+<header class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">시스템 설정</h1>
+<p class="text-on-surface-variant text-lg">스터디룸 운영 환경 및 시스템 정책을 관리합니다.</p>
+</div>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Section 1: Study Room Info -->
+<section class="space-y-6">
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/15">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">meeting_room</span>
+<h2 class="text-xl font-bold">스터디룸 정보</h2>
+</div>
+<div class="space-y-4">
+<div>
+<label class="block text-sm font-semibold text-on-surface-variant mb-1.5">스터디룸 이름</label>
+<input class="w-full bg-surface-container-high border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all" type="text" value="강남 에이온 스터디 카페"/>
+</div>
+<div>
+<label class="block text-sm font-semibold text-on-surface-variant mb-1.5">대표 연락처</label>
+<input class="w-full bg-surface-container-high border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all" type="text" value="02-1234-5678"/>
+</div>
+<div>
+<label class="block text-sm font-semibold text-on-surface-variant mb-1.5">사업장 주소</label>
+<textarea class="w-full bg-surface-container-high border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all" rows="2">서울특별시 강남구 테헤란로 123 에이온타워 5층</textarea>
+</div>
+</div>
+</div>
+<!-- Section 3: Seat Configuration -->
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/15">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">event_seat</span>
+<h2 class="text-xl font-bold">좌석 설정</h2>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div>
+<label class="block text-sm font-semibold text-on-surface-variant mb-1.5">총 좌석 수</label>
+<input class="w-full bg-surface-container-high border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all" type="number" value="48"/>
+</div>
+<div>
+<label class="block text-sm font-semibold text-on-surface-variant mb-1.5">좌석 번호 접두사</label>
+<input class="w-full bg-surface-container-high border-none rounded-lg p-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all" type="text" value="ROOM-A"/>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg">
+<div>
+<p class="font-semibold">자동 좌석 배정</p>
+<p class="text-xs text-on-surface-variant">사용자 입실 시 가장 적합한 위치를 추천합니다.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Section 2: Operating Hours -->
+<section class="space-y-6">
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/15">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<h2 class="text-xl font-bold">운영 시간</h2>
+</div>
+<div class="space-y-3">
+<!-- Day Row -->
+<div class="flex items-center justify-between py-2 border-b border-surface-container/50 last:border-0">
+<span class="w-12 font-medium">월 - 금</span>
+<div class="flex items-center gap-2">
+<input class="bg-surface-container-high border-none rounded px-2 py-1 text-sm focus:ring-1 focus:ring-primary/20" type="time" value="09:00"/>
+<span class="text-on-surface-variant">-</span>
+<input class="bg-surface-container-high border-none rounded px-2 py-1 text-sm focus:ring-1 focus:ring-primary/20" type="time" value="22:00"/>
+</div>
+</div>
+<div class="flex items-center justify-between py-2 border-b border-surface-container/50 last:border-0">
+<span class="w-12 font-medium">토요일</span>
+<div class="flex items-center gap-2">
+<input class="bg-surface-container-high border-none rounded px-2 py-1 text-sm focus:ring-1 focus:ring-primary/20" type="time" value="10:00"/>
+<span class="text-on-surface-variant">-</span>
+<input class="bg-surface-container-high border-none rounded px-2 py-1 text-sm focus:ring-1 focus:ring-primary/20" type="time" value="20:00"/>
+</div>
+</div>
+<div class="flex items-center justify-between py-2 opacity-50">
+<span class="w-12 font-medium text-error">일요일</span>
+<div class="flex items-center gap-4">
+<span class="text-sm font-semibold">휴무</span>
+<label class="relative inline-flex items-center cursor-pointer scale-90">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Section 4: Break & Notifications -->
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/15">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">notifications</span>
+<h2 class="text-xl font-bold">휴식 및 알림</h2>
+</div>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between mb-2">
+<label class="text-sm font-semibold text-on-surface-variant">최대 휴식 시간</label>
+<span class="text-sm font-bold text-primary">30분</span>
+</div>
+<input class="w-full h-2 bg-surface-container-high rounded-lg appearance-none cursor-pointer accent-primary" type="range"/>
+</div>
+<div>
+<label class="block text-sm font-semibold text-on-surface-variant mb-1.5">경고 알림 시점 (%)</label>
+<div class="flex items-center gap-4">
+<input class="w-20 bg-surface-container-high border-none rounded-lg p-2 text-center font-bold" type="number" value="10"/>
+<span class="text-sm text-on-surface-variant">시간 종료 전 잔여 퍼센트 도달 시 알림</span>
+</div>
+</div>
+<div class="pt-4 space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">입실 SMS 발송</span>
+<label class="relative inline-flex items-center cursor-pointer scale-75">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">잔액 부족 알림</span>
+<label class="relative inline-flex items-center cursor-pointer scale-75">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium">시스템 공지 팝업</span>
+<label class="relative inline-flex items-center cursor-pointer scale-75">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Action Footer -->
+<footer class="fixed bottom-0 left-64 right-0 bg-white/60 backdrop-blur-md border-t border-slate-100 p-6 flex justify-end gap-3 z-40">
+<button class="px-8 py-3 rounded-full font-bold text-on-surface bg-surface-container-low hover:bg-surface-container-high transition-colors active:scale-95 duration-200">
+            취소
+        </button>
+<button class="px-10 py-3 rounded-full font-bold text-on-primary bg-primary hover:primary-container shadow-lg shadow-primary/20 transition-all active:scale-95 duration-200">
+            저장하기
+        </button>
+</footer>
+</body></html>

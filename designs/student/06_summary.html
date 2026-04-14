@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary": "#944600",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "surface-container-lowest": "#ffffff",
+                        "outline-variant": "#c1c6d6",
+                        "secondary-fixed": "#d7e2ff",
+                        "on-background": "#191c1d",
+                        "on-surface-variant": "#414754",
+                        "on-primary-fixed-variant": "#004491",
+                        "on-error": "#ffffff",
+                        "on-tertiary-container": "#fffbff",
+                        "on-secondary-container": "#3e5682",
+                        "on-surface": "#191c1d",
+                        "inverse-surface": "#2e3132",
+                        "surface-container": "#edeeef",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#acc7ff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-secondary-fixed": "#001a40",
+                        "secondary": "#475e8b",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "on-primary-container": "#fefcff",
+                        "on-tertiary-fixed": "#311300",
+                        "surface": "#f8f9fa",
+                        "on-primary-fixed": "#001a40",
+                        "surface-tint": "#005bbe",
+                        "outline": "#727785",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#e7e8e9",
+                        "secondary-fixed-dim": "#afc7fa",
+                        "tertiary-container": "#ba5900",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f3f4f5",
+                        "secondary-container": "#b5ccff",
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#d9dadb",
+                        "surface-variant": "#e1e3e4",
+                        "primary-fixed": "#d7e2ff",
+                        "inverse-primary": "#acc7ff",
+                        "tertiary-fixed": "#ffdbc8",
+                        "on-secondary-fixed-variant": "#2e4672",
+                        "surface-bright": "#f8f9fa",
+                        "surface-container-highest": "#e1e3e4",
+                        "primary-container": "#1071e5",
+                        "on-primary": "#ffffff",
+                        "primary": "#0059b9",
+                        "background": "#f8f9fa"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        .confetti-overlay {
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10l2 2m20 5l-2 2m40 10l3 3M80 20l-2 4M15 80l4-4m50 10l-2-2' stroke='%230059b9' stroke-width='2' stroke-linecap='round' opacity='0.2'/%3E%3C/svg%3E");
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] flex items-center justify-between px-6 h-16">
+<button class="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95 duration-200 p-2 rounded-full">
+<span class="material-symbols-outlined text-slate-500">close</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-lg tracking-tight text-on-surface">Study Complete</h1>
+<div class="w-10"></div> <!-- Spacer for symmetry -->
+</header>
+<main class="pt-24 pb-32 px-6 max-w-md mx-auto min-h-screen">
+<!-- Celebration Hero Section -->
+<section class="relative text-center mb-12 py-8 overflow-hidden rounded-xl">
+<div class="confetti-overlay absolute inset-0 pointer-events-none"></div>
+<div class="inline-flex items-center gap-2 px-4 py-2 bg-primary-container/10 text-primary font-bold rounded-full mb-6">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<span class="text-sm tracking-tight">오늘의 순위 2위</span>
+</div>
+<h2 class="font-headline text-slate-500 text-lg mb-2">오늘도 정말 수고하셨어요!</h2>
+<div class="flex flex-col items-center">
+<span class="font-headline text-5xl font-extrabold text-primary tracking-tighter mb-4">3시간 12분</span>
+<div class="flex items-center gap-1.5 px-4 py-1.5 bg-surface-container-high rounded-full">
+<span class="material-symbols-outlined text-green-600 text-[20px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-semibold text-on-surface-variant text-sm">목표 달성 104%</span>
+</div>
+</div>
+</section>
+<!-- Bento Grid Stats -->
+<div class="grid grid-cols-2 gap-4 mb-8">
+<!-- Streak Card -->
+<div class="col-span-2 bg-surface-container-low p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute right-[-10px] top-[-10px] opacity-10 group-hover:scale-110 transition-transform duration-500">
+<span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<div class="relative z-10 flex items-center justify-between">
+<div>
+<p class="text-on-surface-variant text-sm mb-1">꾸준함의 결과</p>
+<h3 class="font-headline text-2xl font-bold">7일 연속 달성</h3>
+</div>
+<div class="w-12 h-12 bg-primary-container flex items-center justify-center rounded-full text-white">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+</div>
+</div>
+<!-- Weekly Activity Report -->
+<div class="col-span-2 bg-surface-container-low p-6 rounded-xl">
+<div class="flex justify-between items-end mb-6">
+<h3 class="font-headline font-bold text-lg">주간 학습 리포트</h3>
+<span class="text-xs text-on-surface-variant font-medium">지난 7일간</span>
+</div>
+<div class="flex justify-between items-end h-32 gap-2">
+<!-- Bars -->
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container/30 rounded-t-lg h-[40%]"></div>
+<span class="text-[10px] text-on-surface-variant font-bold">월</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container/30 rounded-t-lg h-[60%]"></div>
+<span class="text-[10px] text-on-surface-variant font-bold">화</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container/30 rounded-t-lg h-[55%]"></div>
+<span class="text-[10px] text-on-surface-variant font-bold">수</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container/30 rounded-t-lg h-[75%]"></div>
+<span class="text-[10px] text-on-surface-variant font-bold">목</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container/30 rounded-t-lg h-[45%]"></div>
+<span class="text-[10px] text-on-surface-variant font-bold">금</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-secondary-container/30 rounded-t-lg h-[30%]"></div>
+<span class="text-[10px] text-on-surface-variant font-bold">토</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-2">
+<div class="w-full bg-primary rounded-t-lg h-[90%] shadow-lg shadow-primary/20"></div>
+<span class="text-[10px] text-primary font-black">오늘</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Section -->
+<div class="flex flex-col gap-3">
+<button class="w-full py-5 bg-primary text-on-primary font-bold rounded-xl text-lg active:scale-[0.98] transition-transform flex items-center justify-center gap-2 shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-[20px]">home</span>
+                홈으로
+            </button>
+<button class="w-full py-5 bg-secondary-container text-on-secondary-container font-bold rounded-xl text-lg active:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">exit_to_app</span>
+                퇴실하기
+            </button>
+</div>
+</main>
+<!-- Bottom Navigation Shell (Label & Icon Type) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-8 pb-8 pt-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-t-[2rem] shadow-[0_-4px_24px_0_rgba(0,0,0,0.04)]">
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-6 py-2 hover:opacity-80 transition-opacity active:scale-90 duration-200 cursor-pointer">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-['Inter'] font-medium text-[11px]">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-2xl px-6 py-2 hover:opacity-80 transition-opacity active:scale-90 duration-200 cursor-pointer">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">exit_to_app</span>
+<span class="font-['Inter'] font-medium text-[11px]">Leave</span>
+</div>
+</nav>
+<!-- Background Decorative Image -->
+<div class="fixed inset-0 -z-10 opacity-5 pointer-events-none">
+<img alt="" class="w-full h-full object-cover" data-alt="abstract blurred aesthetic background with soft blue and white gradients and subtle floating dust particles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvc8YEQ6PM0EZf-Ztpf-6jbj3cF1PtITQmPn3UTO5GG5TCQAQra786K-_0kN4w5PoD0AlvL8_oxZCczKKKHaoskgQUbJopXIuFxQleqK4esmz_91Zwf-nJr4NXYLOjcvQKnRvbGrh0cshqiJx41wD9P6ZY0OXWFyxa3FlgL2KGXUZe7zv_yZdgT00ORn0mq9CjrPCvgORoqC8ls1gzCpDE_epN7LDq04cBP92Ze9eXLK8NhO7Fg5Un_UoULOhILuDCxPEwD9vaKolj"/>
+</div>
+</body></html>

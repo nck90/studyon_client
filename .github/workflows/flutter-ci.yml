@@ -1,0 +1,61 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: |
+          cd apps/studyon_client
+          flutter analyze --no-fatal-infos
+
+      - name: Run tests
+        run: |
+          cd apps/studyon_client
+          flutter test
+
+  build-ios:
+    runs-on: macos-latest
+    needs: analyze-and-test
+    if: github.ref == 'refs/heads/main'
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS (no codesign)
+        run: |
+          cd apps/studyon_client
+          flutter build ios --no-codesign

@@ -1,0 +1,16 @@
+name: studyon_realtime
+description: SSE client for real-time events in STUDYON
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  dio: ^5.8.0
+  studyon_core:
+    path: ../core
+  studyon_models:
+    path: ../models

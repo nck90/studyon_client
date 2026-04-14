@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#afc7fa",
+                    "surface-tint": "#005bbe",
+                    "surface-container": "#edeeef",
+                    "on-error-container": "#93000a",
+                    "outline-variant": "#c1c6d6",
+                    "outline": "#727785",
+                    "on-tertiary-container": "#fffbff",
+                    "tertiary": "#944600",
+                    "tertiary-fixed": "#ffdbc8",
+                    "on-surface-variant": "#414754",
+                    "on-primary-fixed": "#001a40",
+                    "tertiary-fixed-dim": "#ffb689",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-tertiary-fixed-variant": "#743500",
+                    "secondary-container": "#b5ccff",
+                    "on-tertiary-fixed": "#311300",
+                    "background": "#f8f9fa",
+                    "inverse-surface": "#2e3132",
+                    "inverse-on-surface": "#f0f1f2",
+                    "primary-fixed": "#d7e2ff",
+                    "on-background": "#191c1d",
+                    "tertiary-container": "#ba5900",
+                    "surface": "#f8f9fa",
+                    "secondary-fixed": "#d7e2ff",
+                    "inverse-primary": "#acc7ff",
+                    "primary": "#0059b9",
+                    "surface-container-lowest": "#ffffff",
+                    "on-error": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "on-primary-container": "#fefcff",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#004491",
+                    "on-secondary-fixed": "#001a40",
+                    "on-secondary-container": "#3e5682",
+                    "error": "#ba1a1a",
+                    "primary-container": "#1071e5",
+                    "on-surface": "#191c1d",
+                    "on-secondary-fixed-variant": "#2e4672",
+                    "error-container": "#ffdad6",
+                    "primary-fixed-dim": "#acc7ff",
+                    "surface-dim": "#d9dadb",
+                    "secondary": "#475e8b",
+                    "surface-variant": "#e1e3e4",
+                    "on-primary": "#ffffff",
+                    "surface-container-high": "#e7e8e9",
+                    "surface-container-low": "#f3f4f5",
+                    "surface-bright": "#f8f9fa"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar (Shared Component JSON Mapping) -->
+<aside class="bg-slate-50 dark:bg-slate-900 font-['Plus_Jakarta_Sans'] antialiased h-screen w-64 border-r-0 flex flex-col h-full py-8 shrink-0">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-[#3182F6] flex items-center justify-center text-white">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<div>
+<h1 class="text-xl font-bold text-[#3182F6]">StudySpace</h1>
+<p class="text-xs text-slate-500 font-medium">Admin Console</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<!-- Dashboard -->
+<div class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer active:scale-95 duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</div>
+<!-- Seat Map (Active) -->
+<div class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer active:scale-95 duration-200 text-[#3182F6] font-bold border-r-4 border-[#3182F6] bg-blue-50/50 dark:bg-blue-900/20 transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">event_seat</span>
+<span class="font-medium">Seat Map</span>
+</div>
+<!-- Reservations -->
+<div class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer active:scale-95 duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors">
+<span class="material-symbols-outlined">book_online</span>
+<span class="font-medium">Reservations</span>
+</div>
+<!-- Users -->
+<div class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer active:scale-95 duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors">
+<span class="material-symbols-outlined">group</span>
+<span class="font-medium">Users</span>
+</div>
+<!-- Settings -->
+<div class="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer active:scale-95 duration-200 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium">Settings</span>
+</div>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full py-4 px-4 bg-[#3182F6] text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">add</span>
+<span>New Reservation</span>
+</button>
+<div class="mt-6 flex items-center gap-3 px-4">
+<img alt="Admin User Avatar" class="w-8 h-8 rounded-full bg-slate-200" data-alt="close-up portrait of a professional male administrator in a modern office setting, soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuARgDW-VDDi37um0sDIDap_lvqgGddBBvIgI5xALUo0xEu-a64efaLXm4oq1H5F80mwSkGNvhmq2sWEXK9nIVgLP4hiezy8s7TnPs7ULTDMnLKhiXaH26G6MmifX9gvsQGJj-Nbxb0zLDyszT-ORGSN5WFGZ69vGZqjsPw3yFLj3iY6U3mTnZbFWfoLvieXwJ6BooDkqey5ng2_8zvS69hEa4faDg1BZeug4wG5CofomEEoTbtk46MnIiOCZ1Sl8VB0es5UALXeSUi9"/>
+<div class="overflow-hidden">
+<p class="text-sm font-bold truncate">관리자</p>
+<p class="text-xs text-slate-400 truncate">admin@studyspace.kr</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- TopNavBar (Shared Component JSON Mapping) -->
+<header class="w-full h-16 sticky top-0 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl flex items-center justify-between px-8 w-full border-b-0 shadow-sm shadow-slate-200/50 dark:shadow-none">
+<div class="flex items-center gap-8 flex-1">
+<h2 class="text-lg font-bold text-slate-900 dark:text-slate-50 font-headline">Seat Management</h2>
+<div class="max-w-md w-full relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#3182F6] transition-colors">search</span>
+<input class="w-full bg-slate-100 border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-blue-500/20 transition-all font-body" placeholder="학생 이름 또는 좌석 검색" type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-600 dark:text-slate-400 hover:text-[#3182F6] transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-600 dark:text-slate-400 hover:text-[#3182F6] transition-all">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-slate-200 ml-2 overflow-hidden border border-slate-100">
+<img alt="Admin Profile" data-alt="minimalist profile avatar placeholder with soft pastel gradient background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBB3L03mGD3SKDrG-5wH8zAhqQu_8blfFqxqJeLKAof4ltrAB38v16GqJshdQt3moHi4EbYiN0I3i15XYyvBhM1eBfrkPNjN-jVjOzyn0Ug4jBImOXWmaGxybjUs7Ef8C25qJYqaDKxKLb-bWVKWFj5-Yr-jA8vnqyYrYfc3Rymv18EkdIMeCSaM6YChap7qfxcWyKGMvV9rvxbt34UZkWvl-gYM_UT4dsHWvMDYRls-pPsTa2b5T5Zl-OqL4TwEN6W5H2Hmy04_r_7"/>
+</div>
+</div>
+</header>
+<!-- Canvas Area -->
+<section class="flex-1 overflow-y-auto p-8 bg-surface">
+<!-- Header Section -->
+<div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h3 class="text-4xl font-extrabold font-headline tracking-tight text-on-surface mb-2">실시간 좌석 현황</h3>
+<p class="text-on-surface-variant font-body">현재 학습 공간의 좌석 사용 현황을 한눈에 파악하세요.</p>
+</div>
+<!-- Status Filter Chips -->
+<div class="flex flex-wrap gap-2">
+<button class="px-5 py-2.5 rounded-full bg-primary text-on-primary font-bold text-sm shadow-md shadow-primary/20 active:scale-95 transition-all">전체</button>
+<button class="px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-semibold text-sm hover:bg-surface-container-highest transition-all">이용중 (12)</button>
+<button class="px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-semibold text-sm hover:bg-surface-container-highest transition-all">외출중 (3)</button>
+<button class="px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-semibold text-sm hover:bg-surface-container-highest transition-all">공석 (9)</button>
+<button class="px-5 py-2.5 rounded-full bg-surface-container-high text-on-surface-variant font-semibold text-sm hover:bg-surface-container-highest transition-all">결석 (2)</button>
+</div>
+</div>
+<!-- Bento-style Seat Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+<!-- Seat A1: In-use -->
+<div class="group relative aspect-[4/5] bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="absolute top-6 right-6 w-3 h-3 rounded-full bg-[#3182F6]"></div>
+<div class="h-full flex flex-col">
+<span class="text-sm font-bold text-[#3182F6] font-headline mb-4">A1</span>
+<div class="mt-auto">
+<p class="text-2xl font-extrabold font-headline text-on-surface mb-1">김민수</p>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-xs font-medium font-body">02:45h</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Seat A2: On-break -->
+<div class="group relative aspect-[4/5] bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="absolute top-6 right-6 w-3 h-3 rounded-full bg-[#F2B43F]"></div>
+<div class="h-full flex flex-col">
+<span class="text-sm font-bold text-[#F2B43F] font-headline mb-4">A2</span>
+<div class="mt-auto">
+<p class="text-2xl font-extrabold font-headline text-on-surface mb-1">이지안</p>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">coffee</span>
+<span class="text-xs font-medium font-body">외출중</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Seat A3: Empty -->
+<div class="group relative aspect-[4/5] bg-surface-container-low border border-dashed border-outline-variant rounded-[2rem] p-6 transition-all duration-300 hover:bg-surface-container-high cursor-pointer">
+<div class="h-full flex flex-col items-center justify-center">
+<span class="text-2xl font-extrabold font-headline text-outline mb-1">A3</span>
+<span class="text-xs font-bold text-outline-variant uppercase tracking-widest">Available</span>
+</div>
+</div>
+<!-- Seat A4: In-use -->
+<div class="group relative aspect-[4/5] bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="absolute top-6 right-6 w-3 h-3 rounded-full bg-[#3182F6]"></div>
+<div class="h-full flex flex-col">
+<span class="text-sm font-bold text-[#3182F6] font-headline mb-4">A4</span>
+<div class="mt-auto">
+<p class="text-2xl font-extrabold font-headline text-on-surface mb-1">박서준</p>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-xs font-medium font-body">05:12h</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Seat A5: Absent -->
+<div class="group relative aspect-[4/5] bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm border-2 border-red-50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="absolute top-6 right-6 w-3 h-3 rounded-full bg-[#F04438]"></div>
+<div class="h-full flex flex-col">
+<span class="text-sm font-bold text-[#F04438] font-headline mb-4">A5</span>
+<div class="mt-auto">
+<p class="text-2xl font-extrabold font-headline text-on-surface mb-1">최유진</p>
+<div class="flex items-center gap-1.5 text-[#F04438]">
+<span class="material-symbols-outlined text-sm">warning</span>
+<span class="text-xs font-bold font-body">미입실</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Seat A6: Empty -->
+<div class="group relative aspect-[4/5] bg-surface-container-low border border-dashed border-outline-variant rounded-[2rem] p-6 transition-all duration-300 hover:bg-surface-container-high cursor-pointer">
+<div class="h-full flex flex-col items-center justify-center">
+<span class="text-2xl font-extrabold font-headline text-outline mb-1">A6</span>
+<span class="text-xs font-bold text-outline-variant uppercase tracking-widest">Available</span>
+</div>
+</div>
+<!-- Row B -->
+<!-- Seat B1: In-use -->
+<div class="group relative aspect-[4/5] bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="absolute top-6 right-6 w-3 h-3 rounded-full bg-[#3182F6]"></div>
+<div class="h-full flex flex-col">
+<span class="text-sm font-bold text-[#3182F6] font-headline mb-4">B1</span>
+<div class="mt-auto">
+<p class="text-2xl font-extrabold font-headline text-on-surface mb-1">정우성</p>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-xs font-medium font-body">01:20h</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Seat B2: In-use -->
+<div class="group relative aspect-[4/5] bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="absolute top-6 right-6 w-3 h-3 rounded-full bg-[#3182F6]"></div>
+<div class="h-full flex flex-col">
+<span class="text-sm font-bold text-[#3182F6] font-headline mb-4">B2</span>
+<div class="mt-auto">
+<p class="text-2xl font-extrabold font-headline text-on-surface mb-1">강지민</p>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-xs font-medium font-body">03:50h</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Seat B3: On-break -->
+<div class="group relative aspect-[4/5] bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="absolute top-6 right-6 w-3 h-3 rounded-full bg-[#F2B43F]"></div>
+<div class="h-full flex flex-col">
+<span class="text-sm font-bold text-[#F2B43F] font-headline mb-4">B3</span>
+<div class="mt-auto">
+<p class="text-2xl font-extrabold font-headline text-on-surface mb-1">한소희</p>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">coffee</span>
+<span class="text-xs font-medium font-body">식사중</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Seat B4: Empty -->
+<div class="group relative aspect-[4/5] bg-surface-container-low border border-dashed border-outline-variant rounded-[2rem] p-6 transition-all duration-300 hover:bg-surface-container-high cursor-pointer">
+<div class="h-full flex flex-col items-center justify-center">
+<span class="text-2xl font-extrabold font-headline text-outline mb-1">B4</span>
+<span class="text-xs font-bold text-outline-variant uppercase tracking-widest">Available</span>
+</div>
+</div>
+<!-- Seat B5: In-use -->
+<div class="group relative aspect-[4/5] bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="absolute top-6 right-6 w-3 h-3 rounded-full bg-[#3182F6]"></div>
+<div class="h-full flex flex-col">
+<span class="text-sm font-bold text-[#3182F6] font-headline mb-4">B5</span>
+<div class="mt-auto">
+<p class="text-2xl font-extrabold font-headline text-on-surface mb-1">윤아름</p>
+<div class="flex items-center gap-1.5 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-xs font-medium font-body">00:45h</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Seat B6: Absent -->
+<div class="group relative aspect-[4/5] bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm border-2 border-red-50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+<div class="absolute top-6 right-6 w-3 h-3 rounded-full bg-[#F04438]"></div>
+<div class="h-full flex flex-col">
+<span class="text-sm font-bold text-[#F04438] font-headline mb-4">B6</span>
+<div class="mt-auto">
+<p class="text-2xl font-extrabold font-headline text-on-surface mb-1">김태리</p>
+<div class="flex items-center gap-1.5 text-[#F04438]">
+<span class="material-symbols-outlined text-sm">event_busy</span>
+<span class="text-xs font-bold font-body">지각 대기</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Dashboard Stats Layer (Asymmetric Editorial Style) -->
+<div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="md:col-span-2 bg-primary-container p-10 rounded-[2.5rem] text-on-primary flex flex-col justify-between relative overflow-hidden group">
+<div class="relative z-10">
+<h4 class="text-xl font-bold font-headline mb-2">공간 최적화 리포트</h4>
+<p class="text-white/80 max-w-sm mb-8">현재 이용률은 평소보다 15% 높습니다. 정오 이후 추가 공석이 발생할 것으로 예상됩니다.</p>
+<div class="flex items-baseline gap-2">
+<span class="text-6xl font-black font-headline tracking-tighter">82%</span>
+<span class="text-lg font-medium opacity-70">실시간 점유율</span>
+</div>
+</div>
+<!-- Decorative Graphic -->
+<div class="absolute top-0 right-0 w-64 h-full bg-white/10 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-700"></div>
+<span class="material-symbols-outlined absolute bottom-10 right-10 text-8xl opacity-10 select-none">trending_up</span>
+</div>
+<div class="flex flex-col gap-6">
+<div class="bg-surface-container-high p-8 rounded-[2rem] flex items-center justify-between">
+<div>
+<p class="text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-1">평균 집중 시간</p>
+<p class="text-3xl font-extrabold font-headline text-on-surface">3h 42m</p>
+</div>
+<div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined">bolt</span>
+</div>
+</div>
+<div class="bg-surface-container-high p-8 rounded-[2rem] flex items-center justify-between">
+<div>
+<p class="text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-1">대기 중인 인원</p>
+<p class="text-3xl font-extrabold font-headline text-on-surface">4명</p>
+</div>
+<div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-secondary shadow-sm">
+<span class="material-symbols-outlined">hourglass_top</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Contextual FAB (Only on Management Screen) -->
+<div class="fixed bottom-8 right-8 z-50">
+<button class="flex items-center gap-3 px-8 py-5 bg-[#3182F6] text-white rounded-full font-bold shadow-2xl shadow-blue-500/40 hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">print</span>
+<span>좌석 현황 출력</span>
+</button>
+</div>
+</body></html>

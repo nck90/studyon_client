@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+        }
+        h1, h2, h3, .headline {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(24px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-high": "#e7e8e9",
+                      "secondary-fixed-dim": "#afc7fa",
+                      "secondary-container": "#b5ccff",
+                      "on-error": "#ffffff",
+                      "on-tertiary-fixed": "#311300",
+                      "primary-container": "#1071e5",
+                      "surface-container": "#edeeef",
+                      "tertiary": "#944600",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary": "#ffffff",
+                      "primary-fixed": "#d7e2ff",
+                      "on-error-container": "#93000a",
+                      "on-secondary-container": "#3e5682",
+                      "surface-variant": "#e1e3e4",
+                      "on-tertiary": "#ffffff",
+                      "on-primary": "#ffffff",
+                      "outline-variant": "#c1c6d6",
+                      "on-surface": "#191c1d",
+                      "surface-dim": "#d9dadb",
+                      "primary": "#0059b9",
+                      "secondary-fixed": "#d7e2ff",
+                      "on-tertiary-container": "#fffbff",
+                      "inverse-surface": "#2e3132",
+                      "inverse-primary": "#acc7ff",
+                      "on-background": "#191c1d",
+                      "surface-container-low": "#f3f4f5",
+                      "surface-bright": "#f8f9fa",
+                      "surface": "#f8f9fa",
+                      "tertiary-fixed": "#ffdbc8",
+                      "background": "#f8f9fa",
+                      "surface-container-highest": "#e1e3e4",
+                      "on-primary-fixed": "#001a40",
+                      "on-primary-container": "#fefcff",
+                      "error": "#ba1a1a",
+                      "tertiary-fixed-dim": "#ffb689",
+                      "secondary": "#475e8b",
+                      "on-secondary-fixed-variant": "#2e4672",
+                      "on-primary-fixed-variant": "#004491",
+                      "surface-tint": "#005bbe",
+                      "inverse-on-surface": "#f0f1f2",
+                      "tertiary-container": "#ba5900",
+                      "outline": "#727785",
+                      "error-container": "#ffdad6",
+                      "on-tertiary-fixed-variant": "#743500",
+                      "primary-fixed-dim": "#acc7ff",
+                      "on-secondary-fixed": "#001a40",
+                      "on-surface-variant": "#414754"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Plus Jakarta Sans"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          }
+        }
+    </script>
+</head>
+<body class="text-on-surface bg-surface min-h-screen flex">
+<!-- SideNavBar (from JSON) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col p-4 gap-2 h-screen w-64 bg-slate-50 border-r border-slate-200 z-50">
+<div class="flex items-center gap-3 px-4 py-6 mb-4">
+<div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<div>
+<h2 class="text-blue-700 font-black plus-jakarta-sans tracking-tight">Global Admin</h2>
+<p class="text-xs text-slate-500">Managing Ranks</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 text-slate-600 px-4 py-3 hover:bg-slate-100 rounded-xl hover:scale-[1.02] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="plus-jakarta-sans font-semibold tracking-tight">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 bg-blue-50 text-blue-700 rounded-xl px-4 py-3 font-bold hover:scale-[1.02] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="leaderboard">leaderboard</span>
+<span class="plus-jakarta-sans font-semibold tracking-tight">Rankings</span>
+</a>
+<a class="flex items-center gap-3 text-slate-600 px-4 py-3 hover:bg-slate-100 rounded-xl hover:scale-[1.02] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="plus-jakarta-sans font-semibold tracking-tight">User Stats</span>
+</a>
+<a class="flex items-center gap-3 text-slate-600 px-4 py-3 hover:bg-slate-100 rounded-xl hover:scale-[1.02] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+<span class="plus-jakarta-sans font-semibold tracking-tight">Permissions</span>
+</a>
+<a class="flex items-center gap-3 text-slate-600 px-4 py-3 hover:bg-slate-100 rounded-xl hover:scale-[1.02] transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="plus-jakarta-sans font-semibold tracking-tight">Audit Logs</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1">
+<button class="w-full bg-blue-600 text-white rounded-xl py-3 px-4 font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity mb-4">
+<span class="material-symbols-outlined text-sm">download</span>
+<span>Export Data</span>
+</button>
+<a class="flex items-center gap-3 text-slate-600 px-4 py-3 hover:bg-slate-100 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="plus-jakarta-sans font-semibold tracking-tight">Support</span>
+</a>
+<a class="flex items-center gap-3 text-slate-600 px-4 py-3 hover:bg-slate-100 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="plus-jakarta-sans font-semibold tracking-tight">Logout</span>
+</a>
+</div>
+</aside>
+<main class="ml-64 flex-1 flex flex-col min-h-screen">
+<!-- TopNavBar (from JSON) -->
+<header class="sticky top-0 z-40 flex items-center justify-between px-8 w-full bg-white/80 backdrop-blur-xl h-16 border-b border-slate-100 shadow-sm">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-slate-50 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-600/20 placeholder:text-slate-400" placeholder="Search student by name or ID..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<button class="p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-50 rounded-full transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="flex items-center gap-3 pl-6 border-l border-slate-100">
+<div class="text-right">
+<p class="text-sm font-bold text-slate-900 leading-tight">Admin Ranking Pro</p>
+<p class="text-xs text-slate-500">Super Administrator</p>
+</div>
+<img alt="Administrator profile avatar" class="w-10 h-10 rounded-full object-cover ring-2 ring-blue-50" data-alt="Close-up professional headshot of a smiling executive in a modern bright office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB5rQVj-GZyK9gvjxF1veWW_iSmc2_9fIFazoJkWVZNivGwojtP1URorR8twbD1OzwM6nmC4z2OUflaKEwV2QkUx6coFEQe5k4Yrd_nFxnqeojYXdlYtbpyIw1j5-HXU2vCtwvultcF2x0jA2HMypgYauIQ8uKbc_5NDT6qOeQMCAQ8w4g6A3KrZX-2DIAk2B2lbytujyVQPCUPU0MKmgP_JLil2u3TdWmQV1gZRCQsi2cpCgZgRZ9Rar4zyKclZ4_LkLPbRpH_36BL"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-8 space-y-8 max-w-7xl mx-auto w-full">
+<!-- Page Header & Summary -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Ranking Management</h1>
+<p class="text-slate-500 text-lg">Real-time overview of academic performance and study trends.</p>
+</div>
+<div class="flex gap-4">
+<div class="bg-surface-container-low px-6 py-4 rounded-2xl flex items-center gap-4 border border-white/50">
+<div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">schedule</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Study Hours</p>
+<p class="text-2xl font-black text-slate-900">42,850.5</p>
+</div>
+</div>
+<div class="bg-surface-container-low px-6 py-4 rounded-2xl flex items-center gap-4 border border-white/50">
+<div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Students</p>
+<p class="text-2xl font-black text-slate-900">1,204</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Bento Grid Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Chart Card (2/3 width) -->
+<div class="lg:col-span-2 bg-surface-container-low p-8 rounded-3xl relative overflow-hidden group">
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+<div class="absolute -right-20 -top-20 w-80 h-80 bg-blue-400 blur-[100px] rounded-full"></div>
+</div>
+<div class="relative z-10">
+<div class="flex items-center justify-between mb-10">
+<div>
+<h3 class="text-xl font-bold text-slate-900">Top Performer Charts</h3>
+<p class="text-slate-500 text-sm">Study trend analysis for the current week</p>
+</div>
+<div class="flex gap-2">
+<span class="flex items-center gap-1.5 px-3 py-1 bg-white rounded-full text-xs font-bold shadow-sm">
+<span class="w-2 h-2 rounded-full bg-blue-600"></span> Kim J.
+                                </span>
+<span class="flex items-center gap-1.5 px-3 py-1 bg-white rounded-full text-xs font-bold shadow-sm">
+<span class="w-2 h-2 rounded-full bg-orange-500"></span> Park S.
+                                </span>
+<span class="flex items-center gap-1.5 px-3 py-1 bg-white rounded-full text-xs font-bold shadow-sm">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Lee M.
+                                </span>
+</div>
+</div>
+<!-- Abstract Visual Chart (CSS only) -->
+<div class="h-64 flex items-end justify-between gap-4 relative">
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-50">
+<div class="border-b border-slate-200 w-full h-0"></div>
+<div class="border-b border-slate-200 w-full h-0"></div>
+<div class="border-b border-slate-200 w-full h-0"></div>
+<div class="border-b border-slate-200 w-full h-0"></div>
+</div>
+<!-- Dummy Chart Bars/Lines representation -->
+<div class="flex-1 flex items-end justify-around h-full pt-4">
+<div class="w-12 bg-blue-600/80 rounded-t-xl hover:bg-blue-600 transition-all duration-300 h-[60%]"></div>
+<div class="w-12 bg-blue-600/80 rounded-t-xl hover:bg-blue-600 transition-all duration-300 h-[85%]"></div>
+<div class="w-12 bg-blue-600/80 rounded-t-xl hover:bg-blue-600 transition-all duration-300 h-[70%]"></div>
+<div class="w-12 bg-blue-600/80 rounded-t-xl hover:bg-blue-600 transition-all duration-300 h-[95%]"></div>
+<div class="w-12 bg-blue-600/80 rounded-t-xl hover:bg-blue-600 transition-all duration-300 h-[80%]"></div>
+<div class="w-12 bg-blue-600/80 rounded-t-xl hover:bg-blue-600 transition-all duration-300 h-[90%]"></div>
+<div class="w-12 bg-blue-600/20 rounded-t-xl h-[40%] border-2 border-dashed border-blue-600/30"></div>
+</div>
+</div>
+<div class="flex justify-between mt-4 px-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+</div>
+<!-- Focus Stats Card -->
+<div class="bg-primary p-8 rounded-3xl text-white flex flex-col justify-between shadow-2xl shadow-blue-200 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-20">
+<span class="material-symbols-outlined text-8xl" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+<div>
+<span class="px-3 py-1 bg-white/20 rounded-full text-xs font-bold uppercase tracking-widest mb-6 inline-block">Best Focus Today</span>
+<h3 class="text-4xl font-black mb-2 tracking-tight">14h 22m</h3>
+<p class="text-blue-100 font-medium">Recorded by <span class="font-bold text-white underline">Kim Ji-hoon</span></p>
+</div>
+<div class="mt-8">
+<div class="flex justify-between text-sm mb-2">
+<span class="font-medium text-blue-100">Monthly Target Completion</span>
+<span class="font-bold">92%</span>
+</div>
+<div class="w-full bg-white/20 h-2 rounded-full overflow-hidden">
+<div class="bg-white h-full w-[92%] rounded-full shadow-[0_0_12px_rgba(255,255,255,0.6)]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Leaderboard Table Section -->
+<div class="bg-surface-container-lowest rounded-3xl shadow-sm overflow-hidden">
+<div class="p-8 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div class="flex items-center gap-6">
+<h3 class="text-2xl font-bold text-slate-900">Leaderboard Table</h3>
+<div class="flex bg-slate-100 p-1 rounded-xl">
+<button class="px-4 py-1.5 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">Daily</button>
+<button class="px-6 py-1.5 text-sm font-black bg-white text-blue-600 rounded-lg shadow-sm">Weekly</button>
+<button class="px-4 py-1.5 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">Monthly</button>
+</div>
+</div>
+<button class="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+<span>Export Data (Excel)</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full border-collapse">
+<thead>
+<tr class="bg-slate-50/50">
+<th class="text-left px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest">Rank</th>
+<th class="text-left px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest">Student Name</th>
+<th class="text-left px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest">Daily Hours</th>
+<th class="text-left px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest">Weekly Hours</th>
+<th class="text-left px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest">Monthly Hours</th>
+<th class="text-right px-8 py-5 text-xs font-bold text-slate-400 uppercase tracking-widest">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<!-- Rank 1 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-8 py-5">
+<div class="w-10 h-10 bg-yellow-100 text-yellow-700 rounded-full flex items-center justify-center font-black text-lg">1</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="portrait of a young man wearing glasses looking confident against a clean library background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBH8pYZ2V7F6r9e3lLuzqFYpSw5TsDEJGgVtYKgPRFj-m_SO_B_-Kr1yyUVOCx34eH9F71zuXShlC5PgBAaY3vjhxv3D9E5oBSCklMXE4dM5ZdRa9CykUz3rAtZi4ETD48o1ZFPQxWwwkcsp566Fbll__9cGg7nmmYKxC_DZU4AbNzZgo11HvDPVfXLFfyVxRS7Rmu2CfILLEGgVP6DOFPdXSpJkSRVhHcYw6622PrdAC33bkiqjhre5bR4JsEyRK2rbWiky6VeXvSc"/>
+<div>
+<p class="font-bold text-slate-900">Kim Ji-hoon</p>
+<p class="text-xs text-slate-500">ID: ST-88219</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 font-bold text-slate-700">14h 22m</td>
+<td class="px-8 py-5 font-black text-blue-600">92h 45m</td>
+<td class="px-8 py-5 font-bold text-slate-700">382h 10m</td>
+<td class="px-8 py-5 text-right">
+<button class="text-sm font-bold text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors">View Details</button>
+</td>
+</tr>
+<!-- Rank 2 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-8 py-5">
+<div class="w-10 h-10 bg-slate-200 text-slate-600 rounded-full flex items-center justify-center font-black text-lg">2</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Close-up of a young woman with a focused expression, soft natural lighting, academic setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZci05OfB9BcQiRvYtcDu7hNmnBgnop5keT4F0KY2qYvPwXDfqV3M2nc3ZuHHRkyS_f82hz-DVGlg6aB_mmPrajMn8GXbT9vop6o5wac78706UduuuWa5iNOY7TZiKl1z4DMjfjKN6eH_Xt3HiiB8C3tP7Vto0ErphQdJbQmY8oFevvXTdXnHDUqVqOTgRPoJMjDegJr-AeTC0iVqpUzm7t4Lw5y_EWDS_iIrKNqgJPaheP15I882h49vrEgVWhqH_kCd7tL_XPt-p"/>
+<div>
+<p class="font-bold text-slate-900">Park Seo-yeon</p>
+<p class="text-xs text-slate-500">ID: ST-90112</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 font-bold text-slate-700">12h 50m</td>
+<td class="px-8 py-5 font-black text-blue-600">88h 12m</td>
+<td class="px-8 py-5 font-bold text-slate-700">365h 45m</td>
+<td class="px-8 py-5 text-right">
+<button class="text-sm font-bold text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors">View Details</button>
+</td>
+</tr>
+<!-- Rank 3 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-8 py-5">
+<div class="w-10 h-10 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center font-black text-lg">3</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Smiling young male student in a casual sweatshirt, bright outdoor campus background with golden hour light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAItxfGoKo2KzE5qNw347jAxLedAw1lr-Emh8c1IIGh4r2kjXRFaczIj6IdRnaBUkD0VHK16Jq6t1Bw7HXijJTfLT4oYQ1JuRWvna4QJuLIeX2CizmelGaQ_XoScGYmoJzlnj_awL8qdoXgkM0BNvW-Abg68GvLVxGIiThp8ojAJ-PVnUOmP988y__7C9vLdSCPqYZL8xOQHqWDUNwklvMJsL2XVOjQDGgjyylAlzcD8pum8CZVW2d0_8P_ldKy-uMVaVtTieUR8_RS"/>
+<div>
+<p class="font-bold text-slate-900">Lee Min-ho</p>
+<p class="text-xs text-slate-500">ID: ST-77420</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 font-bold text-slate-700">11h 15m</td>
+<td class="px-8 py-5 font-black text-blue-600">84h 30m</td>
+<td class="px-8 py-5 font-bold text-slate-700">340h 20m</td>
+<td class="px-8 py-5 text-right">
+<button class="text-sm font-bold text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors">View Details</button>
+</td>
+</tr>
+<!-- Rank 4 -->
+<tr class="hover:bg-slate-50/50 transition-colors">
+<td class="px-8 py-5">
+<div class="w-10 h-10 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center font-black text-lg border border-slate-200">4</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Young professional woman with short hair and a focused look, clean minimalist aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDEDfop1pQiXc4YTbwzGc7LTADoy_dLBlqXmXXtcOgQ49SRgbOxHwJ7gvdgrixExzaOJdYk9s4XLz-yXF41lXT1f55yBCt1q-RULWUgPqtgkNaWKjns50LvsGLpxnDlmQWuBEBoTlYyTp3vleE_uTXFnHgY-HWRI3zXQYDsUCJYJSQnFH1fmvo8gm1c0imKEwihzF1HjEyn6mR4LRZH8L-2DvaQNWbZ-tsuv-HLQBu6b1OeG_8irsQQJFb4zN4FdtCVHZV5eTf4kRfy"/>
+<div>
+<p class="font-bold text-slate-900">Choi Ha-eun</p>
+<p class="text-xs text-slate-500">ID: ST-82910</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 font-bold text-slate-700">10h 05m</td>
+<td class="px-8 py-5 font-black text-blue-600">79h 55m</td>
+<td class="px-8 py-5 font-bold text-slate-700">312h 00m</td>
+<td class="px-8 py-5 text-right">
+<button class="text-sm font-bold text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors">View Details</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-8 border-t border-slate-50 flex items-center justify-between">
+<p class="text-sm font-medium text-slate-500">Showing 1 to 4 of 1,204 results</p>
+<div class="flex gap-2">
+<button class="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 bg-blue-600 text-white rounded-lg font-bold shadow-lg shadow-blue-200">1</button>
+<button class="w-10 h-10 hover:bg-slate-50 rounded-lg font-bold transition-colors">2</button>
+<button class="w-10 h-10 hover:bg-slate-50 rounded-lg font-bold transition-colors">3</button>
+<button class="p-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

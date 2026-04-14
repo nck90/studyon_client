@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Admin Console - 학생 목록</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#ba5900",
+                        "surface-container": "#edeeef",
+                        "secondary-container": "#b5ccff",
+                        "tertiary": "#944600",
+                        "on-secondary-fixed": "#001a40",
+                        "outline-variant": "#c1c6d6",
+                        "surface-container-low": "#f3f4f5",
+                        "on-primary": "#ffffff",
+                        "primary-fixed-dim": "#acc7ff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "on-surface-variant": "#414754",
+                        "on-primary-fixed-variant": "#004491",
+                        "outline": "#727785",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-tertiary-fixed-variant": "#743500",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#fefcff",
+                        "background": "#f8f9fa",
+                        "secondary-fixed-dim": "#afc7fa",
+                        "inverse-surface": "#2e3132",
+                        "surface-dim": "#d9dadb",
+                        "secondary": "#475e8b",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#005bbe",
+                        "surface-bright": "#f8f9fa",
+                        "surface-container-high": "#e7e8e9",
+                        "on-secondary-fixed-variant": "#2e4672",
+                        "on-tertiary-fixed": "#311300",
+                        "on-secondary-container": "#3e5682",
+                        "primary-fixed": "#d7e2ff",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#e1e3e4",
+                        "tertiary-fixed-dim": "#ffb689",
+                        "primary": "#3182F6",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#191c1d",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdbc8",
+                        "surface": "#f8f9fa",
+                        "on-tertiary-container": "#fffbff",
+                        "primary-container": "#1071e5",
+                        "error": "#ba1a1a",
+                        "inverse-primary": "#acc7ff",
+                        "on-primary-fixed": "#001a40",
+                        "on-background": "#191c1d",
+                        "secondary-fixed": "#d7e2ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 z-50 bg-slate-50 dark:bg-slate-950 flex flex-col p-4 gap-2">
+<div class="px-4 py-6 mb-4">
+<h1 class="text-lg font-black text-slate-900 dark:text-white">Management</h1>
+<p class="text-xs text-slate-500 font-medium tracking-tight">Academic Portal</p>
+</div>
+<nav class="flex-1 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl hover:scale-[1.02] transition-transform" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<!-- Active State: Student List -->
+<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 text-[#3182F6] font-bold rounded-xl shadow-sm hover:scale-[1.02] transition-transform" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-medium">Student List</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl hover:scale-[1.02] transition-transform" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-medium">Attendance</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl hover:scale-[1.02] transition-transform" href="#">
+<span class="material-symbols-outlined">schedule</span>
+<span class="font-medium">Schedule</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl hover:scale-[1.02] transition-transform" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-medium">Reports</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl hover:scale-[1.02] transition-transform" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-medium">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl hover:scale-[1.02] transition-transform" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-medium">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- TopNavBar -->
+<header class="w-full sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex justify-between items-center px-8 h-16 bg-surface-container-low">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#3182F6]/20" placeholder="Search anything..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-[#3182F6] transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-[#3182F6] transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-slate-700">
+<div class="text-right">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Admin Console</p>
+<p class="text-[10px] text-slate-500 font-medium">Administrator</p>
+</div>
+<img alt="Admin Avatar" class="w-8 h-8 rounded-full object-cover" data-alt="professional headshot of a friendly young male administrator in a clean modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiEMwpxz80uKSKGSYHGpGvOMOOGal3XXUEFcZO3TR2wTMK8bn9ANxDkvmoT1oVLAN67RVeSMfLnCY7SVTyVbc5w0rEYk6IE_QO3UjPavwtYyQUe044s07WZeiWV2KK6pXzerEheGiWTrsXtjf6GZLQBEJ1UB-1QPV4L1ef1rWQh9s0lgOLTDotvRr4hUyes1edI_YIrXoP-4iN0nBGgHSn6OgprARQd6XzZI_GTFRFF2Da6iYt5bFLeQ-KCZ-nlTmGSUfxOAzSTeTT"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-8">
+<!-- Header Section -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-3xl font-extrabold tracking-tight text-slate-900 mb-1">Student Management</h2>
+<p class="text-slate-500 font-medium">학생 목록 관리 및 학습 현황 모니터링</p>
+</div>
+<button class="bg-primary text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">add</span>
+                    신규 학생 등록
+                </button>
+</div>
+<!-- Filter Bar -->
+<div class="bg-surface-container-low rounded-2xl p-4 mb-8 flex flex-wrap items-center gap-4">
+<div class="flex-1 min-w-[240px] relative">
+<input class="w-full bg-white border-none rounded-xl py-3 pl-4 pr-10 text-sm shadow-sm focus:ring-2 focus:ring-primary/20" placeholder="학생 이름 또는 좌석 번호 검색" type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+</div>
+<div class="flex gap-2">
+<select class="bg-white border-none rounded-xl py-3 px-4 text-sm font-medium shadow-sm focus:ring-2 focus:ring-primary/20 min-w-[120px]">
+<option>상태 (전체)</option>
+<option>Studying</option>
+<option>Break</option>
+<option>Offline</option>
+</select>
+<select class="bg-white border-none rounded-xl py-3 px-4 text-sm font-medium shadow-sm focus:ring-2 focus:ring-primary/20 min-w-[120px]">
+<option>학년 (전체)</option>
+<option>1학년</option>
+<option>2학년</option>
+<option>3학년</option>
+</select>
+</div>
+</div>
+<!-- Data Table Card -->
+<div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50/50 text-slate-500 text-xs font-bold uppercase tracking-wider">
+<th class="px-6 py-4 cursor-pointer hover:text-primary transition-colors">
+<div class="flex items-center gap-1">학생 이름 <span class="material-symbols-outlined text-sm">unfold_more</span></div>
+</th>
+<th class="px-6 py-4 cursor-pointer hover:text-primary transition-colors">
+<div class="flex items-center gap-1">좌석 <span class="material-symbols-outlined text-sm">unfold_more</span></div>
+</th>
+<th class="px-6 py-4">상태</th>
+<th class="px-6 py-4">오늘 학습 시간</th>
+<th class="px-6 py-4">주간 학습 시간</th>
+<th class="px-6 py-4">연속 출석일</th>
+<th class="px-6 py-4 text-right">관리</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Student Avatar" class="w-10 h-10 rounded-full object-cover" data-alt="headshot of a smiling young female student with glasses and brown hair" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIKssseByMnBMyduGzckVBJWWGvZki5v7WM95XmbvdAx3T6-iCxY_ukQHfulg84wDsXDw8soy6Zp5g4u7YuYCb7b2iJv2y3Ra-dLYnyJhGMZr7xRUhvy0UGMS0CIA03mXE1e_UNIzsy7EdMkZE06dyHZdwbMjcZKSTySYzhpwEYVluWBbDBJLm9RK9PLk4Hog_75Hck8tLWdqHFAMyfDCOh9JOwl-H4E-iQVyt2905TuJkfVaA7vsMypOPPN43Lvx9IvwaFPRDE5Tg"/>
+<div>
+<p class="font-bold text-slate-900">김지우</p>
+<p class="text-[11px] text-slate-400 font-medium">3학년 · 인문계</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">A-12</span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#E8F2FF] text-[#3182F6]">
+<span class="w-1.5 h-1.5 rounded-full bg-[#3182F6]"></span>
+                                        Studying
+                                    </span>
+</td>
+<td class="px-6 py-4 font-medium text-slate-700">4h 20m</td>
+<td class="px-6 py-4 font-medium text-slate-700">28h 15m</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-orange-500 font-bold">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                                        12 days
+                                    </div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary font-bold text-xs bg-slate-50 hover:bg-primary/5 px-4 py-2 rounded-xl transition-all">상세보기</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img alt="Student Avatar" class="w-10 h-10 rounded-full object-cover" data-alt="headshot of a focused young male student with black hair" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7AYiBhoCPef4zuy57gZ3cBsWlH01IwfpO1RziVXKAk_skGP-d3aViuVBV2SjV8FVbphHJJd90EIAso_p-kf3IQJxCLi8qJLg6wHOnQKYzYX5U140c2wBApi390Fi55wKl5ICYfBjXwW1fD_F7C18FbfhXlwaVuA9omB_BElusRgYQbbzFpDuJr814wzaS99SWVnEnVNzflI-cPeUcena39OJcM8Wlhs6dG4l_kJXw0PfUZUGZuC6_LgEhoIM3lbKts1rpAXmJQ0Pl"/>
+<div>
+<p class="font-bold text-slate-900">이민준</p>
+<p class="text-[11px] text-slate-400 font-medium">2학년 · 이공계</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">C-04</span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-orange-50 text-orange-500">
+<span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                                        Break
+                                    </span>
+</td>
+<td class="px-6 py-4 font-medium text-slate-700">2h 45m</td>
+<td class="px-6 py-4 font-medium text-slate-700">22h 30m</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-orange-500 font-bold">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+                                        8 days
+                                    </div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary font-bold text-xs bg-slate-50 hover:bg-primary/5 px-4 py-2 rounded-xl transition-all">상세보기</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-400">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="font-bold text-slate-900">박서연</p>
+<p class="text-[11px] text-slate-400 font-medium">3학년 · 예체능</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">B-21</span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-400">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                        Offline
+                                    </span>
+</td>
+<td class="px-6 py-4 font-medium text-slate-400">0h 00m</td>
+<td class="px-6 py-4 font-medium text-slate-700">15h 10m</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-slate-300 font-bold">
+<span class="material-symbols-outlined text-lg">local_fire_department</span>
+                                        0 days
+                                    </div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary font-bold text-xs bg-slate-50 hover:bg-primary/5 px-4 py-2 rounded-xl transition-all">상세보기</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-6 flex items-center justify-between border-t border-slate-50">
+<p class="text-sm font-medium text-slate-500">Showing 1-10 of 248 students</p>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-xl hover:bg-slate-100 text-slate-400 disabled:opacity-30">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-xl bg-primary text-white font-bold text-sm">1</button>
+<button class="w-10 h-10 rounded-xl hover:bg-slate-100 text-slate-600 font-bold text-sm">2</button>
+<button class="w-10 h-10 rounded-xl hover:bg-slate-100 text-slate-600 font-bold text-sm">3</button>
+<span class="text-slate-300">...</span>
+<button class="w-10 h-10 rounded-xl hover:bg-slate-100 text-slate-600 font-bold text-sm">25</button>
+<button class="p-2 rounded-xl hover:bg-slate-100 text-slate-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Quick Stats Bento -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+<div class="bg-[#E8F2FF] p-6 rounded-3xl">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+</div>
+<span class="text-xs font-bold text-primary bg-white/50 px-2 py-1 rounded-lg">+12 Today</span>
+</div>
+<p class="text-sm font-bold text-primary/60 mb-1">현재 학습 중</p>
+<p class="text-3xl font-black text-primary">156명</p>
+</div>
+<div class="bg-orange-50 p-6 rounded-3xl">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-orange-500 shadow-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">timer</span>
+</div>
+</div>
+<p class="text-sm font-bold text-orange-500/60 mb-1">평균 집중 시간</p>
+<p class="text-3xl font-black text-orange-500">5h 42m</p>
+</div>
+<div class="bg-slate-100 p-6 rounded-3xl">
+<div class="flex justify-between items-start mb-4">
+<div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-slate-600 shadow-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<p class="text-sm font-bold text-slate-500 mb-1">평균 출석률</p>
+<p class="text-3xl font-black text-slate-900">94.2%</p>
+</div>
+</div>
+</div>
+</main>
+</body></html>

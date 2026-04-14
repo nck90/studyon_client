@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html class="light" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#f8f9fa",
+                    "primary-fixed": "#d7e2ff",
+                    "error-container": "#ffdad6",
+                    "error": "#ba1a1a",
+                    "on-primary-fixed": "#001a40",
+                    "tertiary": "#944600",
+                    "surface-container-high": "#e7e8e9",
+                    "on-tertiary-container": "#fffbff",
+                    "on-primary-container": "#fefcff",
+                    "outline": "#727785",
+                    "surface-variant": "#e1e3e4",
+                    "on-error": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "surface-container": "#edeeef",
+                    "secondary-fixed": "#d7e2ff",
+                    "tertiary-container": "#ba5900",
+                    "on-secondary-fixed": "#001a40",
+                    "surface-container-low": "#f3f4f5",
+                    "inverse-on-surface": "#f0f1f2",
+                    "surface-bright": "#f8f9fa",
+                    "on-background": "#191c1d",
+                    "surface-tint": "#005bbe",
+                    "on-primary": "#ffffff",
+                    "primary-fixed-dim": "#acc7ff",
+                    "on-surface-variant": "#414754",
+                    "on-primary-fixed-variant": "#004491",
+                    "tertiary-fixed": "#ffdbc8",
+                    "surface": "#f8f9fa",
+                    "on-secondary-container": "#3e5682",
+                    "inverse-primary": "#acc7ff",
+                    "on-secondary": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "on-surface": "#191c1d",
+                    "secondary-container": "#b5ccff",
+                    "tertiary-fixed-dim": "#ffb689",
+                    "outline-variant": "#c1c6d6",
+                    "primary-container": "#1071e5",
+                    "primary": "#0059b9",
+                    "surface-dim": "#d9dadb",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#afc7fa",
+                    "inverse-surface": "#2e3132",
+                    "secondary": "#475e8b",
+                    "surface-container-highest": "#e1e3e4",
+                    "on-tertiary-fixed-variant": "#743500",
+                    "on-tertiary-fixed": "#311300",
+                    "on-secondary-fixed-variant": "#2e4672"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body min-h-screen flex flex-col overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-white dark:bg-slate-950 flex items-center justify-between px-8 h-16 w-full z-50">
+<div class="flex items-center gap-4">
+<button class="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-95 duration-200 p-2 rounded-full">
+<span class="material-symbols-outlined text-slate-400 dark:text-slate-500">close</span>
+</button>
+</div>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-lg tracking-tight text-blue-600 dark:text-blue-400">Zen Mode</h1>
+<div class="w-10"></div> <!-- Spacer for center alignment -->
+</header>
+<main class="flex-1 flex flex-col items-center justify-center px-8 relative overflow-hidden">
+<!-- Relaxing Background Elements -->
+<div class="absolute inset-0 z-0 pointer-events-none">
+<div class="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-blue-50/50 blur-[120px]"></div>
+<div class="absolute bottom-[-5%] left-[-5%] w-[50%] h-[50%] rounded-full bg-tertiary-fixed/30 blur-[100px]"></div>
+</div>
+<!-- Hero Content Section -->
+<div class="z-10 w-full max-w-lg text-center flex flex-col items-center space-y-12">
+<div class="space-y-4">
+<h2 class="font-headline text-4xl font-extrabold tracking-tight text-on-surface">휴식 시간</h2>
+<p class="font-body text-on-surface-variant text-lg">10분 정도의 휴식을 추천해요</p>
+</div>
+<!-- Timer Circle Visual -->
+<div class="relative w-72 h-72 flex items-center justify-center">
+<!-- Outer Ring -->
+<div class="absolute inset-0 rounded-full border-[12px] border-surface-container-low"></div>
+<!-- Progress Ring (Simulated) -->
+<svg class="absolute inset-0 w-full h-full -rotate-90">
+<circle class="text-primary" cx="144" cy="144" fill="transparent" r="132" stroke="currentColor" stroke-dasharray="829" stroke-dashoffset="350" stroke-width="12"></circle>
+</svg>
+<!-- Large Digital Display -->
+<div class="flex flex-col items-center">
+<span class="font-headline text-7xl font-bold tracking-tighter text-on-surface tabular-nums">05:22</span>
+<div class="mt-2 px-4 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label text-xs font-semibold tracking-wider uppercase">Remaining</div>
+</div>
+</div>
+<!-- Interactive Cards (Bento Style Layout) -->
+<div class="grid grid-cols-2 gap-4 w-full">
+<div class="glass-card p-6 rounded-xl flex flex-col items-start gap-4 text-left shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+<div class="bg-blue-50 p-3 rounded-2xl text-primary">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<div>
+<p class="font-headline font-bold text-on-surface">Ambient</p>
+<p class="text-sm text-on-surface-variant">Forest Rain</p>
+</div>
+</div>
+<div class="glass-card p-6 rounded-xl flex flex-col items-start gap-4 text-left shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
+<div class="bg-surface-container-high p-3 rounded-2xl text-on-surface-variant">
+<span class="material-symbols-outlined">coffee</span>
+</div>
+<div>
+<p class="font-headline font-bold text-on-surface">Next Break</p>
+<p class="text-sm text-on-surface-variant">in 50 mins</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Area (Floating at Bottom of Canvas) -->
+<div class="w-full max-w-md mt-16 z-10 flex flex-col gap-4">
+<button class="w-full bg-primary py-5 rounded-full text-white font-headline font-bold text-lg hover:brightness-110 active:scale-95 transition-all shadow-[0_8px_30px_rgba(0,89,185,0.2)]">
+                공부 재개하기
+            </button>
+<button class="w-full py-4 text-on-surface-variant font-headline font-bold text-base hover:bg-surface-container-high rounded-full transition-all active:scale-95">
+                세션 종료하기
+            </button>
+</div>
+</main>
+<!-- BottomNavBar (Hidden on desktop, logic-based rendering) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-6 pb-8 pt-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl rounded-t-[2rem] shadow-[0_-4px_24px_0_rgba(0,0,0,0.04)] md:hidden">
+<div class="flex flex-col items-center justify-center bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-2xl px-5 py-2 font-['Inter'] font-medium text-[10px] tracking-wide uppercase transition-all active:scale-90 duration-300">
+<span class="material-symbols-outlined mb-1">timer</span>
+            Focus
+        </div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 font-['Inter'] font-medium text-[10px] tracking-wide uppercase transition-all hover:text-blue-500 active:scale-90 duration-300">
+<span class="material-symbols-outlined mb-1">bar_chart</span>
+            Stats
+        </div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 font-['Inter'] font-medium text-[10px] tracking-wide uppercase transition-all hover:text-blue-500 active:scale-90 duration-300">
+<span class="material-symbols-outlined mb-1">auto_awesome</span>
+            Ambient
+        </div>
+<div class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 px-5 py-2 font-['Inter'] font-medium text-[10px] tracking-wide uppercase transition-all hover:text-blue-500 active:scale-90 duration-300">
+<span class="material-symbols-outlined mb-1">settings</span>
+            Settings
+        </div>
+</nav>
+<!-- Decorative Image (Floating Illustration Style) -->
+<div class="hidden lg:block absolute bottom-12 right-12 w-64 h-64 opacity-80 pointer-events-none">
+<img alt="Calm aesthetic background" class="w-full h-full object-cover rounded-3xl shadow-2xl rotate-3" data-alt="Close-up of a delicate green leaf with crystalline dew drops in soft morning light, calm zen aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdB6AYXAvZcUQeaB5XX_uUl6FckiwkJ4oSzf27nPs3qiGH_QqjmIkv6oqHog6kJTVrM_94QWfQ1emCp-mQ_euiBH8oChHoxtKtMchWIzH4C4wJcta9hrveASbZQyNIXRWU0dpS-m0TvjrgKC9HrLJPtAqfauk__KYspliVohONY2ygxiAc4fiu-jLFIAQ_2V5m0rTxEPFKpIqHvRctiQgkJUErLWPruFZ9Q1RzmfW0qLyinLq0SM_1Yw1wZu2BqEmi3tgnxHBCTMgR"/>
+</div>
+</body></html>

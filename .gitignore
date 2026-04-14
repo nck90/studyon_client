@@ -1,0 +1,36 @@
+# Flutter
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub-cache/
+**/.pub/
+**/pubspec.lock
+
+# iOS
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+
+# Android
+**/android/.gradle/
+**/android/local.properties
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Node (TV display)
+**/node_modules/
+**/.next/
+
+# Misc
+*.log

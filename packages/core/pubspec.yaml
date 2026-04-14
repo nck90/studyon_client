@@ -1,0 +1,13 @@
+name: studyon_core
+description: Core utilities, constants, errors, and environment config for STUDYON
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  intl: ^0.20.0
+  logger: ^2.5.0

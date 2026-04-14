@@ -1,0 +1,16 @@
+name: studyon_design_system
+description: Shared design system - theme, colors, typography, widgets for STUDYON
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: '>=3.38.0'
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  studyon_core:
+    path: ../core

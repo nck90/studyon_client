@@ -1,0 +1,146 @@
+import { JwtPayload } from "../auth/types/jwt-payload.type";
+import { StudentsService } from './students.service';
+export declare class StudentsController {
+    private readonly studentsService;
+    constructor(studentsService: StudentsService);
+    home(user: JwtPayload): Promise<{
+        success: boolean;
+        data: {
+            todayAttendance: {
+                id: string;
+                createdAt: Date;
+                updatedAt: Date;
+                createdById: string | null;
+                studentId: string;
+                seatId: string | null;
+                attendanceDate: Date;
+                checkInAt: Date | null;
+                checkOutAt: Date | null;
+                stayMinutes: number;
+                lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
+                earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
+                attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
+            } | null;
+            seat: {
+                seatId: string;
+                seatNo: string;
+                status: import("@prisma/client").$Enums.SeatStatus;
+            } | null;
+            study: {
+                id: string;
+                createdAt: Date;
+                status: import("@prisma/client").$Enums.StudySessionStatus;
+                updatedAt: Date;
+                studentId: string;
+                startedAt: Date | null;
+                endedAt: Date | null;
+                attendanceId: string | null;
+                linkedPlanId: string | null;
+                sessionDate: Date;
+                studyMinutes: number;
+                breakMinutes: number;
+                autoClosedReason: string | null;
+            } | null;
+            plans: {
+                totalCount: number;
+                completedCount: number;
+                targetMinutes: number;
+            };
+            notifications: {
+                id: string;
+                title: string;
+                body: string;
+                readAt: Date | null;
+            }[];
+            student: {
+                id: string;
+                name: string;
+                studentNo: string;
+                className: string | null;
+            };
+        };
+        meta: {};
+    }>;
+    profile(user: JwtPayload): Promise<{
+        success: boolean;
+        data: {
+            grade: {
+                id: string;
+                name: string;
+                sortOrder: number;
+                createdAt: Date;
+            } | null;
+            class: {
+                id: string;
+                name: string;
+                sortOrder: number;
+                createdAt: Date;
+                gradeId: string | null;
+            } | null;
+            group: {
+                id: string;
+                name: string;
+                sortOrder: number;
+                createdAt: Date;
+                classId: string | null;
+            } | null;
+            user: {
+                id: string;
+                name: string;
+                createdAt: Date;
+                status: import("@prisma/client").$Enums.UserStatus;
+                updatedAt: Date;
+                role: import("@prisma/client").$Enums.UserRole;
+                phone: string | null;
+                lastLoginAt: Date | null;
+            };
+            assignedSeat: {
+                id: string;
+                createdAt: Date;
+                seatNo: string;
+                zone: string | null;
+                status: import("@prisma/client").$Enums.SeatStatus;
+                isActive: boolean;
+                currentStudentId: string | null;
+                updatedAt: Date;
+            } | null;
+        } & {
+            id: string;
+            createdAt: Date;
+            gradeId: string | null;
+            classId: string | null;
+            updatedAt: Date;
+            userId: string;
+            studentNo: string;
+            groupId: string | null;
+            assignedSeatId: string | null;
+            enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
+            joinedAt: Date | null;
+            memo: string | null;
+        };
+        meta: {};
+    }>;
+    badges(user: JwtPayload): Promise<{
+        success: boolean;
+        data: ({
+            badge: {
+                id: string;
+                name: string;
+                createdAt: Date;
+                isActive: boolean;
+                code: string;
+                description: string | null;
+                badgeType: import("@prisma/client").$Enums.BadgeType;
+                iconUrl: string | null;
+            };
+        } & {
+            id: string;
+            createdAt: Date;
+            studentId: string;
+            badgeId: string;
+            awardedAt: Date;
+            reason: string | null;
+        })[];
+        meta: {};
+    }>;
+}

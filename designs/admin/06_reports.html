@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Aeon Dashboard - 리포트 분석</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#e1e3e4",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed-dim": "#ffb689",
+                    "on-secondary-fixed": "#001a40",
+                    "on-tertiary": "#ffffff",
+                    "background": "#f8f9fa",
+                    "tertiary-fixed": "#ffdbc8",
+                    "on-primary-container": "#fefcff",
+                    "on-tertiary-fixed-variant": "#743500",
+                    "surface-tint": "#005bbe",
+                    "on-primary-fixed-variant": "#004491",
+                    "on-primary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "secondary-container": "#b5ccff",
+                    "surface-bright": "#f8f9fa",
+                    "secondary": "#475e8b",
+                    "surface-container-low": "#f3f4f5",
+                    "on-primary-fixed": "#001a40",
+                    "surface-container-high": "#e7e8e9",
+                    "inverse-surface": "#2e3132",
+                    "surface-container": "#edeeef",
+                    "primary": "#0059b9",
+                    "on-secondary-fixed-variant": "#2e4672",
+                    "on-secondary-container": "#3e5682",
+                    "on-tertiary-container": "#fffbff",
+                    "tertiary-container": "#ba5900",
+                    "on-tertiary-fixed": "#311300",
+                    "inverse-on-surface": "#f0f1f2",
+                    "on-background": "#191c1d",
+                    "primary-container": "#1071e5",
+                    "secondary-fixed-dim": "#afc7fa",
+                    "inverse-primary": "#acc7ff",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#d9dadb",
+                    "outline": "#727785",
+                    "tertiary": "#944600",
+                    "on-surface": "#191c1d",
+                    "outline-variant": "#c1c6d6",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed": "#d7e2ff",
+                    "surface-container-highest": "#e1e3e4",
+                    "surface": "#f8f9fa",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed": "#d7e2ff",
+                    "on-error-container": "#93000a",
+                    "on-surface-variant": "#414754",
+                    "primary-fixed-dim": "#acc7ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Plus Jakarta Sans"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-card { backdrop-filter: blur(24px); background: rgba(255, 255, 255, 0.8); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- SideNavBar Integration -->
+<aside class="fixed left-0 top-0 flex flex-col p-6 h-screen w-64 border-r-0 bg-slate-50 dark:bg-slate-900 plus-jakarta-sans font-medium tracking-tight">
+<div class="text-xl font-extrabold text-[#3182F6] mb-8">Aeon Finance</div>
+<nav class="flex-1 space-y-2">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<!-- Accounts (Mapped to Reports for this context) -->
+<a class="flex items-center gap-3 px-4 py-3 text-[#3182F6] font-bold bg-white dark:bg-slate-800 rounded-xl transition-colors scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span>Accounts</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">trending_up</span>
+<span>Investments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span>Payments</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors scale-95 duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-slate-200/60">
+<div class="flex items-center gap-3 px-2 mb-4">
+<img alt="User avatar" class="w-10 h-10 rounded-full bg-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZERA8kacT7NW13sPWrO_wH_MWkbpgZzWHV8H-ii7Hke05lQhtj90wRKK00UxQCz9P7ds0FVWEYhHMXOxp_c0PwI0EP9Y2n6DyFu_aFoD7eeOOZAMVJaDuUn8NU66JbEVwQQxWvpAV_eMJRMZPUFPy6ZvcSspGDqFWf_5vgH_q2iEqMKTpg_xYwAFkEmX3YOKKnpqXbswxgB3YYBX4l15BZ5lJ1vvwkVeWsFFaYXxT2huav_l0VqN3vTGMSfY5TM3JsWpdfraepwhG"/>
+<div>
+<p class="text-sm font-bold text-on-surface">Admin User</p>
+<p class="text-xs text-slate-500">Premium Wealth</p>
+</div>
+</div>
+<button class="w-full py-3 px-4 bg-[#3182F6] text-white rounded-xl font-bold text-sm hover:opacity-90 transition-opacity">
+                Upgrade to VIP
+            </button>
+</div>
+</aside>
+<!-- TopNavBar Integration -->
+<header class="fixed top-0 flex justify-between items-center h-16 px-8 ml-64 w-[calc(100%-16rem)] bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl z-20 plus-jakarta-sans text-sm">
+<div class="flex items-center gap-6 w-1/3">
+<div class="relative w-full max-w-sm group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full focus:ring-2 focus:ring-[#3182F6]/20 transition-all text-sm outline-none" placeholder="Search analytics..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-600 dark:text-slate-300 hover:opacity-80 transition-opacity relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 text-slate-600 dark:text-slate-300 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="h-8 w-px bg-slate-200 mx-2"></div>
+<div class="flex items-center gap-3">
+<span class="font-medium text-slate-700">Admin Profile</span>
+<img alt="Admin Profile" class="w-8 h-8 rounded-full bg-primary-fixed ring-2 ring-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsv3czkXMKvx289TPJOHHTn-6Z3xchPT99cdFhWlSvW30BLcmLLn1qmgCmqY2Cki4ETdSQLoapu8g20nVFdqxPiAv6E2EFpoHWELtq9RGZ6ayrGQsWITYhqT3Dcr7emWwBYTt5L2BMTobqIB4459xIbfSOl67MOq3Ap5tGkOwPWGsmYGUm8i9B3BkFNidtwsBybybqYRchaVi_UqNLTEzz2NLTCSACxxZ4m6ofHMwLkKXPq1FE9lnx6HBwAKqbb0CMf-TzByj3RxL1"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 pt-24 p-8 min-h-screen">
+<!-- Header Section -->
+<header class="flex justify-between items-end mb-10">
+<div>
+<h1 class="text-4xl font-extrabold tracking-tight text-on-surface mb-2">리포트 분석</h1>
+<p class="text-on-surface-variant font-medium">관리자 대시보드 - 실시간 학생 활동 데이터</p>
+</div>
+<div class="flex items-center gap-3 bg-surface-container-lowest p-1 rounded-xl shadow-sm border border-outline-variant/10">
+<button class="px-4 py-2 rounded-lg bg-surface-container-low text-on-surface-variant text-sm font-semibold">Weekly</button>
+<div class="flex items-center gap-2 px-4 py-2 text-primary font-bold text-sm bg-primary-fixed/30 rounded-lg">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+                    Oct 1, 2026 - Oct 31, 2026
+                </div>
+</div>
+</header>
+<!-- KPI Cards Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<!-- Check-in Rate -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/5 shadow-sm transition-transform hover:scale-[1.02] duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary-fixed/50 rounded-lg">
+<span class="material-symbols-outlined text-primary">how_to_reg</span>
+</div>
+<span class="flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs mr-1">trending_up</span> +2.4%
+                    </span>
+</div>
+<h3 class="text-on-surface-variant text-sm font-semibold mb-1">체크인 비율</h3>
+<p class="text-3xl font-extrabold font-headline">94.2%</p>
+<div class="mt-4 w-full bg-surface-container-low h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[94.2%] rounded-full"></div>
+</div>
+</div>
+<!-- Avg Stay Time -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/5 shadow-sm transition-transform hover:scale-[1.02] duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-secondary-container/50 rounded-lg">
+<span class="material-symbols-outlined text-secondary">schedule</span>
+</div>
+<span class="flex items-center text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs mr-1">trending_flat</span> 0.0%
+                    </span>
+</div>
+<h3 class="text-on-surface-variant text-sm font-semibold mb-1">평균 체류 시간</h3>
+<p class="text-3xl font-extrabold font-headline">4h 12m</p>
+<p class="mt-4 text-xs text-on-surface-variant">지난 주 대비 동일한 수준 유지</p>
+</div>
+<!-- Goal Completion -->
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/5 shadow-sm transition-transform hover:scale-[1.02] duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-tertiary-fixed/50 rounded-lg">
+<span class="material-symbols-outlined text-tertiary">task_alt</span>
+</div>
+<span class="flex items-center text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs mr-1">trending_up</span> +12.1%
+                    </span>
+</div>
+<h3 class="text-on-surface-variant text-sm font-semibold mb-1">목표 달성률</h3>
+<p class="text-3xl font-extrabold font-headline">76.4%</p>
+<div class="mt-4 flex gap-1">
+<div class="h-1.5 flex-1 bg-primary rounded-full"></div>
+<div class="h-1.5 flex-1 bg-primary rounded-full"></div>
+<div class="h-1.5 flex-1 bg-primary rounded-full"></div>
+<div class="h-1.5 flex-1 bg-surface-container-high rounded-full"></div>
+</div>
+</div>
+</section>
+<!-- Bento Layout for Analytics -->
+<section class="grid grid-cols-12 gap-6">
+<!-- Main Line Chart Section -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-low p-8 rounded-xl">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h2 class="text-xl font-bold mb-1">학생 활동 트렌드</h2>
+<p class="text-sm text-on-surface-variant">일일 방문자 및 활동 로그 분석</p>
+</div>
+<button class="text-primary font-bold text-sm flex items-center gap-1 hover:underline">
+                        전체 보기 <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+<!-- Mock Chart Canvas -->
+<div class="relative h-64 w-full flex items-end justify-between gap-4 px-2">
+<!-- Background Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between py-2 pointer-events-none">
+<div class="border-t border-outline-variant/10 w-full"></div>
+<div class="border-t border-outline-variant/10 w-full"></div>
+<div class="border-t border-outline-variant/10 w-full"></div>
+<div class="border-t border-outline-variant/10 w-full"></div>
+</div>
+<!-- Chart Bars/Lines Simulation -->
+<div class="relative z-10 flex-1 bg-primary-container/20 rounded-t-lg h-[40%] group transition-all hover:bg-primary-container/40"></div>
+<div class="relative z-10 flex-1 bg-primary-container/20 rounded-t-lg h-[65%] group transition-all hover:bg-primary-container/40"></div>
+<div class="relative z-10 flex-1 bg-primary h-[85%] group transition-all hover:opacity-90">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface text-xs py-1 px-2 rounded hidden group-hover:block whitespace-nowrap">Peak: 1,240 Users</div>
+</div>
+<div class="relative z-10 flex-1 bg-primary-container/20 rounded-t-lg h-[55%] group transition-all hover:bg-primary-container/40"></div>
+<div class="relative z-10 flex-1 bg-primary-container/20 rounded-t-lg h-[75%] group transition-all hover:bg-primary-container/40"></div>
+<div class="relative z-10 flex-1 bg-primary-container/20 rounded-t-lg h-[45%] group transition-all hover:bg-primary-container/40"></div>
+<div class="relative z-10 flex-1 bg-primary-container/20 rounded-t-lg h-[60%] group transition-all hover:bg-primary-container/40"></div>
+</div>
+<div class="flex justify-between mt-4 px-2 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+<!-- Performance Categories (Bar Chart Simulation) -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<div class="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant/5 shadow-sm h-full">
+<h2 class="text-xl font-bold mb-6">카테고리별 성과</h2>
+<div class="space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between text-sm font-semibold">
+<span>Core Programming</span>
+<span class="text-primary">88%</span>
+</div>
+<div class="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-[88%] rounded-full"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-sm font-semibold">
+<span>UX/UI Design</span>
+<span class="text-secondary">64%</span>
+</div>
+<div class="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full w-[64%] rounded-full"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-sm font-semibold">
+<span>Data Analysis</span>
+<span class="text-tertiary-container">42%</span>
+</div>
+<div class="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary-container h-full w-[42%] rounded-full"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-sm font-semibold">
+<span>Marketing</span>
+<span class="text-on-surface-variant">31%</span>
+</div>
+<div class="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
+<div class="bg-surface-dim h-full w-[31%] rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-outline-variant/10">
+<div class="flex items-center justify-between mb-4">
+<h4 class="text-sm font-bold">인기 학습 시간대</h4>
+<span class="text-xs text-on-surface-variant">Last 30 Days</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex-1 flex flex-col items-center">
+<div class="w-full h-12 bg-primary-fixed/20 rounded-lg flex items-end overflow-hidden">
+<div class="w-full h-[60%] bg-primary/60"></div>
+</div>
+<span class="text-[10px] mt-1 font-bold">오전</span>
+</div>
+<div class="flex-1 flex flex-col items-center">
+<div class="w-full h-12 bg-primary-fixed/20 rounded-lg flex items-end overflow-hidden">
+<div class="w-full h-[90%] bg-primary"></div>
+</div>
+<span class="text-[10px] mt-1 font-bold">오후</span>
+</div>
+<div class="flex-1 flex flex-col items-center">
+<div class="w-full h-12 bg-primary-fixed/20 rounded-lg flex items-end overflow-hidden">
+<div class="w-full h-[40%] bg-primary/40"></div>
+</div>
+<span class="text-[10px] mt-1 font-bold">저녁</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Data List / Recent Activity -->
+<div class="col-span-12 bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/5 shadow-sm mt-2">
+<div class="flex justify-between items-center mb-8">
+<h2 class="text-xl font-bold">최근 시스템 경고</h2>
+<div class="flex gap-2">
+<button class="p-2 border border-outline-variant/20 rounded-lg hover:bg-surface-container-low">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="p-2 border border-outline-variant/20 rounded-lg hover:bg-surface-container-low">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto no-scrollbar">
+<table class="w-full text-left">
+<thead>
+<tr class="text-on-surface-variant text-xs font-bold uppercase tracking-wider">
+<th class="pb-4 px-4">학생명</th>
+<th class="pb-4 px-4">이벤트</th>
+<th class="pb-4 px-4">시간</th>
+<th class="pb-4 px-4">상태</th>
+<th class="pb-4 px-4 text-right">상세</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-secondary-fixed flex items-center justify-center text-xs font-bold text-on-secondary-fixed">KJ</div>
+<span class="font-bold text-sm">김지수</span>
+</div>
+</td>
+<td class="py-4 px-4 text-sm font-medium">지각 입실 (30분 초과)</td>
+<td class="py-4 px-4 text-sm text-on-surface-variant">10:42 AM</td>
+<td class="py-4 px-4">
+<span class="px-2 py-1 bg-error-container text-on-error-container text-[10px] font-bold rounded-full">CRITICAL</span>
+</td>
+<td class="py-4 px-4 text-right">
+<button class="text-primary material-symbols-outlined">more_horiz</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-xs font-bold text-on-primary-fixed">LY</div>
+<span class="font-bold text-sm">이영희</span>
+</div>
+</td>
+<td class="py-4 px-4 text-sm font-medium">과제 제출 완료</td>
+<td class="py-4 px-4 text-sm text-on-surface-variant">09:15 AM</td>
+<td class="py-4 px-4">
+<span class="px-2 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold rounded-full">SUCCESS</span>
+</td>
+<td class="py-4 px-4 text-right">
+<button class="text-primary material-symbols-outlined">more_horiz</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-tertiary-fixed flex items-center justify-center text-xs font-bold text-on-tertiary-fixed">PH</div>
+<span class="font-bold text-sm">박현우</span>
+</div>
+</td>
+<td class="py-4 px-4 text-sm font-medium">조기 퇴실 요청</td>
+<td class="py-4 px-4 text-sm text-on-surface-variant">03:20 PM</td>
+<td class="py-4 px-4">
+<span class="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded-full">PENDING</span>
+</td>
+<td class="py-4 px-4 text-right">
+<button class="text-primary material-symbols-outlined">more_horiz</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</main>
+<!-- FAB for adding report -->
+<button class="fixed bottom-8 right-8 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform z-30">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</body></html>
