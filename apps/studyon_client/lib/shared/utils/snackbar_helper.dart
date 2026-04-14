@@ -4,7 +4,7 @@ import 'package:studyon_design_system/studyon_design_system.dart';
 void showStudyonSnackbar(
   BuildContext context,
   String message, {
-  bool isSuccess = true,
+  bool isError = false,
 }) {
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
@@ -13,12 +13,13 @@ void showStudyonSnackbar(
         style: const TextStyle(
           fontFamily: 'Pretendard',
           fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       ),
-      backgroundColor: isSuccess ? AppColors.accent : AppColors.error,
+      backgroundColor: isError ? AppColors.hot : AppColors.accent,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.all(16),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       duration: const Duration(seconds: 2),
     ),
   );

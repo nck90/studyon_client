@@ -125,6 +125,10 @@ void main() {
 
   group('StudySessionScreen', () {
     testWidgets('shows start button', (tester) async {
+      tester.view.physicalSize = const Size(1194, 834);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(
         ProviderScope(child: _withRouter(const StudySessionScreen())),
       );

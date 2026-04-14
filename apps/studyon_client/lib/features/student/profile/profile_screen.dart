@@ -297,7 +297,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     showStudyonSnackbar(
                       context,
                       v ? '알림 켜짐' : '알림 꺼짐',
-                      isSuccess: v,
                     );
                   },
                   activeThumbColor: Colors.white,
@@ -309,7 +308,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   showStudyonSnackbar(
                     context,
                     newVal ? '알림 켜짐' : '알림 꺼짐',
-                    isSuccess: newVal,
                   );
                 },
                 showChevron: false,

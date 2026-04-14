@@ -12,11 +12,13 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isAdmin = false;
   final _idController = TextEditingController();
   final _pwController = TextEditingController();
+  final _pwFocus = FocusNode();
 
   @override
   void dispose() {
     _idController.dispose();
     _pwController.dispose();
+    _pwFocus.dispose();
     super.dispose();
   }
 
@@ -185,6 +187,8 @@ class _LoginScreenState extends State<LoginScreen> {
           controller: _idController,
           hint: '아이디',
           icon: Icons.person_outline_rounded,
+          textInputAction: TextInputAction.next,
+          onSubmitted: (_) => _pwFocus.requestFocus(),
         ),
         const SizedBox(height: 12),
         _InputField(
@@ -192,6 +196,9 @@ class _LoginScreenState extends State<LoginScreen> {
           hint: '비밀번호',
           icon: Icons.lock_outline_rounded,
           obscure: true,
+          focusNode: _pwFocus,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _login(),
         ),
         const SizedBox(height: 32),
         GestureDetector(
@@ -226,17 +233,26 @@ class _InputField extends StatelessWidget {
     required this.hint,
     required this.icon,
     this.obscure = false,
+    this.focusNode,
+    this.textInputAction,
+    this.onSubmitted,
   });
   final TextEditingController controller;
   final String hint;
   final IconData icon;
   final bool obscure;
+  final FocusNode? focusNode;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onSubmitted;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
       obscureText: obscure,
+      focusNode: focusNode,
+      textInputAction: textInputAction,
+      onSubmitted: onSubmitted,
       style: const TextStyle(
         fontFamily: 'Pretendard',
         fontSize: 15,

@@ -73,7 +73,7 @@ class _PlanScreenState extends State<PlanScreen> {
 
   void _delete(int index) {
     setState(() => _plans.removeAt(index));
-    showStudyonSnackbar(context, '계획이 삭제되었어요', isSuccess: false);
+    showStudyonSnackbar(context, '계획이 삭제되었어요', isError: true);
   }
 
   Color _priorityColor(String p) {

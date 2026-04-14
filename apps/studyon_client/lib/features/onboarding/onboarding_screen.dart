@@ -16,21 +16,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final _pages = const [
     _PageData(
-      icon: Icons.timer_rounded,
+      emoji: '⏱',
       color: AppColors.primary,
       bg: AppColors.tintPurple,
       title: '학습 관리',
       subtitle: '공부 시작부터 종료까지\n자동으로 기록해요',
     ),
     _PageData(
-      icon: Icons.event_seat_rounded,
+      emoji: '💺',
       color: AppColors.accent,
       bg: AppColors.tintMint,
       title: '좌석 관리',
       subtitle: '실시간 좌석 현황을\n한눈에 확인해요',
     ),
     _PageData(
-      icon: Icons.leaderboard_rounded,
+      emoji: '🏆',
       color: AppColors.warm,
       bg: AppColors.tintYellow,
       title: '랭킹',
@@ -85,13 +85,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           color: p.bg,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(p.icon, size: 56, color: p.color),
+                        child: Center(child: TossFace(p.emoji, size: 48)),
                       ),
                       const SizedBox(height: 40),
                       Text(
                         p.title,
                         style: AppTypography.headlineLarge.copyWith(
-                          fontSize: 28,
+                          fontSize: 32,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -101,6 +101,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         style: AppTypography.bodyLarge.copyWith(
                           color: AppColors.textTertiary,
                           height: 1.6,
+                          fontSize: 14,
                         ),
                       ),
                     ],
@@ -143,10 +144,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         height: 52,
                         constraints: const BoxConstraints(maxWidth: 400),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: AppColors.primaryGradient,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Center(
                           child: Text(
@@ -199,14 +198,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 }
 
 class _PageData {
-  final IconData icon;
+  final String emoji;
   final Color color;
   final Color bg;
   final String title;
   final String subtitle;
 
   const _PageData({
-    required this.icon,
+    required this.emoji,
     required this.color,
     required this.bg,
     required this.title,

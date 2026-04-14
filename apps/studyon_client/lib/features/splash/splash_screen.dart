@@ -34,6 +34,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isIPad = MediaQuery.of(context).size.shortestSide >= 600;
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -49,14 +50,14 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   const Spacer(flex: 3),
                   // App icon
-                  const TossFace('📚', size: 48),
+                  TossFace('📚', size: isIPad ? 64 : 48),
                   const SizedBox(height: 28),
                   // App name
-                  const Text(
+                  Text(
                     '자습ON',
                     style: TextStyle(
                       fontFamily: 'Pretendard',
-                      fontSize: 42,
+                      fontSize: isIPad ? 48 : 42,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                       letterSpacing: -1.5,

@@ -304,6 +304,30 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   }
 
   Future<void> _end() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E30),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('공부를 종료할까요?', style: TextStyle(fontFamily: 'Pretendard', fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+        content: Text(
+          '${_fmt(_elapsed)} 공부했어요',
+          style: const TextStyle(fontFamily: 'Pretendard', fontSize: 14, color: Colors.white60),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('계속', style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w600, color: AppColors.accent)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('종료', style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w600, color: AppColors.hot)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
     _timer?.cancel();
     await StudyLogSheet.show(context);
     if (mounted) {
