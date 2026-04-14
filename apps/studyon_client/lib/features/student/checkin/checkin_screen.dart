@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
 import 'package:studyon_client/shared/providers/student_providers.dart';
-import '../../../shared/utils/snackbar_helper.dart';
+import 'package:studyon_client/shared/utils/snackbar_helper.dart';
 
 class CheckInScreen extends ConsumerStatefulWidget {
   const CheckInScreen({super.key});
@@ -13,7 +13,8 @@ class CheckInScreen extends ConsumerStatefulWidget {
   ConsumerState<CheckInScreen> createState() => _CheckInScreenState();
 }
 
-class _CheckInScreenState extends ConsumerState<CheckInScreen> with TickerProviderStateMixin {
+class _CheckInScreenState extends ConsumerState<CheckInScreen>
+    with TickerProviderStateMixin {
   bool _isLoading = false;
   late final AnimationController _pulseCtrl;
   late final AnimationController _scaleCtrl;
@@ -25,9 +26,11 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> with TickerProvid
   @override
   void initState() {
     super.initState();
-    _pulseCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2500))..repeat(reverse: true);
+    _pulseCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2500))
+      ..repeat(reverse: true);
     _scaleCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
-    _scaleAnim = Tween<double>(begin: 1.0, end: 0.92).animate(CurvedAnimation(parent: _scaleCtrl, curve: Curves.easeInOut));
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.92)
+        .animate(CurvedAnimation(parent: _scaleCtrl, curve: Curves.easeInOut));
     _updateTime();
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
   }
@@ -69,78 +72,78 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> with TickerProvid
     final isIPad = MediaQuery.of(context).size.shortestSide >= 600;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0F),
+      backgroundColor: AppColors.bg(context),
       body: SafeArea(
         child: Column(
           children: [
-            const Spacer(flex: 3),
+            const Spacer(flex: 2),
 
-            // Large clock - the hero, like iPad lockscreen
+            // Time
             Text(
               _timeStr,
               style: TextStyle(
                 fontFamily: 'Pretendard',
-                fontSize: isIPad ? 96 : 72,
-                fontWeight: FontWeight.w200,
-                color: Colors.white,
-                letterSpacing: -4,
+                fontSize: isIPad ? 88 : 64,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+                letterSpacing: -3,
                 height: 1.0,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
             const SizedBox(height: 8),
-
-            // Date
             Text(
               _dateStr,
               style: TextStyle(
                 fontFamily: 'Pretendard',
-                fontSize: isIPad ? 20 : 17,
+                fontSize: isIPad ? 18 : 15,
                 fontWeight: FontWeight.w400,
-                color: Colors.white.withValues(alpha: 0.5),
-                letterSpacing: 0.5,
+                color: AppColors.textTertiary,
               ),
             ),
 
-            const Spacer(flex: 4),
+            const Spacer(flex: 3),
 
-            // Check-in button - subtle, not screaming
+            // Check-in button
             Stack(
               alignment: Alignment.center,
               children: [
-                // Pulse ring
                 if (!_isLoading)
                   AnimatedBuilder(
                     animation: _pulseCtrl,
                     builder: (context, _) => Container(
-                      width: (isIPad ? 88 : 76) + 20 * _pulseCtrl.value,
-                      height: (isIPad ? 88 : 76) + 20 * _pulseCtrl.value,
+                      width: (isIPad ? 96 : 80) + 16 * _pulseCtrl.value,
+                      height: (isIPad ? 96 : 80) + 16 * _pulseCtrl.value,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.06 + 0.06 * _pulseCtrl.value),
-                          width: 1,
-                        ),
+                        color: AppColors.primary.withValues(alpha: 0.04 + 0.03 * _pulseCtrl.value),
                       ),
                     ),
                   ),
-                // Button
                 ScaleTransition(
                   scale: _scaleAnim,
-                  child: GestureDetector(
-                    onTap: _checkIn,
-                    child: Container(
-                      width: isIPad ? 88 : 76,
-                      height: isIPad ? 88 : 76,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _isLoading ? AppColors.accent : Colors.white.withValues(alpha: 0.1),
-                        border: _isLoading ? null : Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
+                  child: Semantics(
+                    label: '입실하기',
+                    button: true,
+                    child: GestureDetector(
+                      onTap: _checkIn,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: isIPad ? 96 : 80,
+                        height: isIPad ? 96 : 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _isLoading ? AppColors.accent : AppColors.primary,
+                        ),
+                        child: _isLoading
+                            ? const Center(
+                                child: SizedBox(
+                                  width: 24, height: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                                ),
+                              )
+                            : Icon(Icons.arrow_upward_rounded, size: isIPad ? 36 : 30, color: Colors.white),
                       ),
-                      child: _isLoading
-                          ? const Center(child: SizedBox(width: 24, height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)))
-                          : Icon(Icons.arrow_upward_rounded, size: isIPad ? 32 : 28, color: Colors.white.withValues(alpha: 0.8)),
                     ),
                   ),
                 ),
@@ -154,27 +157,29 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen> with TickerProvid
                 key: ValueKey(_isLoading),
                 style: TextStyle(
                   fontFamily: 'Pretendard',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withValues(alpha: _isLoading ? 0.4 : 0.6),
-                  letterSpacing: 0.3,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: _isLoading ? AppColors.textTertiary : AppColors.textPrimary,
                 ),
               ),
             ),
 
-            const Spacer(flex: 3),
+            const Spacer(flex: 2),
 
-            // Bottom info - minimal, like lockscreen bottom
-            Text(
-              student.seatNo,
-              style: TextStyle(
-                fontFamily: 'Pretendard',
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.white.withValues(alpha: 0.25),
-              ),
+            // Bottom info
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(student.seatNo, style: const TextStyle(
+                  fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textTertiary,
+                )),
+                Container(width: 1, height: 12, margin: const EdgeInsets.symmetric(horizontal: 16), color: AppColors.cardBorder),
+                const Text('공부 중 18명', style: TextStyle(
+                  fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w400, color: AppColors.textTertiary,
+                )),
+              ],
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 40),
           ],
         ),
       ),

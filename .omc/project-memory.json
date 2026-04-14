@@ -96,8 +96,8 @@
   "hotPaths": [
     {
       "path": "apps/studyon_client/lib/features/student/home/home_screen.dart",
-      "accessCount": 175,
-      "lastAccessed": 1776176974287,
+      "accessCount": 177,
+      "lastAccessed": 1776177176048,
       "type": "file"
     },
     {
@@ -108,20 +108,20 @@
     },
     {
       "path": "apps/studyon_client/lib/features/student/study_session/study_session_screen.dart",
-      "accessCount": 104,
-      "lastAccessed": 1776175246795,
+      "accessCount": 106,
+      "lastAccessed": 1776177187213,
       "type": "file"
     },
     {
       "path": "apps/studyon_client/lib/features/student/rankings/rankings_screen.dart",
-      "accessCount": 80,
-      "lastAccessed": 1776175341089,
+      "accessCount": 83,
+      "lastAccessed": 1776177196080,
       "type": "file"
     },
     {
       "path": "apps/studyon_client/lib/features/admin/dashboard/dashboard_screen.dart",
-      "accessCount": 46,
-      "lastAccessed": 1776173306349,
+      "accessCount": 49,
+      "lastAccessed": 1776177234015,
       "type": "file"
     },
     {
@@ -197,28 +197,28 @@
       "type": "file"
     },
     {
+      "path": "packages/design_system/lib/studyon_design_system.dart",
+      "accessCount": 19,
+      "lastAccessed": 1776177171685,
+      "type": "file"
+    },
+    {
       "path": "packages/design_system/lib/src/theme/app_typography.dart",
       "accessCount": 18,
       "lastAccessed": 1776172145537,
       "type": "file"
     },
     {
-      "path": "packages/design_system/lib/studyon_design_system.dart",
-      "accessCount": 17,
-      "lastAccessed": 1776171799332,
-      "type": "file"
+      "path": "apps/studyon_client/lib",
+      "accessCount": 18,
+      "lastAccessed": 1776177227837,
+      "type": "directory"
     },
     {
       "path": "packages/design_system/lib/src/theme/app_spacing.dart",
       "accessCount": 17,
       "lastAccessed": 1776173613915,
       "type": "file"
-    },
-    {
-      "path": "apps/studyon_client/lib",
-      "accessCount": 17,
-      "lastAccessed": 1776175318260,
-      "type": "directory"
     },
     {
       "path": "apps/studyon_client/lib/features/admin/rankings/admin_rankings_screen.dart",
@@ -240,8 +240,8 @@
     },
     {
       "path": "",
-      "accessCount": 9,
-      "lastAccessed": 1776166349104,
+      "accessCount": 10,
+      "lastAccessed": 1776177135251,
       "type": "directory"
     },
     {
