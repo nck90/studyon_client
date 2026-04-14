@@ -25,110 +25,81 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Scaffold(
       backgroundColor: AppColors.bg(context),
       body: RefreshIndicator(
-        onRefresh: () async {
-          await Future.delayed(const Duration(milliseconds: 600));
-        },
+        onRefresh: () async => Future.delayed(const Duration(milliseconds: 600)),
         color: AppColors.primary,
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              expandedHeight: isIPad ? 260 : 240,
-              pinned: true,
-              backgroundColor: AppColors.primary,
-              elevation: 0,
-              scrolledUnderElevation: 0,
-              title: Semantics(
-                label: '오늘 공부 시간 ${student.todayStudyFormatted}, ${student.name}',
-                child: Text(
-                  '${student.todayStudyFormatted}  ${student.name}',
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              flexibleSpace: FlexibleSpaceBar(
-                collapseMode: CollapseMode.pin,
-                background: _HeroBanner(isIPad: isIPad, pad: pad, student: student),
-              ),
-            ),
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            // ── Purple Hero Banner ──
+            _HeroBanner(isIPad: isIPad, pad: pad, student: student),
 
             // ── Not checked in warning ──
             if (!student.isCheckedIn)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(pad, 16, pad, 0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.hot.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.info_outline_rounded, size: 15, color: AppColors.hot),
-                        const SizedBox(width: 8),
-                        Text('아직 입실 전이에요',
-                            style: AppTypography.bodySmall.copyWith(color: AppColors.hot, fontWeight: FontWeight.w600)),
-                      ],
-                    ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(pad, 16, pad, 0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.hot.withValues(alpha: 0.07),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline_rounded, size: 15, color: AppColors.hot),
+                      const SizedBox(width: 8),
+                      Text('아직 입실 전이에요',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.hot, fontWeight: FontWeight.w600)),
+                    ],
                   ),
                 ),
               ),
 
             // ── Info cards: 3 columns iPad / stacked phone ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(pad, 20, pad, 0),
-                child: isIPad
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(flex: 4, child: _GoalCard(student: student)),
-                          const SizedBox(width: 12),
-                          Expanded(flex: 4, child: _WeeklyChart()),
-                          const SizedBox(width: 12),
-                          Expanded(flex: 3, child: _RoomStatusCard()),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          _GoalCard(student: student),
-                          const SizedBox(height: 12),
-                          _WeeklyChart(),
-                          const SizedBox(height: 12),
-                          _RoomStatusCard(),
-                        ],
-                      ),
-              ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(pad, 20, pad, 0),
+              child: isIPad
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 4, child: _GoalCard(student: student)),
+                        const SizedBox(width: 12),
+                        Expanded(flex: 4, child: _WeeklyChart()),
+                        const SizedBox(width: 12),
+                        Expanded(flex: 3, child: _RoomStatusCard()),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        _GoalCard(student: student),
+                        const SizedBox(height: 12),
+                        _WeeklyChart(),
+                        const SizedBox(height: 12),
+                        _RoomStatusCard(),
+                      ],
+                    ),
             ),
 
             // ── Plans + Recent ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(pad, 24, pad, 0),
-                child: isIPad
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: _TodayPlans(student: student, onTap: () => context.push('/student/plan'))),
-                          const SizedBox(width: 12),
-                          Expanded(child: _RecentActivity(student: student)),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          _TodayPlans(student: student, onTap: () => context.push('/student/plan')),
-                          const SizedBox(height: 12),
-                          _RecentActivity(student: student),
-                        ],
-                      ),
-              ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(pad, 24, pad, 0),
+              child: isIPad
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _TodayPlans(student: student, onTap: () => context.push('/student/plan'))),
+                        const SizedBox(width: 12),
+                        Expanded(child: _RecentActivity(student: student)),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        _TodayPlans(student: student, onTap: () => context.push('/student/plan')),
+                        const SizedBox(height: 12),
+                        _RecentActivity(student: student),
+                      ],
+                    ),
             ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            const SizedBox(height: 100),
           ],
         ),
       ),
@@ -137,35 +108,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 }
 
 // ─────────────────────────────────────────────────
-// Hero Banner - Solid purple, full width
+// Hero Banner
 // ─────────────────────────────────────────────────
 class _HeroBanner extends StatelessWidget {
   const _HeroBanner({required this.isIPad, required this.pad, required this.student});
   final bool isIPad;
   final double pad;
   final StudentState student;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(pad, 40, pad, 28),
-      color: AppColors.primary,
-      child: SafeArea(
-        bottom: false,
-        child: isIPad
-            ? Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(flex: 5, child: _buildContent(context)),
-                  const SizedBox(width: 32),
-                  _DailyProgressRing(progress: student.goalProgress, size: 120),
-                ],
-              )
-            : _buildContent(context),
-      ),
-    );
-  }
 
   String _greeting() {
     final hour = DateTime.now().hour;
@@ -174,111 +123,104 @@ class _HeroBanner extends StatelessWidget {
     return '오늘도 수고했어요';
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: AppColors.primary,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(pad, 16, pad, 28),
+          child: isIPad
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(flex: 5, child: _buildContent(context)),
+                    const SizedBox(width: 32),
+                    _DailyProgressRing(progress: student.goalProgress, size: 120),
+                  ],
+                )
+              : _buildContent(context),
+        ),
+      ),
+    );
+  }
+
   Widget _buildContent(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         // Top: seat + bell
         Row(
           children: [
-            Text(
-              student.seatNo,
-              style: TextStyle(
-                fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w500,
-                color: Colors.white.withValues(alpha: 0.6),
-              ),
-            ),
+            Text(student.seatNo, style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.6))),
             const Spacer(),
-            GestureDetector(
-              onTap: () => context.push('/student/notifications'),
-              child: Icon(Icons.notifications_none_rounded, size: 20, color: Colors.white.withValues(alpha: 0.7)),
+            Semantics(
+              label: '알림',
+              button: true,
+              child: GestureDetector(
+                onTap: () => context.push('/student/notifications'),
+                child: Icon(Icons.notifications_none_rounded, size: 20, color: Colors.white.withValues(alpha: 0.7)),
+              ),
             ),
           ],
         ),
         const SizedBox(height: 16),
 
         // Greeting + Name
-        Text(
-          _greeting(),
-          style: TextStyle(
-            fontFamily: 'Pretendard', fontSize: 13,
-            color: Colors.white.withValues(alpha: 0.6),
-          ),
-        ),
+        Text(_greeting(), style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, color: Colors.white.withValues(alpha: 0.6))),
         const SizedBox(height: 2),
-        Text(
-          '${student.name}님',
-          style: TextStyle(
-            fontFamily: 'Pretendard', fontSize: 16, fontWeight: FontWeight.w500,
-            color: Colors.white.withValues(alpha: 0.85),
-          ),
-        ),
+        Text('${student.name}님', style: TextStyle(fontFamily: 'Pretendard', fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.85))),
         const SizedBox(height: 8),
 
         // Big time
         _AnimatedStudyTime(isIPad: isIPad, totalSeconds: student.todayStudySeconds),
         const SizedBox(height: 4),
-        Text(
-          '오늘 공부',
-          style: TextStyle(
-            fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w600,
-            color: Colors.white.withValues(alpha: 0.5), letterSpacing: 0.3,
-          ),
-        ),
-        const SizedBox(height: 20),
+        Text('오늘 공부', style: TextStyle(fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.5), letterSpacing: 0.3)),
+        const SizedBox(height: 16),
 
         // Chips: streak + rank
         Row(
           children: [
             const TossFace('🔥', size: 15),
             const SizedBox(width: 4),
-            Text(
-              '${student.streakDays}일 연속',
-              style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85)),
-            ),
+            Text('${student.streakDays}일 연속', style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85))),
             const SizedBox(width: 20),
-            Text(
-              '#${student.todayRank} 순위',
-              style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85),
-                fontFeatures: const [FontFeature.tabularFigures()]),
-            ),
+            Text('#${student.todayRank} 순위', style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85), fontFeatures: const [FontFeature.tabularFigures()])),
           ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
 
         // CTA
         if (student.isCheckedIn)
           Semantics(
-            label: student.todayStudySeconds > 0 ? '이어서 공부하기' : '공부 시작하기',
+            label: student.todayStudySeconds > 0 ? '이어서 공부' : '공부 시작',
             button: true,
             child: GestureDetector(
-            onTap: () => context.push('/student/study-session'),
-            child: Container(
-              height: 44,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.play_arrow_rounded, size: 18, color: AppColors.primary),
-                  const SizedBox(width: 6),
-                  Text(
-                    student.todayStudySeconds > 0 ? '이어서 공부' : '공부 시작',
-                    style: const TextStyle(fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary),
-                  ),
-                ],
+              onTap: () => context.push('/student/study-session'),
+              child: Container(
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.play_arrow_rounded, size: 18, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Text(student.todayStudySeconds > 0 ? '이어서 공부' : '공부 시작',
+                      style: const TextStyle(fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                  ],
+                ),
               ),
             ),
-          )),
+          ),
       ],
     );
   }
 }
 
-// Daily progress ring (iPad only, inside hero)
 class _DailyProgressRing extends StatelessWidget {
   const _DailyProgressRing({required this.progress, required this.size});
   final double progress;
@@ -294,8 +236,7 @@ class _DailyProgressRing extends StatelessWidget {
           SizedBox(
             width: size, height: size,
             child: CircularProgressIndicator(
-              value: progress,
-              strokeWidth: 8,
+              value: progress, strokeWidth: 8,
               backgroundColor: Colors.white.withValues(alpha: 0.15),
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
               strokeCap: StrokeCap.round,
@@ -304,11 +245,7 @@ class _DailyProgressRing extends StatelessWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                '${(progress * 100).toInt()}%',
-                style: const TextStyle(fontFamily: 'Pretendard', fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white,
-                  fontFeatures: [FontFeature.tabularFigures()]),
-              ),
+              Text('${(progress * 100).toInt()}%', style: const TextStyle(fontFamily: 'Pretendard', fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, fontFeatures: [FontFeature.tabularFigures()])),
               Text('달성', style: TextStyle(fontFamily: 'Pretendard', fontSize: 12, color: Colors.white.withValues(alpha: 0.6))),
             ],
           ),
@@ -318,7 +255,6 @@ class _DailyProgressRing extends StatelessWidget {
   }
 }
 
-// Animated study time counter
 class _AnimatedStudyTime extends StatelessWidget {
   const _AnimatedStudyTime({required this.isIPad, required this.totalSeconds});
   final bool isIPad;
@@ -336,18 +272,10 @@ class _AnimatedStudyTime extends StatelessWidget {
         final h = mins ~/ 60;
         final m = mins % 60;
         final text = h > 0 ? '$h시간 $m분' : (m > 0 ? '$m분' : '0분');
-        return Text(
-          text,
-          style: TextStyle(
-            fontFamily: 'Pretendard',
-            fontSize: isIPad ? 44 : 36,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-            letterSpacing: -1,
-            height: 1.0,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        );
+        return Text(text, style: TextStyle(
+          fontFamily: 'Pretendard', fontSize: isIPad ? 44 : 36, fontWeight: FontWeight.w800,
+          color: Colors.white, letterSpacing: -1, height: 1.0, fontFeatures: const [FontFeature.tabularFigures()],
+        ));
       },
     );
   }
@@ -367,50 +295,36 @@ class _GoalCard extends StatelessWidget {
     final progress = student.goalProgress;
 
     return Semantics(
-      label: '오늘 목표: $subject $detail, ${(progress * 100).toInt()}% 달성',
-      button: true,
+      label: '오늘 목표 ${(progress * 100).toInt()}퍼센트',
       child: PressableScale(
-      onTap: () => context.push('/student/plan'),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.card(context),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Text('오늘 목표', style: TextStyle(
-                  fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w700,
-                  color: AppColors.textTertiary, letterSpacing: 0.3,
-                )),
-                const Spacer(),
-                Text(
-                  '${(progress * 100).toInt()}%',
-                  style: TextStyle(fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary,
-                    fontFeatures: const [FontFeature.tabularFigures()]),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(subject, style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.subjectColor(subject))),
-            const SizedBox(height: 4),
-            Text(detail, style: const TextStyle(fontFamily: 'Pretendard', fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-            const SizedBox(height: 14),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(3),
-              child: LinearProgressIndicator(
-                value: progress, minHeight: 5,
-                backgroundColor: const Color(0xFFE5E7EB),
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+        onTap: () => context.push('/student/plan'),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(color: AppColors.card(context), borderRadius: BorderRadius.circular(16)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('오늘 목표', style: TextStyle(fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.3)),
+                  const Spacer(),
+                  Text('${(progress * 100).toInt()}%', style: TextStyle(fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary, fontFeatures: const [FontFeature.tabularFigures()])),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              Text(subject, style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.subjectColor(subject))),
+              const SizedBox(height: 4),
+              Text(detail, style: const TextStyle(fontFamily: 'Pretendard', fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+              const SizedBox(height: 14),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(3),
+                child: LinearProgressIndicator(value: progress, minHeight: 5, backgroundColor: const Color(0xFFE5E7EB), valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary)),
+              ),
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 }
 
@@ -425,9 +339,7 @@ class _WeeklyChart extends StatefulWidget {
 
 class _WeeklyChartState extends State<_WeeklyChart> {
   String? _selectedDay;
-  static const _days = [
-    ('월', 3.0), ('화', 5.0), ('수', 2.5), ('목', 6.0), ('금', 4.5), ('토', 7.0), ('일', 2.2),
-  ];
+  static const _days = [('월', 3.0), ('화', 5.0), ('수', 2.5), ('목', 6.0), ('금', 4.5), ('토', 7.0), ('일', 2.2)];
 
   @override
   Widget build(BuildContext context) {
@@ -442,8 +354,7 @@ class _WeeklyChartState extends State<_WeeklyChart> {
             children: [
               const Text('이번 주', style: TextStyle(fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.3)),
               const Spacer(),
-              Text('30.2h', style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary,
-                fontFeatures: const [FontFeature.tabularFigures()])),
+              Text('30.2h', style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary, fontFeatures: const [FontFeature.tabularFigures()])),
             ],
           ),
           const SizedBox(height: 16),
@@ -521,14 +432,12 @@ class _RoomStatusCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Text('18', style: TextStyle(fontFamily: 'Pretendard', fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.textPrimary,
-                fontFeatures: [FontFeature.tabularFigures()])),
-              Text('/22', style: TextStyle(fontFamily: 'Pretendard', fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.textTertiary,
-                fontFeatures: const [FontFeature.tabularFigures()])),
+              const Text('18', style: TextStyle(fontFamily: 'Pretendard', fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.textPrimary, fontFeatures: [FontFeature.tabularFigures()])),
+              Text('/22', style: TextStyle(fontFamily: 'Pretendard', fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.textTertiary, fontFeatures: const [FontFeature.tabularFigures()])),
             ],
           ),
           const SizedBox(height: 8),
-          Text('공부 14 · 휴식 2 · 빈자리 4', style: TextStyle(fontFamily: 'Pretendard', fontSize: 12, color: AppColors.textTertiary)),
+          const Text('공부 14 · 휴식 2 · 빈자리 4', style: TextStyle(fontFamily: 'Pretendard', fontSize: 12, color: AppColors.textTertiary)),
         ],
       ),
     );
@@ -555,10 +464,7 @@ class _TodayPlans extends StatelessWidget {
             children: [
               const Text('오늘 할 일', style: TextStyle(fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.3)),
               const Spacer(),
-              GestureDetector(
-                onTap: onTap,
-                child: const Icon(Icons.edit_rounded, size: 16, color: AppColors.primary),
-              ),
+              GestureDetector(onTap: onTap, child: const Icon(Icons.edit_rounded, size: 16, color: AppColors.primary)),
             ],
           ),
           const SizedBox(height: 14),

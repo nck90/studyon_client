@@ -96,26 +96,26 @@
   "hotPaths": [
     {
       "path": "apps/studyon_client/lib/features/student/home/home_screen.dart",
-      "accessCount": 158,
-      "lastAccessed": 1776173633747,
+      "accessCount": 175,
+      "lastAccessed": 1776176974287,
       "type": "file"
     },
     {
       "path": "apps/studyon_client/lib/features/student/profile/profile_screen.dart",
-      "accessCount": 113,
-      "lastAccessed": 1776173804254,
+      "accessCount": 124,
+      "lastAccessed": 1776175367533,
       "type": "file"
     },
     {
       "path": "apps/studyon_client/lib/features/student/study_session/study_session_screen.dart",
-      "accessCount": 98,
-      "lastAccessed": 1776173665749,
+      "accessCount": 104,
+      "lastAccessed": 1776175246795,
       "type": "file"
     },
     {
       "path": "apps/studyon_client/lib/features/student/rankings/rankings_screen.dart",
-      "accessCount": 70,
-      "lastAccessed": 1776172419684,
+      "accessCount": 80,
+      "lastAccessed": 1776175341089,
       "type": "file"
     },
     {
@@ -126,8 +126,8 @@
     },
     {
       "path": "apps/studyon_client/lib/features/login/login_screen.dart",
-      "accessCount": 42,
-      "lastAccessed": 1776171930946,
+      "accessCount": 44,
+      "lastAccessed": 1776174246304,
       "type": "file"
     },
     {
@@ -138,8 +138,8 @@
     },
     {
       "path": "apps/studyon_client/lib/features/admin/students/students_screen.dart",
-      "accessCount": 30,
-      "lastAccessed": 1776166733709,
+      "accessCount": 31,
+      "lastAccessed": 1776174201277,
       "type": "file"
     },
     {
@@ -152,6 +152,12 @@
       "path": "packages/design_system/lib/src/theme/app_colors.dart",
       "accessCount": 25,
       "lastAccessed": 1776173256829,
+      "type": "file"
+    },
+    {
+      "path": "apps/studyon_client/lib/features/admin/seats/seats_screen.dart",
+      "accessCount": 24,
+      "lastAccessed": 1776175271594,
       "type": "file"
     },
     {
@@ -173,6 +179,12 @@
       "type": "file"
     },
     {
+      "path": "apps/studyon_client/lib/features/admin/notifications/notifications_screen.dart",
+      "accessCount": 20,
+      "lastAccessed": 1776175308165,
+      "type": "file"
+    },
+    {
       "path": "apps/studyon_client/lib/features/admin/study_overview/study_overview_screen.dart",
       "accessCount": 19,
       "lastAccessed": 1776167679107,
@@ -182,18 +194,6 @@
       "path": "apps/studyon_client/lib/features/student/seats/seats_screen.dart",
       "accessCount": 19,
       "lastAccessed": 1776172607526,
-      "type": "file"
-    },
-    {
-      "path": "apps/studyon_client/lib/features/admin/seats/seats_screen.dart",
-      "accessCount": 18,
-      "lastAccessed": 1776166868810,
-      "type": "file"
-    },
-    {
-      "path": "apps/studyon_client/lib/features/admin/notifications/notifications_screen.dart",
-      "accessCount": 18,
-      "lastAccessed": 1776170228855,
       "type": "file"
     },
     {
@@ -215,16 +215,16 @@
       "type": "file"
     },
     {
+      "path": "apps/studyon_client/lib",
+      "accessCount": 17,
+      "lastAccessed": 1776175318260,
+      "type": "directory"
+    },
+    {
       "path": "apps/studyon_client/lib/features/admin/rankings/admin_rankings_screen.dart",
       "accessCount": 14,
       "lastAccessed": 1776167679973,
       "type": "file"
-    },
-    {
-      "path": "apps/studyon_client/lib",
-      "accessCount": 14,
-      "lastAccessed": 1776169960421,
-      "type": "directory"
     },
     {
       "path": "packages/design_system/lib/src/theme/app_theme.dart",
