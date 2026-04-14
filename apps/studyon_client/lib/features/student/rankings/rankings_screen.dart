@@ -9,9 +9,26 @@ class RankingsScreen extends StatefulWidget {
   State<RankingsScreen> createState() => _RankingsScreenState();
 }
 
-class _RankingsScreenState extends State<RankingsScreen> {
+class _RankingsScreenState extends State<RankingsScreen>
+    with TickerProviderStateMixin {
   int _tab = 0;
   final _tabs = ['오늘', '주간', '월간'];
+  late final AnimationController _podiumCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _podiumCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _podiumCtrl.dispose();
+    super.dispose();
+  }
 
   final _data = [
     ('김민수', '4시간 12분'),
@@ -35,6 +52,24 @@ class _RankingsScreenState extends State<RankingsScreen> {
 
   // Current user is rank 3 (이서준)
   static const int _myRank = 3;
+
+  Widget _animatedPodium(double delay, Widget child) {
+    return SlideTransition(
+      position: Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+        CurvedAnimation(
+          parent: _podiumCtrl,
+          curve: Interval(delay, delay + 0.4, curve: Curves.easeOut),
+        ),
+      ),
+      child: FadeTransition(
+        opacity: CurvedAnimation(
+          parent: _podiumCtrl,
+          curve: Interval(delay, delay + 0.4),
+        ),
+        child: child,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -258,53 +293,11 @@ class _RankingsScreenState extends State<RankingsScreen> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Expanded(
-                                  child: _PodiumColumn(
-                                    rank: 2,
-                                    name: _data[1].$1,
-                                    time: _data[1].$2,
-                                    podiumHeight: 110,
-                                    crownIcon: Icons.workspace_premium_rounded,
-                                    crownColor: AppColors.rankSilver,
-                                    borderColor: AppColors.rankSilver,
-                                    nameColor: AppColors.rankSilver,
-                                    isMyRank: _myRank == 2,
-                                    trend: '+1',
-                                    trendUp: true,
-                                  ),
-                                ),
+                                Expanded(child: _animatedPodium(0.0, _PodiumColumn(rank: 2, name: _data[1].$1, time: _data[1].$2, podiumHeight: 110, crownIcon: Icons.workspace_premium_rounded, crownColor: AppColors.rankSilver, borderColor: AppColors.rankSilver, nameColor: AppColors.rankSilver, isMyRank: _myRank == 2, trend: '+1', trendUp: true))),
                                 const SizedBox(width: 8),
-                                Expanded(
-                                  child: _PodiumColumn(
-                                    rank: 1,
-                                    name: _data[0].$1,
-                                    time: _data[0].$2,
-                                    podiumHeight: 140,
-                                    crownIcon: Icons.emoji_events_rounded,
-                                    crownColor: AppColors.rankGold,
-                                    borderColor: AppColors.rankGold,
-                                    nameColor: AppColors.rankGold,
-                                    isMyRank: _myRank == 1,
-                                    trend: '-',
-                                    trendUp: null,
-                                  ),
-                                ),
+                                Expanded(child: _animatedPodium(0.15, _PodiumColumn(rank: 1, name: _data[0].$1, time: _data[0].$2, podiumHeight: 140, crownIcon: Icons.emoji_events_rounded, crownColor: AppColors.rankGold, borderColor: AppColors.rankGold, nameColor: AppColors.rankGold, isMyRank: _myRank == 1, trend: '-', trendUp: null))),
                                 const SizedBox(width: 8),
-                                Expanded(
-                                  child: _PodiumColumn(
-                                    rank: 3,
-                                    name: _data[2].$1,
-                                    time: _data[2].$2,
-                                    podiumHeight: 90,
-                                    crownIcon: Icons.military_tech_rounded,
-                                    crownColor: AppColors.rankBronze,
-                                    borderColor: AppColors.rankBronze,
-                                    nameColor: AppColors.rankBronze,
-                                    isMyRank: _myRank == 3,
-                                    trend: '-2',
-                                    trendUp: false,
-                                  ),
-                                ),
+                                Expanded(child: _animatedPodium(0.3, _PodiumColumn(rank: 3, name: _data[2].$1, time: _data[2].$2, podiumHeight: 90, crownIcon: Icons.military_tech_rounded, crownColor: AppColors.rankBronze, borderColor: AppColors.rankBronze, nameColor: AppColors.rankBronze, isMyRank: _myRank == 3, trend: '-2', trendUp: false))),
                               ],
                             ),
                           ],
@@ -435,53 +428,11 @@ class _RankingsScreenState extends State<RankingsScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Expanded(
-                            child: _PodiumColumn(
-                              rank: 2,
-                              name: _data[1].$1,
-                              time: _data[1].$2,
-                              podiumHeight: 100,
-                              crownIcon: Icons.workspace_premium_rounded,
-                              crownColor: AppColors.rankSilver,
-                              borderColor: AppColors.rankSilver,
-                              nameColor: AppColors.rankSilver,
-                              isMyRank: _myRank == 2,
-                              trend: '+1',
-                              trendUp: true,
-                            ),
-                          ),
+                          Expanded(child: _animatedPodium(0.0, _PodiumColumn(rank: 2, name: _data[1].$1, time: _data[1].$2, podiumHeight: 100, crownIcon: Icons.workspace_premium_rounded, crownColor: AppColors.rankSilver, borderColor: AppColors.rankSilver, nameColor: AppColors.rankSilver, isMyRank: _myRank == 2, trend: '+1', trendUp: true))),
                           const SizedBox(width: 8),
-                          Expanded(
-                            child: _PodiumColumn(
-                              rank: 1,
-                              name: _data[0].$1,
-                              time: _data[0].$2,
-                              podiumHeight: 120,
-                              crownIcon: Icons.emoji_events_rounded,
-                              crownColor: AppColors.rankGold,
-                              borderColor: AppColors.rankGold,
-                              nameColor: AppColors.rankGold,
-                              isMyRank: _myRank == 1,
-                              trend: '-',
-                              trendUp: null,
-                            ),
-                          ),
+                          Expanded(child: _animatedPodium(0.15, _PodiumColumn(rank: 1, name: _data[0].$1, time: _data[0].$2, podiumHeight: 120, crownIcon: Icons.emoji_events_rounded, crownColor: AppColors.rankGold, borderColor: AppColors.rankGold, nameColor: AppColors.rankGold, isMyRank: _myRank == 1, trend: '-', trendUp: null))),
                           const SizedBox(width: 8),
-                          Expanded(
-                            child: _PodiumColumn(
-                              rank: 3,
-                              name: _data[2].$1,
-                              time: _data[2].$2,
-                              podiumHeight: 90,
-                              crownIcon: Icons.military_tech_rounded,
-                              crownColor: AppColors.rankBronze,
-                              borderColor: AppColors.rankBronze,
-                              nameColor: AppColors.rankBronze,
-                              isMyRank: _myRank == 3,
-                              trend: '-2',
-                              trendUp: false,
-                            ),
-                          ),
+                          Expanded(child: _animatedPodium(0.3, _PodiumColumn(rank: 3, name: _data[2].$1, time: _data[2].$2, podiumHeight: 90, crownIcon: Icons.military_tech_rounded, crownColor: AppColors.rankBronze, borderColor: AppColors.rankBronze, nameColor: AppColors.rankBronze, isMyRank: _myRank == 3, trend: '-2', trendUp: false))),
                         ],
                       ),
                     ],

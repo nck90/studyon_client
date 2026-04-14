@@ -24,80 +24,110 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
     return Scaffold(
       backgroundColor: AppColors.bg(context),
-      body: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          // ── Purple Hero Banner ──
-          _HeroBanner(isIPad: isIPad, pad: pad, student: student),
-
-          // ── Not checked in warning ──
-          if (!student.isCheckedIn)
-            Padding(
-              padding: EdgeInsets.fromLTRB(pad, 16, pad, 0),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.hot.withValues(alpha: 0.07),
-                  borderRadius: BorderRadius.circular(12),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await Future.delayed(const Duration(milliseconds: 600));
+        },
+        color: AppColors.primary,
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: isIPad ? 260 : 240,
+              pinned: true,
+              backgroundColor: AppColors.primary,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              title: Text(
+                '${student.todayStudyFormatted}  ${student.name}',
+                style: const TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline_rounded, size: 15, color: AppColors.hot),
-                    const SizedBox(width: 8),
-                    Text('아직 입실 전이에요',
-                        style: AppTypography.bodySmall.copyWith(color: AppColors.hot, fontWeight: FontWeight.w600)),
-                  ],
-                ),
+              ),
+              flexibleSpace: FlexibleSpaceBar(
+                collapseMode: CollapseMode.pin,
+                background: _HeroBanner(isIPad: isIPad, pad: pad, student: student),
               ),
             ),
 
-          // ── Info cards: 3 columns iPad / stacked phone ──
-          Padding(
-            padding: EdgeInsets.fromLTRB(pad, 20, pad, 0),
-            child: isIPad
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(flex: 4, child: _GoalCard(student: student)),
-                      const SizedBox(width: 12),
-                      Expanded(flex: 4, child: _WeeklyChart()),
-                      const SizedBox(width: 12),
-                      Expanded(flex: 3, child: _RoomStatusCard()),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      _GoalCard(student: student),
-                      const SizedBox(height: 12),
-                      _WeeklyChart(),
-                      const SizedBox(height: 12),
-                      _RoomStatusCard(),
-                    ],
+            // ── Not checked in warning ──
+            if (!student.isCheckedIn)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(pad, 16, pad, 0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.hot.withValues(alpha: 0.07),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline_rounded, size: 15, color: AppColors.hot),
+                        const SizedBox(width: 8),
+                        Text('아직 입실 전이에요',
+                            style: AppTypography.bodySmall.copyWith(color: AppColors.hot, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
                   ),
-          ),
+                ),
+              ),
 
-          // ── Plans + Recent ──
-          Padding(
-            padding: EdgeInsets.fromLTRB(pad, 24, pad, 0),
-            child: isIPad
-                ? Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: _TodayPlans(student: student, onTap: () => context.push('/student/plan'))),
-                      const SizedBox(width: 12),
-                      Expanded(child: _RecentActivity(student: student)),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      _TodayPlans(student: student, onTap: () => context.push('/student/plan')),
-                      const SizedBox(height: 12),
-                      _RecentActivity(student: student),
-                    ],
-                  ),
-          ),
-          const SizedBox(height: 100),
-        ],
+            // ── Info cards: 3 columns iPad / stacked phone ──
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(pad, 20, pad, 0),
+                child: isIPad
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 4, child: _GoalCard(student: student)),
+                          const SizedBox(width: 12),
+                          Expanded(flex: 4, child: _WeeklyChart()),
+                          const SizedBox(width: 12),
+                          Expanded(flex: 3, child: _RoomStatusCard()),
+                        ],
+                      )
+                    : Column(
+                        children: [
+                          _GoalCard(student: student),
+                          const SizedBox(height: 12),
+                          _WeeklyChart(),
+                          const SizedBox(height: 12),
+                          _RoomStatusCard(),
+                        ],
+                      ),
+              ),
+            ),
+
+            // ── Plans + Recent ──
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(pad, 24, pad, 0),
+                child: isIPad
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: _TodayPlans(student: student, onTap: () => context.push('/student/plan'))),
+                          const SizedBox(width: 12),
+                          Expanded(child: _RecentActivity(student: student)),
+                        ],
+                      )
+                    : Column(
+                        children: [
+                          _TodayPlans(student: student, onTap: () => context.push('/student/plan')),
+                          const SizedBox(height: 12),
+                          _RecentActivity(student: student),
+                        ],
+                      ),
+              ),
+            ),
+
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
+        ),
       ),
     );
   }
@@ -315,7 +345,7 @@ class _GoalCard extends StatelessWidget {
     final detail = student.goalDetail.isNotEmpty ? student.goalDetail : '목표를 설정해주세요';
     final progress = student.goalProgress;
 
-    return GestureDetector(
+    return PressableScale(
       onTap: () => context.push('/student/plan'),
       child: Container(
         padding: const EdgeInsets.all(20),

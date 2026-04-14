@@ -18,6 +18,15 @@ class _PlanItem {
     this.priority = '보통',
     this.progress = 0.0,
   }) : id = id ?? '${DateTime.now().microsecondsSinceEpoch}_${subject}_$detail';
+
+  _PlanItem copyWith({double? progress}) => _PlanItem(
+        id: id,
+        subject: subject,
+        detail: detail,
+        targetHours: targetHours,
+        priority: priority,
+        progress: progress ?? this.progress,
+      );
 }
 
 class PlanScreen extends StatefulWidget {
@@ -168,6 +177,11 @@ class _PlanScreenState extends State<PlanScreen> {
                             priorityColor: _priorityColor(item.priority),
                             onDelete: () => _delete(i),
                             onTap: () => _showAddSheet(editing: item, editIndex: i),
+                            onToggle: () => setState(() {
+                              _plans[i] = _plans[i].copyWith(
+                                progress: _plans[i].progress >= 1.0 ? 0.0 : 1.0,
+                              );
+                            }),
                           ),
                         );
                       },
@@ -189,15 +203,17 @@ class _PlanCard extends StatelessWidget {
     required this.priorityColor,
     required this.onDelete,
     required this.onTap,
+    required this.onToggle,
   });
   final _PlanItem item;
   final Color priorityColor;
   final VoidCallback onDelete;
   final VoidCallback onTap;
+  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return PressableScale(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -208,9 +224,28 @@ class _PlanCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top row: subject badge + detail + hours + delete
+            // Top row: checkbox + subject badge + detail + hours + delete
             Row(
               children: [
+                GestureDetector(
+                  onTap: onToggle,
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: item.progress >= 1.0 ? AppColors.accent : AppColors.cardBorder,
+                        width: 1.5,
+                      ),
+                      color: item.progress >= 1.0 ? AppColors.accent : Colors.transparent,
+                    ),
+                    child: item.progress >= 1.0
+                        ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                        : null,
+                  ),
+                ),
+                const SizedBox(width: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
@@ -229,7 +264,10 @@ class _PlanCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     item.detail,
-                    style: AppTypography.titleMedium,
+                    style: AppTypography.titleMedium.copyWith(
+                      decoration: item.progress >= 1.0 ? TextDecoration.lineThrough : null,
+                      color: item.progress >= 1.0 ? AppColors.textTertiary : AppColors.textPrimary,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),

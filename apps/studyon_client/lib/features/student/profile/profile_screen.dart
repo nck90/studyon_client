@@ -383,6 +383,53 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  void _showBadgeDetail(BuildContext context, ({String emoji, String label, bool active}) badge) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: AppColors.card(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TossFace(badge.emoji, size: 48),
+            const SizedBox(height: 16),
+            Text(badge.label, style: AppTypography.headlineMedium),
+            const SizedBox(height: 8),
+            Text(
+              badge.active ? '획득 완료' : '아직 달성하지 못했어요',
+              style: AppTypography.bodyMedium.copyWith(
+                color: badge.active ? AppColors.accent : AppColors.textTertiary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _badgeDescription(badge.label),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _badgeDescription(String label) {
+    switch (label) {
+      case '7일 연속': return '7일 연속 출석하면 획득';
+      case '첫 100시간': return '누적 학습 시간 100시간 달성';
+      case 'TOP 3': return '일간 랭킹 TOP 3 진입';
+      case '목표 달성왕': return '10회 연속 목표 달성';
+      case '새벽형': return '오전 6시 이전에 입실';
+      case '마라톤러': return '한 세션에 5시간 이상 학습';
+      default: return '';
+    }
+  }
+
   static const _badges = [
     (emoji: '🔥', label: '7일 연속', active: true),
     (emoji: '💯', label: '첫 100시간', active: true),
@@ -430,20 +477,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.card(context),
-                  ),
-                  child: Center(
-                    child: badge.active
-                        ? TossFace(badge.emoji, size: 36)
-                        : Opacity(
-                            opacity: 0.35,
-                            child: TossFace(badge.emoji, size: 32),
-                          ),
+                GestureDetector(
+                  onTap: () => _showBadgeDetail(context, badge),
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.card(context),
+                    ),
+                    child: Center(
+                      child: badge.active
+                          ? TossFace(badge.emoji, size: 36)
+                          : Opacity(
+                              opacity: 0.35,
+                              child: TossFace(badge.emoji, size: 32),
+                            ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),

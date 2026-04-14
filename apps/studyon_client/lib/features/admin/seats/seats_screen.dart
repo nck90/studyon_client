@@ -259,7 +259,11 @@ class _SeatsScreenState extends ConsumerState<SeatsScreen> {
                           onDelete: (id, seatNo) => _showDeleteConfirm(id, seatNo),
                           onAdd: _showAddSeatDialog,
                         )
-                      : _SeatDetailGrid(seats: filtered.map((s) => s.toSeat()).toList()),
+                      : InteractiveViewer(
+                          minScale: 0.8,
+                          maxScale: 2.0,
+                          child: _SeatDetailGrid(seats: filtered.map((s) => s.toSeat()).toList()),
+                        ),
                 ),
         ),
       ],
