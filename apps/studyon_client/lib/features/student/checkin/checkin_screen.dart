@@ -13,32 +13,31 @@ class CheckInScreen extends ConsumerStatefulWidget {
   ConsumerState<CheckInScreen> createState() => _CheckInScreenState();
 }
 
-class _CheckInScreenState extends ConsumerState<CheckInScreen>
-    with TickerProviderStateMixin {
+class _CheckInScreenState extends ConsumerState<CheckInScreen> with TickerProviderStateMixin {
   bool _isLoading = false;
   late final AnimationController _pulseCtrl;
   late final AnimationController _scaleCtrl;
   late final Animation<double> _scaleAnim;
-  late final Timer _clockTimer;
-  late DateTime _now;
+  Timer? _clockTimer;
+  String _timeStr = '';
+  String _dateStr = '';
 
   @override
   void initState() {
     super.initState();
-    _now = DateTime.now();
-    _pulseCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2000),
-    )..repeat(reverse: true);
-    _scaleCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-    _scaleAnim = Tween<double>(begin: 1.0, end: 0.92).animate(
-      CurvedAnimation(parent: _scaleCtrl, curve: Curves.easeInOut),
-    );
-    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _now = DateTime.now());
+    _pulseCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2500))..repeat(reverse: true);
+    _scaleCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.92).animate(CurvedAnimation(parent: _scaleCtrl, curve: Curves.easeInOut));
+    _updateTime();
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
+  }
+
+  void _updateTime() {
+    final now = DateTime.now();
+    final weekdays = ['월', '화', '수', '목', '금', '토', '일'];
+    setState(() {
+      _timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      _dateStr = '${now.month}월 ${now.day}일 ${weekdays[now.weekday - 1]}요일';
     });
   }
 
@@ -46,7 +45,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
   void dispose() {
     _pulseCtrl.dispose();
     _scaleCtrl.dispose();
-    _clockTimer.cancel();
+    _clockTimer?.cancel();
     super.dispose();
   }
 
@@ -56,9 +55,9 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
     setState(() => _isLoading = true);
     _scaleCtrl.forward();
     _pulseCtrl.stop();
-    await Future.delayed(const Duration(milliseconds: 1500));
+    ref.read(studentProvider.notifier).checkIn();
+    await Future.delayed(const Duration(milliseconds: 1200));
     if (mounted) {
-      ref.read(studentProvider.notifier).checkIn();
       showStudyonSnackbar(context, '입실 완료');
       context.go('/student/home');
     }
@@ -67,217 +66,117 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
   @override
   Widget build(BuildContext context) {
     final student = ref.watch(studentProvider);
-    final timeStr =
-        '${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}';
-    final weekdays = ['월', '화', '수', '목', '금', '토', '일'];
-    final dateStr = '${_now.month}월 ${_now.day}일 (${weekdays[_now.weekday - 1]})';
-    const buttonSize = 148.0;
+    final isIPad = MediaQuery.of(context).size.shortestSide >= 600;
 
     return Scaffold(
-      backgroundColor: AppColors.bg(context),
+      backgroundColor: const Color(0xFF0A0A0F),
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Column(
+        child: Column(
+          children: [
+            const Spacer(flex: 3),
+
+            // Large clock - the hero, like iPad lockscreen
+            Text(
+              _timeStr,
+              style: TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: isIPad ? 96 : 72,
+                fontWeight: FontWeight.w200,
+                color: Colors.white,
+                letterSpacing: -4,
+                height: 1.0,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Date
+            Text(
+              _dateStr,
+              style: TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: isIPad ? 20 : 17,
+                fontWeight: FontWeight.w400,
+                color: Colors.white.withValues(alpha: 0.5),
+                letterSpacing: 0.5,
+              ),
+            ),
+
+            const Spacer(flex: 4),
+
+            // Check-in button - subtle, not screaming
+            Stack(
+              alignment: Alignment.center,
               children: [
-                const Spacer(flex: 2),
-                // Clock
-                Text(
-                  timeStr,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 64,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -3,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  dateStr,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 48),
-                // Button with pulse
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    if (!_isLoading)
-                      AnimatedBuilder(
-                        animation: _pulseCtrl,
-                        builder: (context, _) => Container(
-                          width: buttonSize + 30 + 30 * _pulseCtrl.value,
-                          height: buttonSize + 30 + 30 * _pulseCtrl.value,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.primary.withValues(
-                              alpha: 0.04 + 0.04 * _pulseCtrl.value,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ScaleTransition(
-                      scale: _scaleAnim,
-                      child: Semantics(
-                        label: '입실하기',
-                        button: true,
-                        child: GestureDetector(
-                          onTap: _checkIn,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            width: buttonSize,
-                            height: buttonSize,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: _isLoading
-                                    ? AppColors.mintGradient
-                                    : AppColors.primaryGradient,
-                              ),
-                            ),
-                            child: _isLoading
-                                ? const Center(
-                                    child: SizedBox(
-                                      width: 32,
-                                      height: 32,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 3,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                : const Icon(
-                                    Icons.door_front_door_outlined,
-                                    size: 52,
-                                    color: Colors.white,
-                                  ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: _isLoading
-                      ? Text(
-                          '입실 처리 중',
-                          key: const ValueKey('l'),
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: AppColors.textTertiary,
-                          ),
-                        )
-                      : Text(
-                          '입실하기',
-                          key: const ValueKey('r'),
-                          style: AppTypography.headlineLarge.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                ),
-                const SizedBox(height: 20),
-                // Compact info row: seat + streak
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.event_seat_rounded, size: 15, color: AppColors.textTertiary),
-                    const SizedBox(width: 6),
-                    Text(
-                      '좌석 ${student.seatNo}',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Container(
-                      width: 3,
-                      height: 3,
-                      margin: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: const BoxDecoration(
-                        color: AppColors.textTertiary,
+                // Pulse ring
+                if (!_isLoading)
+                  AnimatedBuilder(
+                    animation: _pulseCtrl,
+                    builder: (context, _) => Container(
+                      width: (isIPad ? 88 : 76) + 20 * _pulseCtrl.value,
+                      height: (isIPad ? 88 : 76) + 20 * _pulseCtrl.value,
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.06 + 0.06 * _pulseCtrl.value),
+                          width: 1,
+                        ),
                       ),
                     ),
-                    const TossFace('🔥', size: 14),
-                    const SizedBox(width: 4),
-                    Text(
-                      '7일 연속',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
+                  ),
+                // Button
+                ScaleTransition(
+                  scale: _scaleAnim,
+                  child: GestureDetector(
+                    onTap: _checkIn,
+                    child: Container(
+                      width: isIPad ? 88 : 76,
+                      height: isIPad ? 88 : 76,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: _isLoading ? AppColors.accent : Colors.white.withValues(alpha: 0.1),
+                        border: _isLoading ? null : Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
                       ),
+                      child: _isLoading
+                          ? const Center(child: SizedBox(width: 24, height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)))
+                          : Icon(Icons.arrow_upward_rounded, size: isIPad ? 32 : 28, color: Colors.white.withValues(alpha: 0.8)),
                     ),
-                  ],
-                ),
-                const Spacer(flex: 1),
-                // Mini info cards at bottom
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-                  child: Row(
-                    children: const [
-                      Expanded(child: _MiniInfo(label: '오늘 목표', value: '수학 3시간')),
-                      SizedBox(width: 12),
-                      Expanded(child: _MiniInfo(label: '자습실', value: '18 / 22명')),
-                    ],
                   ),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 16),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Text(
+                _isLoading ? '입실 중' : '입실하기',
+                key: ValueKey(_isLoading),
+                style: TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withValues(alpha: _isLoading ? 0.4 : 0.6),
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ),
+
+            const Spacer(flex: 3),
+
+            // Bottom info - minimal, like lockscreen bottom
+            Text(
+              student.seatNo,
+              style: TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.white.withValues(alpha: 0.25),
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
         ),
-      ),
-    );
-  }
-}
-
-class _MiniInfo extends StatelessWidget {
-  const _MiniInfo({required this.label, required this.value});
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(color: AppColors.borderColor(context)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Pretendard',
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textTertiary,
-              letterSpacing: 0.3,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontFamily: 'Pretendard',
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ],
       ),
     );
   }

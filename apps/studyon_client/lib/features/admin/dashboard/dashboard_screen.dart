@@ -366,10 +366,56 @@ class _KpiCard extends StatelessWidget {
               final textStyle = isHero
                   ? AppTypography.headlineLarge.copyWith(
                       color: color,
-                      fontSize: 36,
+                      fontSize: 28,
                       fontWeight: FontWeight.w800,
                     )
                   : AppTypography.headlineLarge.copyWith(color: color);
+              if (isHero) {
+                // Use a fixed total of 22 for display; ratio from value vs 22
+                const totalSeats = 22.0;
+                final occupancyRatio = (value / totalSeats).clamp(0.0, 1.0);
+                final pct = (occupancyRatio * 100).toInt();
+                return Row(
+                  children: [
+                    SizedBox(
+                      width: 64,
+                      height: 64,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            value: occupancyRatio,
+                            strokeWidth: 6,
+                            backgroundColor: Colors.white.withValues(alpha: 0.15),
+                            valueColor: AlwaysStoppedAnimation<Color>(color),
+                            strokeCap: StrokeCap.round,
+                          ),
+                          Text(
+                            '$pct%',
+                            style: TextStyle(
+                              fontFamily: 'Pretendard',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(display, style: textStyle),
+                        Text(
+                          '${totalSeats.toInt()}석 중',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              }
               return Text(display, style: textStyle);
             },
           ),

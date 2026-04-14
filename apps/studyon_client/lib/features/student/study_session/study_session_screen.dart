@@ -390,11 +390,14 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
         body: Container(
           width: double.infinity,
           height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1A1A2E), Color(0xFF0F0F1E)],
+            colors: [
+              Color.lerp(const Color(0xFF1A1A2E), const Color(0xFF1E1A2E), (_elapsed / _goalSeconds).clamp(0.0, 1.0))!,
+              Color.lerp(const Color(0xFF0F0F1E), const Color(0xFF150F1E), (_elapsed / _goalSeconds).clamp(0.0, 1.0))!,
+            ],
           ),
         ),
         child: SafeArea(

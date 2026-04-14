@@ -297,11 +297,11 @@ class _RankingsScreenState extends State<RankingsScreen>
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
-                                Expanded(child: _animatedPodium(0.0, _PodiumColumn(rank: 2, name: _data[1].$1, time: _data[1].$2, podiumHeight: 110, crownIcon: Icons.workspace_premium_rounded, crownColor: AppColors.rankSilver, borderColor: AppColors.rankSilver, nameColor: AppColors.rankSilver, isMyRank: _myRank == 2, trend: '+1', trendUp: true))),
+                                Expanded(child: _animatedPodium(0.0, _PodiumColumn(rank: 2, name: _data[1].$1, time: _data[1].$2, podiumHeight: (228 / 252.0 * 140).clamp(60.0, 140.0), crownIcon: Icons.workspace_premium_rounded, crownColor: AppColors.rankSilver, borderColor: AppColors.rankSilver, nameColor: AppColors.rankSilver, isMyRank: _myRank == 2, trend: '+1', trendUp: true))),
                                 const SizedBox(width: 8),
                                 Expanded(child: _animatedPodium(0.15, _PodiumColumn(rank: 1, name: _data[0].$1, time: _data[0].$2, podiumHeight: 140, crownIcon: Icons.emoji_events_rounded, crownColor: AppColors.rankGold, borderColor: AppColors.rankGold, nameColor: AppColors.rankGold, isMyRank: _myRank == 1, trend: '-', trendUp: null))),
                                 const SizedBox(width: 8),
-                                Expanded(child: _animatedPodium(0.3, _PodiumColumn(rank: 3, name: _data[2].$1, time: _data[2].$2, podiumHeight: 90, crownIcon: Icons.military_tech_rounded, crownColor: AppColors.rankBronze, borderColor: AppColors.rankBronze, nameColor: AppColors.rankBronze, isMyRank: _myRank == 3, trend: '-2', trendUp: false))),
+                                Expanded(child: _animatedPodium(0.3, _PodiumColumn(rank: 3, name: _data[2].$1, time: _data[2].$2, podiumHeight: (192 / 252.0 * 140).clamp(60.0, 140.0), crownIcon: Icons.military_tech_rounded, crownColor: AppColors.rankBronze, borderColor: AppColors.rankBronze, nameColor: AppColors.rankBronze, isMyRank: _myRank == 3, trend: '-2', trendUp: false))),
                               ],
                             ),
                           ],
@@ -432,11 +432,11 @@ class _RankingsScreenState extends State<RankingsScreen>
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Expanded(child: _animatedPodium(0.0, _PodiumColumn(rank: 2, name: _data[1].$1, time: _data[1].$2, podiumHeight: 100, crownIcon: Icons.workspace_premium_rounded, crownColor: AppColors.rankSilver, borderColor: AppColors.rankSilver, nameColor: AppColors.rankSilver, isMyRank: _myRank == 2, trend: '+1', trendUp: true))),
+                          Expanded(child: _animatedPodium(0.0, _PodiumColumn(rank: 2, name: _data[1].$1, time: _data[1].$2, podiumHeight: (228 / 252.0 * 120).clamp(60.0, 120.0), crownIcon: Icons.workspace_premium_rounded, crownColor: AppColors.rankSilver, borderColor: AppColors.rankSilver, nameColor: AppColors.rankSilver, isMyRank: _myRank == 2, trend: '+1', trendUp: true))),
                           const SizedBox(width: 8),
                           Expanded(child: _animatedPodium(0.15, _PodiumColumn(rank: 1, name: _data[0].$1, time: _data[0].$2, podiumHeight: 120, crownIcon: Icons.emoji_events_rounded, crownColor: AppColors.rankGold, borderColor: AppColors.rankGold, nameColor: AppColors.rankGold, isMyRank: _myRank == 1, trend: '-', trendUp: null))),
                           const SizedBox(width: 8),
-                          Expanded(child: _animatedPodium(0.3, _PodiumColumn(rank: 3, name: _data[2].$1, time: _data[2].$2, podiumHeight: 90, crownIcon: Icons.military_tech_rounded, crownColor: AppColors.rankBronze, borderColor: AppColors.rankBronze, nameColor: AppColors.rankBronze, isMyRank: _myRank == 3, trend: '-2', trendUp: false))),
+                          Expanded(child: _animatedPodium(0.3, _PodiumColumn(rank: 3, name: _data[2].$1, time: _data[2].$2, podiumHeight: (192 / 252.0 * 120).clamp(60.0, 120.0), crownIcon: Icons.military_tech_rounded, crownColor: AppColors.rankBronze, borderColor: AppColors.rankBronze, nameColor: AppColors.rankBronze, isMyRank: _myRank == 3, trend: '-2', trendUp: false))),
                         ],
                       ),
                     ],

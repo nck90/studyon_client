@@ -15,3 +15,4 @@ export 'src/widgets/studyon_list.dart';
 export 'src/widgets/studyon_input.dart';
 export 'src/widgets/shimmer_loading.dart';
 export 'src/widgets/toss_face.dart';
+export 'src/widgets/custom_progress_bar.dart';

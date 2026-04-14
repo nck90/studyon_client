@@ -316,10 +316,7 @@ class _GoalCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(detail, style: const TextStyle(fontFamily: 'Pretendard', fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
               const SizedBox(height: 14),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(3),
-                child: LinearProgressIndicator(value: progress, minHeight: 5, backgroundColor: const Color(0xFFE5E7EB), valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary)),
-              ),
+              StudyonProgressBar(value: progress, height: 5),
             ],
           ),
         ),
