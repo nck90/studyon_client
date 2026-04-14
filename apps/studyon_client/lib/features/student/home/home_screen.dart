@@ -503,7 +503,7 @@ class _TodayPlans extends StatelessWidget {
               const Spacer(),
               GestureDetector(
                 onTap: onTap,
-                child: Text('편집', style: AppTypography.bodySmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                child: const Icon(Icons.edit_rounded, size: 16, color: AppColors.primary),
               ),
             ],
           ),

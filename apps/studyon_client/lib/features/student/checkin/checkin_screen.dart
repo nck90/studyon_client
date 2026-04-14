@@ -19,10 +19,13 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
   late final AnimationController _pulseCtrl;
   late final AnimationController _scaleCtrl;
   late final Animation<double> _scaleAnim;
+  late final Timer _clockTimer;
+  late DateTime _now;
 
   @override
   void initState() {
     super.initState();
+    _now = DateTime.now();
     _pulseCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
@@ -34,12 +37,16 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
     _scaleAnim = Tween<double>(begin: 1.0, end: 0.92).animate(
       CurvedAnimation(parent: _scaleCtrl, curve: Curves.easeInOut),
     );
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
   }
 
   @override
   void dispose() {
     _pulseCtrl.dispose();
     _scaleCtrl.dispose();
+    _clockTimer.cancel();
     super.dispose();
   }
 
@@ -60,441 +67,214 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
   @override
   Widget build(BuildContext context) {
     final student = ref.watch(studentProvider);
-    final now = DateTime.now();
     final timeStr =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+        '${_now.hour.toString().padLeft(2, '0')}:${_now.minute.toString().padLeft(2, '0')}';
     final weekdays = ['월', '화', '수', '목', '금', '토', '일'];
-    final dateStr = '${now.month}월 ${now.day}일 (${weekdays[now.weekday - 1]})';
-    final isIPad = MediaQuery.of(context).size.shortestSide >= 600;
-
-    final checkInSection = _CheckInSection(
-      timeStr: timeStr,
-      dateStr: dateStr,
-      isIPad: isIPad,
-      isLoading: _isLoading,
-      pulseCtrl: _pulseCtrl,
-      scaleAnim: _scaleAnim,
-      onCheckIn: _checkIn,
-      seatNo: student.seatNo,
-    );
-
-    final infoSection = _InfoSection(isIPad: isIPad);
+    final dateStr = '${_now.month}월 ${_now.day}일 (${weekdays[_now.weekday - 1]})';
+    const buttonSize = 148.0;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.bg(context),
       body: SafeArea(
-        child: isIPad
-            ? Row(
-                children: [
-                  Expanded(flex: 5, child: checkInSection),
-                  Container(width: 1, color: AppColors.divider),
-                  Expanded(flex: 4, child: infoSection),
-                ],
-              )
-            : ListView(
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.55,
-                    child: checkInSection,
-                  ),
-                  infoSection,
-                ],
-              ),
-      ),
-    );
-  }
-}
-
-class _CheckInSection extends StatelessWidget {
-  const _CheckInSection({
-    required this.timeStr,
-    required this.dateStr,
-    required this.isIPad,
-    required this.isLoading,
-    required this.pulseCtrl,
-    required this.scaleAnim,
-    required this.onCheckIn,
-    required this.seatNo,
-  });
-  final String timeStr;
-  final String dateStr;
-  final bool isIPad;
-  final bool isLoading;
-  final AnimationController pulseCtrl;
-  final Animation<double> scaleAnim;
-  final VoidCallback onCheckIn;
-  final String seatNo;
-
-  @override
-  Widget build(BuildContext context) {
-    final buttonSize = isIPad ? 160.0 : 140.0;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Time
-          Text(
-            timeStr,
-            style: TextStyle(
-              fontFamily: 'Pretendard',
-              fontSize: isIPad ? 56 : 48,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-              letterSpacing: -2,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            dateStr,
-            style: const TextStyle(
-              fontFamily: 'Pretendard',
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 40),
-          // Button with pulse
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              if (!isLoading)
-                AnimatedBuilder(
-                  animation: pulseCtrl,
-                  builder: (context, _) => Container(
-                    width: buttonSize + 30 + 30 * pulseCtrl.value,
-                    height: buttonSize + 30 + 30 * pulseCtrl.value,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primary.withValues(
-                        alpha: 0.04 + 0.04 * pulseCtrl.value,
-                      ),
-                    ),
-                  ),
-                ),
-              ScaleTransition(
-                scale: scaleAnim,
-                child: Semantics(
-                  label: '입실하기',
-                  button: true,
-                  child: GestureDetector(
-                    onTap: onCheckIn,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: buttonSize,
-                      height: buttonSize,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: isLoading
-                              ? AppColors.mintGradient
-                              : AppColors.primaryGradient,
-                        ),
-                      ),
-                      child: isLoading
-                          ? const Center(
-                              child: SizedBox(
-                                width: 32,
-                                height: 32,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 3,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            )
-                          : Icon(
-                              Icons.door_front_door_outlined,
-                              size: isIPad ? 56 : 48,
-                              color: Colors.white,
-                            ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: isLoading
-                ? Text(
-                    '입실 처리 중',
-                    key: const ValueKey('l'),
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.textTertiary,
-                    ),
-                  )
-                : Text(
-                    '입실하기',
-                    key: const ValueKey('r'),
-                    style: AppTypography.headlineLarge.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-          ),
-          const SizedBox(height: 20),
-          // Seat chip
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-              border: Border.all(color: AppColors.cardBorder),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Column(
               children: [
-                const Icon(
-                  Icons.event_seat_rounded,
-                  size: 16,
-                  color: AppColors.textTertiary,
-                ),
-                const SizedBox(width: 8),
+                const Spacer(flex: 2),
+                // Clock
                 Text(
-                  '좌석 $seatNo',
-                  style: AppTypography.titleMedium.copyWith(
+                  timeStr,
+                  style: const TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontSize: 64,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                    letterSpacing: -3,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  dateStr,
+                  style: const TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
                     color: AppColors.textSecondary,
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoSection extends StatelessWidget {
-  const _InfoSection({required this.isIPad});
-  final bool isIPad;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isIPad ? 32.0 : 20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!isIPad) const SizedBox(height: 8),
-          // Streak
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                const TossFace('🔥', size: 28),
-                const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 48),
+                // Button with pulse
+                Stack(
+                  alignment: Alignment.center,
                   children: [
-                    const Text(
-                      '연속 7일',
-                      style: TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                        fontFeatures: [FontFeature.tabularFigures()],
+                    if (!_isLoading)
+                      AnimatedBuilder(
+                        animation: _pulseCtrl,
+                        builder: (context, _) => Container(
+                          width: buttonSize + 30 + 30 * _pulseCtrl.value,
+                          height: buttonSize + 30 + 30 * _pulseCtrl.value,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primary.withValues(
+                              alpha: 0.04 + 0.04 * _pulseCtrl.value,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ScaleTransition(
+                      scale: _scaleAnim,
+                      child: Semantics(
+                        label: '입실하기',
+                        button: true,
+                        child: GestureDetector(
+                          onTap: _checkIn,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: buttonSize,
+                            height: buttonSize,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: _isLoading
+                                    ? AppColors.mintGradient
+                                    : AppColors.primaryGradient,
+                              ),
+                            ),
+                            child: _isLoading
+                                ? const Center(
+                                    child: SizedBox(
+                                      width: 32,
+                                      height: 32,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.door_front_door_outlined,
+                                    size: 52,
+                                    color: Colors.white,
+                                  ),
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Mini week attendance
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '이번 주 출석',
-                  style: TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textTertiary,
-                    letterSpacing: 0.5,
-                  ),
+                const SizedBox(height: 24),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: _isLoading
+                      ? Text(
+                          '입실 처리 중',
+                          key: const ValueKey('l'),
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: AppColors.textTertiary,
+                          ),
+                        )
+                      : Text(
+                          '입실하기',
+                          key: const ValueKey('r'),
+                          style: AppTypography.headlineLarge.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
+                // Compact info row: seat + streak
                 Row(
-                  children: ['월', '화', '수', '목', '금', '토', '일']
-                      .asMap()
-                      .entries
-                      .map((e) {
-                    final attended = e.key < 5;
-                    final isToday = e.key == 5;
-                    return Expanded(
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: attended
-                                  ? AppColors.primary
-                                  : (isToday
-                                      ? AppColors.accent
-                                      : AppColors.background),
-                            ),
-                            child: Center(
-                              child: attended
-                                  ? const Icon(
-                                      Icons.check_rounded,
-                                      size: 16,
-                                      color: Colors.white,
-                                    )
-                                  : isToday
-                                      ? const Icon(
-                                          Icons.circle,
-                                          size: 8,
-                                          color: Colors.white,
-                                        )
-                                      : null,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            e.value,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: isToday
-                                  ? AppColors.accent
-                                  : (attended
-                                      ? AppColors.primary
-                                      : AppColors.textTertiary),
-                              fontWeight: isToday
-                                  ? FontWeight.w700
-                                  : FontWeight.w400,
-                            ),
-                          ),
-                        ],
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.event_seat_rounded, size: 15, color: AppColors.textTertiary),
+                    const SizedBox(width: 6),
+                    Text(
+                      '좌석 ${student.seatNo}',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
                       ),
-                    );
-                  }).toList(),
+                    ),
+                    Container(
+                      width: 3,
+                      height: 3,
+                      margin: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: const BoxDecoration(
+                        color: AppColors.textTertiary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const TossFace('🔥', size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      '7일 연속',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Today's goal
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.flag_rounded, size: 20, color: AppColors.primary),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '오늘 목표',
-                        style: TextStyle(
-                          fontFamily: 'Pretendard',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textTertiary,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        '수학 수1 3단원 문제풀이',
-                        style: TextStyle(
-                          fontFamily: 'Pretendard',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
+                const Spacer(flex: 1),
+                // Mini info cards at bottom
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+                  child: Row(
+                    children: const [
+                      Expanded(child: _MiniInfo(label: '오늘 목표', value: '수학 3시간')),
+                      SizedBox(width: 12),
+                      Expanded(child: _MiniInfo(label: '자습실', value: '18 / 22명')),
                     ],
-                  ),
-                ),
-                const Text(
-                  '3시간',
-                  style: TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
-                    fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 12),
+        ),
+      ),
+    );
+  }
+}
 
-          // Room status
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
+class _MiniInfo extends StatelessWidget {
+  const _MiniInfo({required this.label, required this.value});
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.card(context),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        border: Border.all(color: AppColors.borderColor(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textTertiary,
+              letterSpacing: 0.3,
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.people_rounded, size: 20, color: AppColors.accent),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '자습실 현황',
-                        style: TextStyle(
-                          fontFamily: 'Pretendard',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textTertiary,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        '공부 중 18명',
-                        style: TextStyle(
-                          fontFamily: 'Pretendard',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                          fontFeatures: [FontFeature.tabularFigures()],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Text(
-                  '18/22',
-                  style: TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.accent,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
             ),
           ),
         ],

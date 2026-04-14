@@ -158,7 +158,7 @@ class _PlanScreenState extends State<PlanScreen> {
                             padding: const EdgeInsets.only(right: 20),
                             decoration: BoxDecoration(
                               color: AppColors.hot.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             child: const Icon(Icons.delete_rounded, color: AppColors.hot),
                           ),
@@ -203,7 +203,7 @@ class _PlanCard extends StatelessWidget {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

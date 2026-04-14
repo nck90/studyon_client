@@ -244,7 +244,15 @@ class StudentShell extends ConsumerWidget {
             // Divider
             Container(width: 1, color: AppColors.borderColor(context)),
             // Content
-            Expanded(child: child),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 150),
+                child: KeyedSubtree(
+                  key: ValueKey(GoRouterState.of(context).uri.path),
+                  child: child,
+                ),
+              ),
+            ),
           ],
         ),
       );

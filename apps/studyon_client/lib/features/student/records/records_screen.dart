@@ -667,15 +667,38 @@ class _DayBar extends StatelessWidget {
   }
 }
 
-class _AttendanceCalendar extends StatelessWidget {
+class _AttendanceCalendar extends StatefulWidget {
   const _AttendanceCalendar();
 
+  @override
+  State<_AttendanceCalendar> createState() => _AttendanceCalendarState();
+}
+
+class _AttendanceCalendarState extends State<_AttendanceCalendar> {
   // Days 1-14 are attended (mock data), today is 14
   static const _attendedDays = {1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 14};
   static const _today = 14;
   // April 2026 starts on Wednesday (index 2 in Mon-Sun week)
   static const _startOffset = 2;
   static const _daysInMonth = 30;
+
+  // Mock study records per day
+  static const _dayRecords = {
+    1: '수학 2시간 30분',
+    2: '영어 1시간 50분',
+    3: '수학 3시간 12분',
+    4: '과학 2시간 05분',
+    7: '수학 3시간 30분',
+    8: '영어 2시간 40분',
+    9: '국어 1시간 20분',
+    10: '수학 4시간 00분',
+    11: '영어 3시간 15분',
+    12: '과학 2시간 48분',
+    13: '수학 3시간 30분',
+    14: '수학 3시간 12분',
+  };
+
+  int? _selectedDay;
 
   @override
   Widget build(BuildContext context) {
@@ -715,6 +738,7 @@ class _AttendanceCalendar extends StatelessWidget {
             final isAttended = _attendedDays.contains(day);
             final isToday = day == _today;
             final isFuture = day > _today;
+            final isSelected = _selectedDay == day;
 
             Color? bgColor;
             if (isToday) {
@@ -724,26 +748,77 @@ class _AttendanceCalendar extends StatelessWidget {
               bgColor = AppColors.primary.withValues(alpha: alpha);
             }
 
-            return Container(
-              decoration: BoxDecoration(
-                color: bgColor,
-                shape: BoxShape.circle,
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                '$day',
-                style: AppTypography.labelSmall.copyWith(
-                  color: isAttended || isToday
-                      ? Colors.white
-                      : isFuture
-                          ? AppColors.textTertiary.withValues(alpha: 0.4)
-                          : AppColors.textTertiary,
-                  fontWeight: isToday ? FontWeight.w800 : FontWeight.w500,
-                  fontSize: 11,
+            return GestureDetector(
+              onTap: isAttended || isToday
+                  ? () => setState(() => _selectedDay = isSelected ? null : day)
+                  : null,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  shape: BoxShape.circle,
+                  border: isSelected
+                      ? Border.all(color: AppColors.primary, width: 2.5)
+                      : null,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '$day',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: isAttended || isToday
+                        ? Colors.white
+                        : isFuture
+                            ? AppColors.textTertiary.withValues(alpha: 0.4)
+                            : AppColors.textTertiary,
+                    fontWeight: isToday ? FontWeight.w800 : FontWeight.w500,
+                    fontSize: 11,
+                  ),
                 ),
               ),
             );
           },
+        ),
+        // Selected day info row
+        AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          child: _selectedDay != null
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 14),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.tintPurple,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today_rounded, size: 13, color: AppColors.primary),
+                        const SizedBox(width: 8),
+                        Text(
+                          '4월 $_selectedDay일',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '·',
+                          style: AppTypography.labelSmall.copyWith(color: AppColors.primary),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _dayRecords[_selectedDay] ?? '',
+                          style: AppTypography.labelSmall.copyWith(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
       ],
     );

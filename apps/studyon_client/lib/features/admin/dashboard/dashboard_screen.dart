@@ -136,61 +136,78 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final avgHours = (dash.avgStudyMinutes / 60).toStringAsFixed(1);
     final totalHoursNum = dash.totalStudyMinutes / 60;
     final avgHoursNum = dash.avgStudyMinutes / 60;
-    return Row(
+    return Column(
       children: [
-        Expanded(child: PressableScale(
-          onTap: () => context.go('/admin/attendance'),
-          child: _KpiCard(
-            label: '현재 입실',
-            targetValue: dash.checkedIn.toDouble(),
-            suffix: '명',
-            icon: Icons.people_rounded,
-            color: AppColors.primary,
-            bgColor: AppColors.tintPurple,
-            isDecimal: false,
-          ),
-        )),
-        const SizedBox(width: 12),
-        Expanded(child: PressableScale(
-          onTap: () => context.go('/admin/seats'),
-          child: _KpiCard(
-            label: '빈 좌석',
-            targetValue: dash.emptySeats.toDouble(),
-            suffix: '개',
-            icon: Icons.event_seat_rounded,
-            color: AppColors.textTertiary,
-            bgColor: AppColors.background,
-            isDecimal: false,
-          ),
-        )),
-        const SizedBox(width: 12),
-        Expanded(child: PressableScale(
-          onTap: () => context.go('/admin/study-overview'),
-          child: _KpiCard(
-            label: '총 공부시간',
-            targetValue: totalHoursNum,
-            suffix: '시간',
-            icon: Icons.timer_rounded,
-            color: AppColors.success,
-            bgColor: AppColors.tintMint,
-            isDecimal: false,
-            displayOverride: '$totalHours시간',
-          ),
-        )),
-        const SizedBox(width: 12),
-        Expanded(child: PressableScale(
-          onTap: () => context.go('/admin/study-overview'),
-          child: _KpiCard(
-            label: '평균 공부시간',
-            targetValue: avgHoursNum,
-            suffix: '시간',
-            icon: Icons.show_chart_rounded,
-            color: AppColors.warning,
-            bgColor: AppColors.tintYellow,
-            isDecimal: true,
-            displayOverride: '$avgHours시간',
-          ),
-        )),
+        // First row: hero 현재 입실 (2x wide) + 빈 좌석
+        Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: PressableScale(
+                onTap: () => context.go('/admin/attendance'),
+                child: _KpiCard(
+                  label: '현재 입실',
+                  targetValue: dash.checkedIn.toDouble(),
+                  suffix: '명',
+                  icon: Icons.people_rounded,
+                  color: AppColors.primary,
+                  bgColor: AppColors.tintPurple,
+                  isDecimal: false,
+                  isHero: true,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 1,
+              child: PressableScale(
+                onTap: () => context.go('/admin/seats'),
+                child: _KpiCard(
+                  label: '빈 좌석',
+                  targetValue: dash.emptySeats.toDouble(),
+                  suffix: '개',
+                  icon: Icons.event_seat_rounded,
+                  color: AppColors.textTertiary,
+                  bgColor: AppColors.background,
+                  isDecimal: false,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // Second row: 총 공부시간 + 평균 공부시간
+        Row(
+          children: [
+            Expanded(child: PressableScale(
+              onTap: () => context.go('/admin/study-overview'),
+              child: _KpiCard(
+                label: '총 공부시간',
+                targetValue: totalHoursNum,
+                suffix: '시간',
+                icon: Icons.timer_rounded,
+                color: AppColors.success,
+                bgColor: AppColors.tintMint,
+                isDecimal: false,
+                displayOverride: '$totalHours시간',
+              ),
+            )),
+            const SizedBox(width: 12),
+            Expanded(child: PressableScale(
+              onTap: () => context.go('/admin/study-overview'),
+              child: _KpiCard(
+                label: '평균 공부시간',
+                targetValue: avgHoursNum,
+                suffix: '시간',
+                icon: Icons.show_chart_rounded,
+                color: AppColors.warning,
+                bgColor: AppColors.tintYellow,
+                isDecimal: true,
+                displayOverride: '$avgHours시간',
+              ),
+            )),
+          ],
+        ),
       ],
     );
   }
@@ -299,6 +316,7 @@ class _KpiCard extends StatelessWidget {
     required this.bgColor,
     required this.isDecimal,
     this.displayOverride,
+    this.isHero = false,
   });
 
   final String label;
@@ -310,11 +328,12 @@ class _KpiCard extends StatelessWidget {
   final bool isDecimal;
   // When provided, shows this exact string instead of computing from animated value
   final String? displayOverride;
+  final bool isHero;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isHero ? 24 : 20),
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
@@ -325,8 +344,8 @@ class _KpiCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 24, color: color),
-          const SizedBox(height: 14),
+          Icon(icon, size: isHero ? 28 : 24, color: color),
+          SizedBox(height: isHero ? 16 : 14),
           Text(label, style: AppTypography.bodySmall),
           const SizedBox(height: 4),
           TweenAnimationBuilder<double>(
@@ -344,7 +363,14 @@ class _KpiCard extends StatelessWidget {
               } else {
                 display = '${value.toStringAsFixed(0)}$suffix';
               }
-              return Text(display, style: AppTypography.headlineLarge.copyWith(color: color));
+              final textStyle = isHero
+                  ? AppTypography.headlineLarge.copyWith(
+                      color: color,
+                      fontSize: 36,
+                      fontWeight: FontWeight.w800,
+                    )
+                  : AppTypography.headlineLarge.copyWith(color: color);
+              return Text(display, style: textStyle);
             },
           ),
         ],

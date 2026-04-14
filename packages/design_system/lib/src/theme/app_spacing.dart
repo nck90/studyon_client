@@ -27,7 +27,7 @@ abstract final class AppSpacing {
   static const double radiusXl = 20;
   static const double radiusFull = 9999;
 
-  static const double cardRadius = radiusXl;
+  static const double cardRadius = radiusLg;
   static const double buttonRadius = 12; // Toss: 12px, not full pill for main buttons
   static const double chipRadius = radiusFull;
   static const double inputRadius = radiusMd;

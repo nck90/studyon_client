@@ -379,7 +379,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                         color: !_isStarted
                             ? Colors.white.withValues(alpha: 0.06)
                             : (_isPaused ? AppColors.warm.withValues(alpha: 0.15) : AppColors.accent.withValues(alpha: 0.15)),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,

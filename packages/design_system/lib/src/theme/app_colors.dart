@@ -34,7 +34,7 @@ abstract final class AppColors {
   static const Color errorLight = Color(0xFFFDEDEB);
 
   // ── Neutral ──
-  static const Color background = Color(0xFFF8F7FC);
+  static const Color background = Color(0xFFF2F3F5);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color cardBorder = Color(0xFFEEECF5);
   static const Color divider = Color(0xFFEEECF5);
