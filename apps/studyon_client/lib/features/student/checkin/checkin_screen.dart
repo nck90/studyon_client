@@ -1,9 +1,9 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:studyon_design_system/studyon_design_system.dart';
 import 'package:studyon_client/shared/providers/student_providers.dart';
 import 'package:studyon_client/shared/utils/snackbar_helper.dart';
 
@@ -15,281 +15,274 @@ class CheckInScreen extends ConsumerStatefulWidget {
 
 class _CheckInScreenState extends ConsumerState<CheckInScreen>
     with TickerProviderStateMixin {
-  bool _isLoading = false;
-  String? _bgImagePath;
-  late final AnimationController _scaleCtrl;
-  late final Animation<double> _scaleAnim;
   Timer? _clockTimer;
-  String _timeStr = '';
+  String _hourStr = '';
+  String _minStr = '';
   String _dateStr = '';
+  bool _isChecking = false;
+
+  // Swipe up state
+  double _dragOffset = 0;
+  late final AnimationController _hintCtrl;
 
   @override
   void initState() {
     super.initState();
-    _scaleCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 150));
-    _scaleAnim = Tween<double>(begin: 1.0, end: 0.95)
-        .animate(CurvedAnimation(parent: _scaleCtrl, curve: Curves.easeInOut));
     _updateTime();
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
+    _hintCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
   }
 
   void _updateTime() {
     final now = DateTime.now();
     final weekdays = ['월', '화', '수', '목', '금', '토', '일'];
     setState(() {
-      _timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      _hourStr = now.hour.toString().padLeft(2, '0');
+      _minStr = now.minute.toString().padLeft(2, '0');
       _dateStr = '${now.month}월 ${now.day}일 ${weekdays[now.weekday - 1]}요일';
     });
   }
 
   @override
   void dispose() {
-    _scaleCtrl.dispose();
     _clockTimer?.cancel();
+    _hintCtrl.dispose();
     super.dispose();
   }
 
+  void _onDragUpdate(DragUpdateDetails details) {
+    if (_isChecking) return;
+    setState(() {
+      _dragOffset = (_dragOffset - details.delta.dy).clamp(0.0, 200.0);
+    });
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    if (_isChecking) return;
+    if (_dragOffset > 100) {
+      _checkIn();
+    } else {
+      setState(() => _dragOffset = 0);
+    }
+  }
+
   void _checkIn() async {
-    if (_isLoading) return;
-    HapticFeedback.mediumImpact();
-    setState(() => _isLoading = true);
-    _scaleCtrl.forward();
+    HapticFeedback.heavyImpact();
+    setState(() => _isChecking = true);
+    _hintCtrl.stop();
     ref.read(studentProvider.notifier).checkIn();
-    await Future.delayed(const Duration(milliseconds: 1200));
+    await Future.delayed(const Duration(milliseconds: 800));
     if (mounted) {
       showStudyonSnackbar(context, '입실 완료');
       context.go('/student/home');
     }
   }
 
-  void _pickBackground() async {
-    // Show options: presets or custom
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      backgroundColor: AppColors.card(context),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('배경 선택', style: AppTypography.headlineSmall),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 80,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _BgOption(color: AppColors.bg(ctx), label: '기본', selected: _bgImagePath == null && true,
-                    onTap: () { setState(() => _bgImagePath = null); Navigator.pop(ctx); }),
-                  const SizedBox(width: 10),
-                  _BgOption(gradient: const [Color(0xFFE8D5F5), Color(0xFFF5E6D0)], label: '라벤더',
-                    onTap: () { setState(() => _bgImagePath = 'lavender'); Navigator.pop(ctx); }),
-                  const SizedBox(width: 10),
-                  _BgOption(gradient: const [Color(0xFFD5E8F5), Color(0xFFE0F0E8)], label: '스카이',
-                    onTap: () { setState(() => _bgImagePath = 'sky'); Navigator.pop(ctx); }),
-                  const SizedBox(width: 10),
-                  _BgOption(gradient: const [Color(0xFFF5E0D5), Color(0xFFF5F0D5)], label: '선셋',
-                    onTap: () { setState(() => _bgImagePath = 'sunset'); Navigator.pop(ctx); }),
-                  const SizedBox(width: 10),
-                  _BgOption(gradient: const [Color(0xFF1A1A2E), Color(0xFF16213E)], label: '다크', isDark: true,
-                    onTap: () { setState(() => _bgImagePath = 'dark'); Navigator.pop(ctx); }),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  BoxDecoration _bgDecoration() {
-    switch (_bgImagePath) {
-      case 'lavender':
-        return const BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFE8D5F5), Color(0xFFF5E6D0)]));
-      case 'sky':
-        return const BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFD5E8F5), Color(0xFFE0F0E8)]));
-      case 'sunset':
-        return const BoxDecoration(gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFF5E0D5), Color(0xFFF5F0D5)]));
-      case 'dark':
-        return const BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xFF1A1A2E), Color(0xFF16213E)]));
-      default:
-        return BoxDecoration(color: AppColors.bg(context));
-    }
-  }
-
-  bool get _isDarkBg => _bgImagePath == 'dark';
-  Color get _textColor => _isDarkBg ? Colors.white : AppColors.textPrimary;
-  Color get _subTextColor => _isDarkBg ? Colors.white54 : AppColors.textTertiary;
-
   @override
   Widget build(BuildContext context) {
     final student = ref.watch(studentProvider);
     final isIPad = MediaQuery.of(context).size.shortestSide >= 600;
+    final swipeProgress = (_dragOffset / 200).clamp(0.0, 1.0);
 
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: _bgDecoration(),
-        child: SafeArea(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        body: GestureDetector(
+          onVerticalDragUpdate: _onDragUpdate,
+          onVerticalDragEnd: _onDragEnd,
           child: Stack(
+            fit: StackFit.expand,
             children: [
-              // Background customize button (top right)
-              Positioned(
-                top: 16, right: 20,
-                child: GestureDetector(
-                  onTap: _pickBackground,
-                  child: Container(
-                    width: 36, height: 36,
-                    decoration: BoxDecoration(
-                      color: (_isDarkBg ? Colors.white : Colors.black).withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(Icons.palette_outlined, size: 18, color: _subTextColor),
-                  ),
-                ),
+              // Background image
+              Image.asset(
+                'assets/images/lockscreen_bg.jpg',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
               ),
 
-              // Main content
-              Column(
-                children: [
-                  const Spacer(flex: 3),
+              // Dim overlay (gets darker as you swipe)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 100),
+                color: Colors.black.withValues(alpha: 0.2 + 0.3 * swipeProgress),
+              ),
 
-                  // Time
-                  Text(
-                    _timeStr,
-                    style: TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: isIPad ? 96 : 72,
-                      fontWeight: FontWeight.w700,
-                      color: _textColor,
-                      letterSpacing: -4,
-                      height: 1.0,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _dateStr,
-                    style: TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: isIPad ? 18 : 15,
-                      fontWeight: FontWeight.w400,
-                      color: _subTextColor,
-                    ),
-                  ),
+              // Content moves up as you swipe
+              SafeArea(
+                child: Transform.translate(
+                  offset: Offset(0, -_dragOffset * 0.3),
+                  child: Column(
+                    children: [
+                      SizedBox(height: isIPad ? 60 : 40),
 
-                  const Spacer(flex: 4),
-
-                  // Check-in: pill button (not circle)
-                  ScaleTransition(
-                    scale: _scaleAnim,
-                    child: Semantics(
-                      label: '입실하기',
-                      button: true,
-                      child: GestureDetector(
-                        onTap: _checkIn,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          height: isIPad ? 56 : 50,
-                          padding: EdgeInsets.symmetric(horizontal: isIPad ? 48 : 40),
-                          decoration: BoxDecoration(
-                            color: _isLoading
-                                ? AppColors.accent
-                                : (_isDarkBg ? Colors.white.withValues(alpha: 0.15) : AppColors.primary),
-                            borderRadius: BorderRadius.circular(16),
-                            border: _isDarkBg && !_isLoading
-                                ? Border.all(color: Colors.white.withValues(alpha: 0.2))
-                                : null,
+                      // Clock - SF Pro style (system font on iOS)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            _hourStr,
+                            style: TextStyle(
+                              fontSize: isIPad ? 104 : 76,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: -2,
+                              height: 1.0,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (_isLoading)
-                                const SizedBox(
-                                  width: 18, height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                )
-                              else
-                                Text(
-                                  '입실하기',
-                                  style: TextStyle(
-                                    fontFamily: 'Pretendard',
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: _isDarkBg ? Colors.white : Colors.white,
-                                  ),
-                                ),
-                            ],
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Text(
+                              ':',
+                              style: TextStyle(
+                                fontSize: isIPad ? 96 : 70,
+                                fontWeight: FontWeight.w300,
+                                color: Colors.white.withValues(alpha: 0.7),
+                                height: 1.0,
+                              ),
+                            ),
                           ),
+                          Text(
+                            _minStr,
+                            style: TextStyle(
+                              fontSize: isIPad ? 104 : 76,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: -2,
+                              height: 1.0,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+
+                      // Date
+                      Text(
+                        _dateStr,
+                        style: TextStyle(
+                          fontSize: isIPad ? 20 : 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.8),
+                          letterSpacing: 0.5,
                         ),
                       ),
-                    ),
-                  ),
+                      const SizedBox(height: 28),
 
-                  const Spacer(flex: 3),
+                      // Widgets row - frosted glass iPad style
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: isIPad ? 100 : 40),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _FrostedWidget(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.event_seat_rounded, size: 18, color: Colors.white70),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      student.seatNo,
+                                      style: const TextStyle(
+                                        fontSize: 17, fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _FrostedWidget(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.people_outline_rounded, size: 18, color: Colors.white70),
+                                    const SizedBox(width: 10),
+                                    const Text(
+                                      '18',
+                                      style: TextStyle(
+                                        fontSize: 22, fontWeight: FontWeight.w800,
+                                        color: Colors.white,
+                                        fontFeatures: [FontFeature.tabularFigures()],
+                                      ),
+                                    ),
+                                    Text(
+                                      '/22',
+                                      style: TextStyle(
+                                        fontSize: 15, fontWeight: FontWeight.w400,
+                                        color: Colors.white.withValues(alpha: 0.6),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
-                  // Bottom widgets - iPad widget style
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: isIPad ? 80 : 32),
-                    child: Row(
-                      children: [
-                        // Seat widget
-                        Expanded(
-                          child: _LockWidget(
-                            isDark: _isDarkBg,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                      const Spacer(),
+
+                      // Bottom: swipe hint + home indicator
+                      if (!_isChecking) ...[
+                        AnimatedBuilder(
+                          animation: _hintCtrl,
+                          builder: (context, _) => Opacity(
+                            opacity: 0.4 + 0.3 * _hintCtrl.value,
+                            child: Column(
                               children: [
-                                Icon(Icons.event_seat_rounded, size: 16, color: _isDarkBg ? AppColors.primaryLight : AppColors.primary),
-                                const SizedBox(width: 8),
-                                Text(
-                                  student.seatNo,
+                                Icon(
+                                  Icons.keyboard_arrow_up_rounded,
+                                  size: 28,
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  '위로 올려서 입실',
                                   style: TextStyle(
-                                    fontFamily: 'Pretendard', fontSize: 15, fontWeight: FontWeight.w700,
-                                    color: _textColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white70,
+                                    letterSpacing: 0.3,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        // Room status widget
-                        Expanded(
-                          child: _LockWidget(
-                            isDark: _isDarkBg,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '18',
-                                  style: TextStyle(
-                                    fontFamily: 'Pretendard', fontSize: 20, fontWeight: FontWeight.w800,
-                                    color: _isDarkBg ? AppColors.accent : AppColors.primary,
-                                    fontFeatures: const [FontFeature.tabularFigures()],
-                                  ),
-                                ),
-                                Text(
-                                  '/22명',
-                                  style: TextStyle(
-                                    fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w400,
-                                    color: _subTextColor,
-                                    fontFeatures: const [FontFeature.tabularFigures()],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                      ] else ...[
+                        const SizedBox(
+                          width: 24, height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          '입실 중',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white70),
                         ),
                       ],
-                    ),
+                      const SizedBox(height: 16),
+
+                      // Home indicator bar
+                      Container(
+                        width: 134,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                   ),
-                  const SizedBox(height: 32),
-                ],
+                ),
               ),
             ],
           ),
@@ -299,55 +292,26 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
   }
 }
 
-// iPad lockscreen widget style card
-class _LockWidget extends StatelessWidget {
-  const _LockWidget({required this.isDark, required this.child});
-  final bool isDark;
+// Frosted glass widget - like iPadOS lockscreen widgets
+class _FrostedWidget extends StatelessWidget {
+  const _FrostedWidget({required this.child});
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.08)
-            : Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: child,
-    );
-  }
-}
-
-// Background preset option
-class _BgOption extends StatelessWidget {
-  const _BgOption({this.color, this.gradient, required this.label, this.selected = false, this.isDark = false, required this.onTap});
-  final Color? color;
-  final List<Color>? gradient;
-  final String label;
-  final bool selected;
-  final bool isDark;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 56, height: 56,
-            decoration: BoxDecoration(
-              color: color,
-              gradient: gradient != null ? LinearGradient(colors: gradient!) : null,
-              borderRadius: BorderRadius.circular(14),
-              border: selected ? Border.all(color: AppColors.primary, width: 2) : null,
-            ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 0.5),
           ),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(fontFamily: 'Pretendard', fontSize: 11, color: AppColors.textTertiary)),
-        ],
+          child: child,
+        ),
       ),
     );
   }
