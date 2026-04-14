@@ -116,7 +116,7 @@ class _HeroBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.fromLTRB(pad, 52, pad, 28),
+      padding: EdgeInsets.fromLTRB(pad, 40, pad, 28),
       color: AppColors.primary,
       child: SafeArea(
         bottom: false,
@@ -126,7 +126,7 @@ class _HeroBanner extends StatelessWidget {
                 children: [
                   Expanded(flex: 5, child: _buildContent(context)),
                   const SizedBox(width: 32),
-                  _DailyProgressRing(progress: student.goalProgress, size: 140),
+                  _DailyProgressRing(progress: student.goalProgress, size: 120),
                 ],
               )
             : _buildContent(context),

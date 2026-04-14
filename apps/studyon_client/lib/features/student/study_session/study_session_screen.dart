@@ -475,6 +475,19 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                           color: Colors.white.withValues(alpha: 0.4),
                         ),
                       ),
+                      const SizedBox(height: 4),
+                      Text(
+                        () {
+                          final remaining = (_goalSeconds - _elapsed).clamp(0, _goalSeconds);
+                          final m = (remaining ~/ 60).toString().padLeft(2, '0');
+                          final s = (remaining % 60).toString().padLeft(2, '0');
+                          return '남은 시간 $m:$s';
+                        }(),
+                        style: TextStyle(
+                          fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.25),
+                        ),
+                      ),
                       if (!_isStarted) ...[
                         const SizedBox(height: 20),
                         GestureDetector(
@@ -603,6 +616,16 @@ class _MiniStat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Thin colored top line accent
+        Container(
+          height: 2,
+          width: 32,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(1),
+          ),
+        ),
+        const SizedBox(height: 8),
         Text(value, style: TextStyle(
           fontFamily: 'Pretendard', fontSize: 22, fontWeight: FontWeight.w700,
           color: color, fontFeatures: const [FontFeature.tabularFigures()],
@@ -666,7 +689,7 @@ class _RingPainter extends CustomPainter {
     canvas.drawCircle(center, radius, Paint()
       ..color = Colors.white.withValues(alpha: 0.05)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 6);
+      ..strokeWidth = 8);
 
     if (progress > 0) {
       // Progress arc
@@ -676,7 +699,7 @@ class _RingPainter extends CustomPainter {
         Paint()
           ..color = isPaused ? const Color(0xFFFDCB6E) : const Color(0xFF6C5CE7)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 6
+          ..strokeWidth = 8
           ..strokeCap = StrokeCap.round,
       );
     }

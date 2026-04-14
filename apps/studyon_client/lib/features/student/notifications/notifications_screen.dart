@@ -196,20 +196,67 @@ class _StudentNotificationsScreenState extends State<StudentNotificationsScreen>
             Expanded(
               child: _notifications.isEmpty
                   ? _buildEmptyState()
-                  : ListView.separated(
-                      padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 40),
-                      itemCount: _notifications.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 10),
-                      itemBuilder: (_, i) => _NotificationCard(
-                        notif: _notifications[i],
-                        isExpanded: _expandedIds.contains(_notifications[i].id),
-                        onTap: () => _handleTap(_notifications[i].id),
-                      ),
-                    ),
+                  : _buildGroupedList(hPad),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  bool _isToday(_NotifData n) {
+    return n.timeAgo.contains('분 전') || n.timeAgo.contains('시간 전');
+  }
+
+  Widget _buildSectionHeader(String label) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 20, 0, 8),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontFamily: 'Pretendard',
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textTertiary,
+          letterSpacing: 0.3,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGroupedList(double hPad) {
+    final todayItems = _notifications.where(_isToday).toList();
+    final olderItems = _notifications.where((n) => !_isToday(n)).toList();
+
+    final items = <Widget>[];
+
+    if (todayItems.isNotEmpty) {
+      items.add(_buildSectionHeader('오늘'));
+      for (final n in todayItems) {
+        items.add(_NotificationCard(
+          notif: n,
+          isExpanded: _expandedIds.contains(n.id),
+          onTap: () => _handleTap(n.id),
+        ));
+        items.add(const SizedBox(height: 10));
+      }
+    }
+
+    if (olderItems.isNotEmpty) {
+      items.add(_buildSectionHeader('이전'));
+      for (final n in olderItems) {
+        items.add(_NotificationCard(
+          notif: n,
+          isExpanded: _expandedIds.contains(n.id),
+          onTap: () => _handleTap(n.id),
+        ));
+        items.add(const SizedBox(height: 10));
+      }
+    }
+
+    return ListView(
+      padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 40),
+      children: items,
     );
   }
 

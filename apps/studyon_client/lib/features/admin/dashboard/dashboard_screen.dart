@@ -434,7 +434,7 @@ class _SeatGridState extends State<_SeatGrid> with SingleTickerProviderStateMixi
       showDragHandle: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),

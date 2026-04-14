@@ -93,7 +93,7 @@ class _AdminRankingsScreenState extends ConsumerState<AdminRankingsScreen> {
       isScrollControlled: true,
       backgroundColor: AppColors.card(context),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (ctx) {
         return StatefulBuilder(

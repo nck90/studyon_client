@@ -120,125 +120,108 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       decoration: BoxDecoration(
         color: AppColors.card(context),
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        border: Border.all(color: AppColors.cardBorder),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // Top section
+          // Purple header bar — "자습ON" brand bar
           Container(
-            padding: EdgeInsets.fromLTRB(20, isIPad ? 28 : 24, 20, isIPad ? 28 : 24),
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-            ),
+            height: 48,
+            color: AppColors.primary,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Container(
-                  width: isIPad ? 72 : 60,
-                  height: isIPad ? 72 : 60,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.25),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.5),
-                      width: 2,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '이',
-                      style: TextStyle(
-                        fontSize: isIPad ? 28 : 24,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        fontFamily: 'Pretendard',
-                      ),
-                    ),
+                const Text(
+                  '자습ON',
+                  style: TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const Spacer(),
+                Text(
+                  'STUDENT ID',
+                  style: TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withValues(alpha: 0.6),
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // White body area
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left: name + info
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '자습 학원',
-                        style: AppTypography.labelSmall.copyWith(
-                          color: Colors.white.withValues(alpha: 0.75),
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
                       Text(
                         '이서준',
                         style: const TextStyle(
                           fontFamily: 'Pretendard',
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          _InfoChip(label: '3학년 2반'),
-                          const SizedBox(width: 8),
-                          _InfoChip(label: '#2026031'),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Lower white section: QR + info
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: isIPad ? 100 : 84,
-                  height: isIPad ? 100 : 84,
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.qr_code_2_rounded,
-                        size: 44,
-                        color: AppColors.textPrimary,
+                      const SizedBox(height: 6),
+                      Text(
+                        '학번 2401 · 고3 · A반',
+                        style: TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'QR 코드',
-                        style: AppTypography.labelSmall.copyWith(fontSize: 9),
+                        '좌석 A-12',
+                        style: TextStyle(
+                          fontFamily: 'Pretendard',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(width: 16),
+                // Right: QR code area
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _IdRow(label: '이름', value: '이서준'),
-                      const SizedBox(height: 8),
-                      _IdRow(label: '학번', value: '2026031'),
-                      const SizedBox(height: 8),
-                      _IdRow(label: '학년/반', value: '3학년 2반'),
-                      const SizedBox(height: 8),
-                      _IdRow(label: '좌석', value: 'A-14'),
+                      Icon(Icons.qr_code_2_rounded, size: 36, color: AppColors.textPrimary),
                     ],
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          // Bottom purple accent line
+          Container(height: 3, color: AppColors.primary),
         ],
       ),
     );
@@ -866,50 +849,7 @@ class _HourlyHeatRow extends StatelessWidget {
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.label});
-  final String label;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-      ),
-      child: Text(
-        label,
-        style: AppTypography.labelSmall.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-class _IdRow extends StatelessWidget {
-  const _IdRow({required this.label, required this.value});
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 52,
-          child: Text(
-            label,
-            style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
-          ),
-        ),
-        Text(value, style: AppTypography.titleMedium),
-      ],
-    );
-  }
-}
 
 class _SummaryStatCard extends StatelessWidget {
   const _SummaryStatCard({
