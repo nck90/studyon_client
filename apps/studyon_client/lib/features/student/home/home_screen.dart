@@ -37,13 +37,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               backgroundColor: AppColors.primary,
               elevation: 0,
               scrolledUnderElevation: 0,
-              title: Text(
-                '${student.todayStudyFormatted}  ${student.name}',
-                style: const TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+              title: Semantics(
+                label: '오늘 공부 시간 ${student.todayStudyFormatted}, ${student.name}',
+                child: Text(
+                  '${student.todayStudyFormatted}  ${student.name}',
+                  style: const TextStyle(
+                    fontFamily: 'Pretendard',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               flexibleSpace: FlexibleSpaceBar(
@@ -164,6 +167,13 @@ class _HeroBanner extends StatelessWidget {
     );
   }
 
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return '좋은 아침이에요';
+    if (hour < 18) return '좋은 오후에요';
+    return '오늘도 수고했어요';
+  }
+
   Widget _buildContent(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +197,15 @@ class _HeroBanner extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // Name
+        // Greeting + Name
+        Text(
+          _greeting(),
+          style: TextStyle(
+            fontFamily: 'Pretendard', fontSize: 13,
+            color: Colors.white.withValues(alpha: 0.6),
+          ),
+        ),
+        const SizedBox(height: 2),
         Text(
           '${student.name}님',
           style: TextStyle(
@@ -230,7 +248,10 @@ class _HeroBanner extends StatelessWidget {
 
         // CTA
         if (student.isCheckedIn)
-          GestureDetector(
+          Semantics(
+            label: student.todayStudySeconds > 0 ? '이어서 공부하기' : '공부 시작하기',
+            button: true,
+            child: GestureDetector(
             onTap: () => context.push('/student/study-session'),
             child: Container(
               height: 44,
@@ -251,7 +272,7 @@ class _HeroBanner extends StatelessWidget {
                 ],
               ),
             ),
-          ),
+          )),
       ],
     );
   }
@@ -345,7 +366,10 @@ class _GoalCard extends StatelessWidget {
     final detail = student.goalDetail.isNotEmpty ? student.goalDetail : '목표를 설정해주세요';
     final progress = student.goalProgress;
 
-    return PressableScale(
+    return Semantics(
+      label: '오늘 목표: $subject $detail, ${(progress * 100).toInt()}% 달성',
+      button: true,
+      child: PressableScale(
       onTap: () => context.push('/student/plan'),
       child: Container(
         padding: const EdgeInsets.all(20),
@@ -386,7 +410,7 @@ class _GoalCard extends StatelessWidget {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 

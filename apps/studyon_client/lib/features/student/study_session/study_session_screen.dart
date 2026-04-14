@@ -22,6 +22,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   bool _isPaused = false;
   bool _isStarted = false;
   bool _goalReached = false;
+  bool _pomodoroNotified = false;
   String? _selectedPlan;
 
   DateTime? _startedAt;
@@ -77,6 +78,20 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
         setState(() {
           _elapsed = _accumulatedBeforePause + DateTime.now().difference(_startedAt!).inSeconds;
         });
+        if (_elapsed >= 1500 && !_pomodoroNotified && !_isPaused) {
+          _pomodoroNotified = true;
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: const Text('25분 집중 완료! 잠시 휴식하세요',
+                  style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w600)),
+              backgroundColor: AppColors.warm,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              margin: const EdgeInsets.all(16),
+              duration: const Duration(seconds: 4),
+            ));
+          }
+        }
         if (_elapsed >= _goalSeconds && !_goalReached) {
           _goalReached = true;
           HapticFeedback.heavyImpact();
@@ -331,8 +346,14 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     _timer?.cancel();
     await StudyLogSheet.show(context);
     if (mounted) {
+      final student = ref.read(studentProvider);
       ref.read(studentProvider.notifier).addStudyTime(_elapsed);
       ref.read(studentProvider.notifier).addBreakTime(_breakElapsed);
+      ref.read(studentProvider.notifier).addSessionRecord(
+        _selectedPlan ?? student.goalSubject,
+        _elapsed ~/ 60,
+        _elapsed >= _goalSeconds,
+      );
       ref.read(studentProvider.notifier).stopStudying();
       context.go('/student/summary');
     }

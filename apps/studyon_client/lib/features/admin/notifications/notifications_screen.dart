@@ -3,15 +3,101 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
 import '../../../shared/providers/providers.dart';
 
-class NotificationsScreen extends ConsumerWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  void _showComposeSheet(BuildContext context) {
+    final titleCtrl = TextEditingController();
+    final bodyCtrl = TextEditingController();
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: AppColors.bg(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(24, 0, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('공지 작성', style: AppTypography.headlineSmall),
+            const SizedBox(height: 20),
+            TextField(
+              controller: titleCtrl,
+              style: const TextStyle(fontFamily: 'Pretendard', fontSize: 15, color: AppColors.textPrimary),
+              decoration: InputDecoration(
+                labelText: '제목',
+                labelStyle: const TextStyle(fontFamily: 'Pretendard', fontSize: 13, color: AppColors.textTertiary),
+                filled: true,
+                fillColor: AppColors.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: bodyCtrl,
+              maxLines: 3,
+              style: const TextStyle(fontFamily: 'Pretendard', fontSize: 15, color: AppColors.textPrimary),
+              decoration: InputDecoration(
+                labelText: '내용',
+                labelStyle: const TextStyle(fontFamily: 'Pretendard', fontSize: 13, color: AppColors.textTertiary),
+                filled: true,
+                fillColor: AppColors.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                alignLabelWithHint: true,
+              ),
+            ),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: const Text('공지가 전송되었어요',
+                      style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w600)),
+                  backgroundColor: AppColors.accent,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.all(16),
+                ));
+              },
+              child: Container(
+                width: double.infinity,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Text('전송', style: TextStyle(fontFamily: 'Pretendard', fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final notifAsync = ref.watch(adminNotificationsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bg(context),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showComposeSheet(context),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 18),
+        label: const Text('공지 작성', style: TextStyle(fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+      ),
       body: SafeArea(
         child: notifAsync.when(
           loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),

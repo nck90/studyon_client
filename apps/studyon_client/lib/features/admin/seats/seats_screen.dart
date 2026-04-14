@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -48,6 +50,9 @@ class _SeatsScreenState extends ConsumerState<SeatsScreen> {
   String _filter = 'all';
   bool _editMode = false;
   List<_SeatData>? _editSeats;
+  Timer? _refreshTimer;
+
+  static const _statuses = ['studying', 'onBreak', 'empty'];
 
   static const _filters = [
     ('all', '전체'),
@@ -56,6 +61,33 @@ class _SeatsScreenState extends ConsumerState<SeatsScreen> {
     ('notCheckedIn', '미입실'),
     ('empty', '빈 좌석'),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (!_editMode && _editSeats != null && _editSeats!.isNotEmpty) {
+        final rng = Random();
+        final i = rng.nextInt(_editSeats!.length);
+        setState(() {
+          final seat = _editSeats![i];
+          _editSeats![i] = _SeatData(
+            id: seat.id,
+            seatNo: seat.seatNo,
+            status: _statuses[rng.nextInt(_statuses.length)],
+            zone: seat.zone,
+            assignedStudentName: seat.assignedStudentName,
+          );
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

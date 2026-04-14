@@ -90,13 +90,85 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  void _showEditProfile(BuildContext context) {
+    final nameCtrl = TextEditingController(text: ref.read(studentProvider).name);
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: AppColors.card(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(24, 0, 24, MediaQuery.of(ctx).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('프로필 수정', style: AppTypography.headlineSmall),
+            const SizedBox(height: 20),
+            TextField(
+              controller: nameCtrl,
+              style: const TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 15,
+                color: AppColors.textPrimary,
+              ),
+              decoration: InputDecoration(
+                labelText: '이름',
+                labelStyle: const TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: 13,
+                  color: AppColors.textTertiary,
+                ),
+                filled: true,
+                fillColor: AppColors.bg(ctx),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: () {
+                Navigator.pop(ctx);
+                showStudyonSnackbar(context, '저장되었어요');
+              },
+              child: Container(
+                width: double.infinity,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Center(
+                  child: Text(
+                    '저장',
+                    style: TextStyle(
+                      fontFamily: 'Pretendard',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context, {required double pad}) {
     return Row(
       children: [
         Text('프로필', style: AppTypography.headlineLarge),
         const Spacer(),
         PressableScale(
-          onTap: () => showStudyonSnackbar(context, '준비 중이에요'),
+          onTap: () => _showEditProfile(context),
           child: Container(
             width: 40,
             height: 40,
@@ -357,19 +429,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: AppColors.card(context),
-            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-          ),
-          child: _SettingsRow(
-            icon: Icons.logout_rounded,
-            iconColor: AppColors.hot,
-            iconBg: AppColors.tintCoral,
-            label: '로그아웃',
-            labelColor: AppColors.hot,
-            onTap: () => context.go('/login'),
-            showChevron: false,
+        Semantics(
+          label: '로그아웃',
+          button: true,
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.card(context),
+              borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+            ),
+            child: _SettingsRow(
+              icon: Icons.logout_rounded,
+              iconColor: AppColors.hot,
+              iconBg: AppColors.tintCoral,
+              label: '로그아웃',
+              labelColor: AppColors.hot,
+              onTap: () => context.go('/login'),
+              showChevron: false,
+            ),
           ),
         ),
         const SizedBox(height: 32),

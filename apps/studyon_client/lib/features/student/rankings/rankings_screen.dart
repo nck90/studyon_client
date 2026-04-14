@@ -115,7 +115,11 @@ class _RankingsScreenState extends State<RankingsScreen>
               child: Row(
                 children: List.generate(_tabs.length, (i) {
                   final selected = _tab == i;
-                  return GestureDetector(
+                  return Semantics(
+                    label: '${_tabs[i]} 랭킹',
+                    button: true,
+                    selected: selected,
+                    child: GestureDetector(
                     onTap: () {
                       HapticFeedback.lightImpact();
                       setState(() => _tab = i);
@@ -147,7 +151,7 @@ class _RankingsScreenState extends State<RankingsScreen>
                         ],
                       ),
                     ),
-                  );
+                  ));
                 }),
               ),
             ),

@@ -344,6 +344,21 @@ class StudentNotifier extends StateNotifier<StudentState> {
     );
   }
 
+  void addSessionRecord(String subject, int studyMinutes, bool goalAchieved) {
+    final now = DateTime.now();
+    final dateStr = '${now.month}월 ${now.day}일';
+    final record = StudyRecord(
+      date: dateStr,
+      subject: subject.isEmpty ? '공부' : subject,
+      studyMinutes: studyMinutes,
+      goalAchieved: goalAchieved,
+      goalDetail: state.goalDetail,
+    );
+    state = state.copyWith(
+      recentRecords: [record, ...state.recentRecords].take(20).toList(),
+    );
+  }
+
   void addPoints(int points) {
     state = state.copyWith(totalPoints: state.totalPoints + points);
   }
