@@ -174,86 +174,76 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                       ),
                       const SizedBox(height: 28),
 
-                      // Widgets row - frosted glass iPad style
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: isIPad ? 100 : 40),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _FrostedWidget(
-                                child: Row(
+                      // Widgets - iPad style square-ish cards
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _FrostedWidget(
+                            width: isIPad ? 150 : 130,
+                            height: isIPad ? 80 : 70,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.event_seat_rounded, size: 20, color: Colors.white60),
+                                const SizedBox(height: 6),
+                                Text(
+                                  student.seatNo,
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          _FrostedWidget(
+                            width: isIPad ? 150 : 130,
+                            height: isIPad ? 80 : 70,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.people_outline_rounded, size: 20, color: Colors.white60),
+                                const SizedBox(height: 6),
+                                Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(Icons.event_seat_rounded, size: 18, color: Colors.white70),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      student.seatNo,
-                                      style: const TextStyle(
-                                        fontSize: 17, fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                      ),
-                                    ),
+                                    const Text('18', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white, fontFeatures: [FontFeature.tabularFigures()])),
+                                    Text('/22명', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: Colors.white.withValues(alpha: 0.5))),
                                   ],
                                 ),
-                              ),
+                              ],
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _FrostedWidget(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.people_outline_rounded, size: 18, color: Colors.white70),
-                                    const SizedBox(width: 10),
-                                    const Text(
-                                      '18',
-                                      style: TextStyle(
-                                        fontSize: 22, fontWeight: FontWeight.w800,
-                                        color: Colors.white,
-                                        fontFeatures: [FontFeature.tabularFigures()],
-                                      ),
-                                    ),
-                                    Text(
-                                      '/22',
-                                      style: TextStyle(
-                                        fontSize: 15, fontWeight: FontWeight.w400,
-                                        color: Colors.white.withValues(alpha: 0.6),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
 
                       const Spacer(),
 
-                      // Bottom: swipe hint + home indicator
+                      // Bottom: swipe hint with float animation
                       if (!_isChecking) ...[
                         AnimatedBuilder(
                           animation: _hintCtrl,
-                          builder: (context, _) => Opacity(
-                            opacity: 0.4 + 0.3 * _hintCtrl.value,
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.keyboard_arrow_up_rounded,
-                                  size: 28,
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                ),
-                                const SizedBox(height: 4),
-                                const Text(
-                                  '위로 올려서 입실',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white70,
-                                    letterSpacing: 0.3,
+                          builder: (context, _) => Transform.translate(
+                            offset: Offset(0, -6 * _hintCtrl.value),
+                            child: Opacity(
+                              opacity: 0.5 + 0.4 * _hintCtrl.value,
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.keyboard_arrow_up_rounded,
+                                    size: 32,
+                                    color: Colors.white.withValues(alpha: 0.7),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 6),
+                                  const Text(
+                                    '위로 올려서 입실',
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -262,24 +252,24 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                           width: 24, height: 24,
                           child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         const Text(
                           '입실 중',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white70),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white70),
                         ),
                       ],
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
 
-                      // Home indicator bar
+                      // Home indicator bar - wider
                       Container(
-                        width: 134,
+                        width: 180,
                         height: 5,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.3),
+                          color: Colors.white.withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(3),
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                     ],
                   ),
                 ),
@@ -294,21 +284,25 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
 
 // Frosted glass widget - like iPadOS lockscreen widgets
 class _FrostedWidget extends StatelessWidget {
-  const _FrostedWidget({required this.child});
+  const _FrostedWidget({required this.child, this.width, this.height});
   final Widget child;
+  final double? width;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(22),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          width: width,
+          height: height,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 0.5),
+            color: Colors.white.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 0.5),
           ),
           child: child,
         ),
