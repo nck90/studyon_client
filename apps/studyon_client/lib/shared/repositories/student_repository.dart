@@ -1,175 +1,313 @@
-import 'package:studyon_client/shared/providers/student_providers.dart';
+import 'package:dio/dio.dart';
+import 'package:studyon_api_client/studyon_api_client.dart';
+import 'package:studyon_auth/studyon_auth.dart';
+import 'package:studyon_models/studyon_models.dart';
 
-/// Repository interface for student data.
-/// Currently returns mock data. Replace implementations with real API calls.
+import '../providers/student_providers.dart';
+
 class StudentRepository {
-  // ── Auth ──
-  Future<StudentState> login(String id, String password) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return const StudentState(); // returns default mock state
+  StudentRepository({
+    required this.authNotifier,
+    required this.studentApi,
+    required this.dio,
+  });
+
+  final AuthNotifier authNotifier;
+  final StudentApi studentApi;
+  final Dio dio;
+
+  Future<void> login(String studentNo, String name) {
+    return authNotifier.loginAsStudent(
+      StudentLoginRequest(studentNo: studentNo, name: name),
+    );
   }
 
-  Future<void> logout() async {
-    await Future.delayed(const Duration(milliseconds: 200));
+  Future<void> signup({
+    required String studentNo,
+    required String name,
+    String? phone,
+  }) {
+    return authNotifier.signupAsStudent(
+      StudentSignupRequest(
+        studentNo: studentNo,
+        name: name,
+        phone: phone,
+      ),
+    );
   }
 
-  // ── Check-in/out ──
-  Future<DateTime> checkIn(String studentId, String seatNo) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return DateTime.now();
+  Future<void> logout() {
+    return authNotifier.logout();
   }
 
-  Future<void> checkOut(String studentId) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+  Future<StudentState> fetchState({required bool isDarkMode}) async {
+    final home = await studentApi.getHome();
+    final profile = await studentApi.getProfile();
+    final plans = await studentApi.getStudyPlans();
+    final logs = await studentApi.getStudyLogs();
+    final rankings = await studentApi.getRankings(
+      periodType: 'DAILY',
+      rankingType: 'STUDY_TIME',
+    );
+    final notifications = await studentApi.getNotifications();
+    final badgesResponse = await dio.get('/student/badges');
+    final weeklyResponse = await dio.get('/student/reports/weekly');
+    final monthlyResponse = await dio.get('/student/reports/monthly');
+
+    final seatNo =
+        home.seat?.seatNo ??
+        ((profile['assignedSeat'] as Map<String, dynamic>?)?['seatNo']
+                as String?) ??
+        '';
+
+    final studyMinutes = home.study?.studyMinutes ?? 0;
+    final targetMinutes = home.plans?.targetMinutes ?? 0;
+    final firstPlan = plans.isNotEmpty ? plans.first : null;
+
+    return StudentState(
+      name: profile['user']?['name'] as String? ?? '',
+      studentNo: profile['studentNo'] as String? ?? '',
+      grade: profile['grade']?['name'] as String? ?? '',
+      className: profile['class']?['name'] as String? ?? '',
+      seatNo: seatNo,
+      isCheckedIn:
+          (home.todayAttendance?.status ?? '') == 'CHECKED_IN' ||
+          (home.todayAttendance?.status ?? '') == 'CHECKED_OUT',
+      checkInTime: _parseDateTime(home.todayAttendance?.checkInAt),
+      todayStudySeconds: studyMinutes * 60,
+      todayBreakSeconds: (home.study?.breakMinutes ?? 0) * 60,
+      weeklyStudyMinutes:
+          (weeklyResponse.data['data']?['studyMinutes'] as int? ?? 0),
+      monthlyStudyMinutes:
+          (monthlyResponse.data['data']?['studyMinutes'] as int? ?? 0),
+      streakDays: 0,
+      todayRank: rankings.myRank.rankNo,
+      goalProgress: targetMinutes == 0
+          ? 0
+          : (studyMinutes / targetMinutes).clamp(0.0, 1.0),
+      goalSubject: firstPlan?.subjectName ?? '',
+      goalDetail: firstPlan?.title ?? '',
+      goalHours: ((firstPlan?.targetMinutes ?? 0) / 60).ceil(),
+      plans: plans.map(_mapPlan).toList(),
+      recentRecords: logs.take(20).map(_mapLog).toList(),
+      totalPoints: 0,
+      badges: ((badgesResponse.data['data'] as List?) ?? [])
+          .map((item) => item['badge']?['name'] as String? ?? '')
+          .where((item) => item.isNotEmpty)
+          .toList(),
+      notifications: notifications.map(_mapNotification).toList(),
+      isDarkMode: isDarkMode,
+      isStudying: (home.study?.sessionStatus ?? '') == 'ACTIVE' ||
+          (home.study?.sessionStatus ?? '') == 'PAUSED',
+    );
   }
 
-  // ── Study Session ──
-  Future<String> startSession(String studentId, {String? subject}) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    return 'session_${DateTime.now().millisecondsSinceEpoch}';
+  Future<DateTime> checkIn({String? seatId}) async {
+    final attendance = await studentApi.checkIn(seatId: seatId);
+    return _parseDateTime(attendance.checkInAt) ?? DateTime.now();
   }
 
-  Future<void> endSession(
-    String sessionId, {
-    required int studySeconds,
-    required int breakSeconds,
+  Future<void> checkOut() async {
+    await studentApi.checkOut();
+  }
+
+  Future<List<StudyPlanItem>> getPlans() async {
+    final plans = await studentApi.getStudyPlans();
+    return plans.map(_mapPlan).toList();
+  }
+
+  Future<StudyPlanItem> addPlan({
+    required String subject,
+    required String detail,
+    required int targetHours,
+    String priority = '보통',
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-  }
-
-  Future<void> pauseSession(String sessionId) async {
-    await Future.delayed(const Duration(milliseconds: 100));
-  }
-
-  Future<void> resumeSession(String sessionId) async {
-    await Future.delayed(const Duration(milliseconds: 100));
-  }
-
-  // ── Study Plans ──
-  Future<List<StudyPlanItem>> getPlans(String studentId) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    return [
-      const StudyPlanItem(
-        id: '1',
-        subject: '수학',
-        detail: '수1 3단원 문제풀이',
-        targetHours: 3,
-        priority: '높음',
-        progress: 0.74,
+    final plan = await studentApi.createStudyPlan(
+      CreateStudyPlanRequest(
+        planDate: DateTime.now().toIso8601String(),
+        subjectName: subject,
+        title: detail,
+        targetMinutes: targetHours * 60,
+        priority: _priorityToApi(priority),
       ),
-      const StudyPlanItem(
-        id: '2',
-        subject: '영어',
-        detail: '단어 100개 암기',
-        targetHours: 1,
-        priority: '보통',
-        progress: 0.0,
-      ),
-    ];
+    );
+    return _mapPlan(plan);
   }
 
-  Future<void> addPlan(String studentId, StudyPlanItem plan) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-  }
-
-  Future<void> deletePlan(String studentId, String planId) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-  }
-
-  Future<void> reorderPlans(String studentId, List<String> planIds) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-  }
-
-  // ── Rankings ──
-  Future<List<Map<String, dynamic>>> getRankings({
-    required String period,
+  Future<StudyPlanItem> updatePlan({
+    required String planId,
+    required String subject,
+    required String detail,
+    required int targetHours,
+    String priority = '보통',
   }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return [
-      {'name': '김민수', 'time': '4시간 12분', 'trend': 0},
-      {'name': '박지현', 'time': '3시간 48분', 'trend': 1},
-      {'name': '이서준', 'time': '3시간 12분', 'trend': -2},
-      {'name': '정다은', 'time': '2시간 58분', 'trend': 3},
-      {'name': '최우진', 'time': '2시간 34분', 'trend': -1},
-    ];
+    final plan = await studentApi.updateStudyPlan(planId, {
+      'subjectName': subject,
+      'title': detail,
+      'targetMinutes': targetHours * 60,
+      'priority': _priorityToApi(priority),
+    });
+    return _mapPlan(plan);
   }
 
-  // ── Records ──
-  Future<List<StudyRecord>> getRecords(
-    String studentId, {
-    int limit = 10,
-  }) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return [
-      const StudyRecord(
-        date: '4월 14일',
-        subject: '수학',
-        studyMinutes: 192,
-        goalAchieved: true,
-        goalDetail: '수1 3단원',
-      ),
-      const StudyRecord(
-        date: '4월 13일',
-        subject: '영어',
-        studyMinutes: 210,
-        goalAchieved: true,
-        goalDetail: '단어 암기',
-      ),
-      const StudyRecord(
-        date: '4월 12일',
-        subject: '과학',
-        studyMinutes: 168,
-        goalAchieved: false,
-        goalDetail: '화학 개념',
-      ),
-      const StudyRecord(
-        date: '4월 11일',
-        subject: '국어',
-        studyMinutes: 110,
-        goalAchieved: false,
-        goalDetail: '지문 분석',
-      ),
-      const StudyRecord(
-        date: '4월 10일',
-        subject: '수학',
-        studyMinutes: 195,
-        goalAchieved: true,
-        goalDetail: '기출 분석',
-      ),
-    ];
+  Future<void> deletePlan(String planId) {
+    return studentApi.deleteStudyPlan(planId);
   }
 
-  // ── Seat ──
-  Future<void> requestSeatChange(
-    String studentId,
-    String fromSeat,
-    String toSeat,
-  ) async {
-    await Future.delayed(const Duration(milliseconds: 300));
+  Future<void> completePlan(String planId) {
+    return studentApi.completePlan(planId);
   }
 
-  // ── Notifications ──
-  Future<List<NotificationItem>> getNotifications(String studentId) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    return [
-      const NotificationItem(
-        id: '1',
-        title: '자습실 마감 안내',
-        body: '오늘 자습실 21:30에 마감됩니다',
-        type: 'announcement',
-        timeAgo: '30분 전',
-      ),
-      const NotificationItem(
-        id: '2',
-        title: '좌석 재배정',
-        body: '내일 좌석 재배정이 있습니다',
-        type: 'schedule',
-        timeAgo: '2시간 전',
-      ),
-    ];
+  Future<StudySession?> getActiveSession() {
+    return studentApi.getActiveSession();
   }
 
-  Future<void> markNotificationRead(String notificationId) async {
-    await Future.delayed(const Duration(milliseconds: 100));
+  Future<StudySession> startSession({String? linkedPlanId}) {
+    return studentApi.startSession(linkedPlanId: linkedPlanId);
+  }
+
+  Future<StudySession> pauseSession(String sessionId) {
+    return studentApi.pauseSession(sessionId);
+  }
+
+  Future<StudySession> resumeSession(String sessionId) {
+    return studentApi.resumeSession(sessionId);
+  }
+
+  Future<StudySession> endSession(String sessionId) {
+    return studentApi.endSession(sessionId);
+  }
+
+  Future<StudyLog> createStudyLog({
+    required String subjectName,
+    String? planId,
+    String? studySessionId,
+    String? memo,
+    double progressPercent = 0,
+    bool isCompleted = false,
+  }) {
+    return studentApi.createStudyLog(
+      CreateStudyLogRequest(
+        logDate: DateTime.now().toIso8601String(),
+        subjectName: subjectName,
+        planId: planId,
+        studySessionId: studySessionId,
+        progressPercent: progressPercent,
+        isCompleted: isCompleted,
+        memo: memo,
+      ),
+    );
+  }
+
+  Future<List<StudyRecord>> getRecords() async {
+    final logs = await studentApi.getStudyLogs();
+    return logs.map(_mapLog).toList();
+  }
+
+  Future<RankingResponse> getRankings({required String periodType}) {
+    return studentApi.getRankings(
+      periodType: periodType,
+      rankingType: 'STUDY_TIME',
+    );
+  }
+
+  Future<List<NotificationItem>> getNotifications() async {
+    final notifications = await studentApi.getNotifications();
+    return notifications.map(_mapNotification).toList();
+  }
+
+  Future<void> markNotificationRead(String notificationId) {
+    return studentApi.markNotificationRead(notificationId);
+  }
+
+  Future<List<Map<String, dynamic>>> getSeatMap() {
+    return studentApi.getSeatMap();
+  }
+
+  Future<void> requestSeatChange({
+    required String toSeatId,
+    String? reason,
+  }) {
+    return studentApi.requestSeatChange(toSeatId: toSeatId, reason: reason);
+  }
+
+  StudyPlanItem _mapPlan(StudyPlan plan) {
+    return StudyPlanItem(
+      id: plan.id,
+      subject: plan.subjectName,
+      detail: plan.title,
+      targetHours: (plan.targetMinutes / 60).ceil(),
+      priority: _priorityFromApi(plan.priority),
+      progress: plan.status == 'completed' ? 1.0 : 0.0,
+    );
+  }
+
+  StudyRecord _mapLog(StudyLog log) {
+    final date = DateTime.tryParse(log.logDate);
+    final displayDate = date == null
+        ? log.logDate
+        : '${date.month}월 ${date.day}일';
+    return StudyRecord(
+      date: displayDate,
+      subject: log.subjectName,
+      studyMinutes: (log.progressPercent * 60).round(),
+      goalAchieved: log.isCompleted,
+      goalDetail: log.memo ?? log.subjectName,
+    );
+  }
+
+  NotificationItem _mapNotification(Map<String, dynamic> raw) {
+    final notification = raw['notification'] as Map<String, dynamic>? ?? raw;
+    final readAt = raw['readAt'];
+    return NotificationItem(
+      id: raw['id'] as String? ?? notification['id'] as String? ?? '',
+      title: notification['title'] as String? ?? '',
+      body: notification['body'] as String? ?? '',
+      type: (notification['notificationType'] as String? ?? 'notice')
+          .toLowerCase(),
+      timeAgo: _timeAgo(
+        notification['createdAt'] as String? ??
+            raw['createdAt'] as String? ??
+            DateTime.now().toIso8601String(),
+      ),
+      isRead: readAt != null,
+    );
+  }
+
+  String _priorityToApi(String priority) {
+    switch (priority) {
+      case '높음':
+        return 'high';
+      case '낮음':
+        return 'low';
+      default:
+        return 'medium';
+    }
+  }
+
+  String _priorityFromApi(String priority) {
+    switch (priority) {
+      case 'high':
+        return '높음';
+      case 'low':
+        return '낮음';
+      default:
+        return '보통';
+    }
+  }
+
+  DateTime? _parseDateTime(String? value) {
+    if (value == null || value.isEmpty) return null;
+    return DateTime.tryParse(value);
+  }
+
+  String _timeAgo(String isoDate) {
+    final date = DateTime.tryParse(isoDate);
+    if (date == null) return '';
+    final diff = DateTime.now().difference(date);
+    if (diff.inMinutes < 1) return '방금 전';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}분 전';
+    if (diff.inHours < 24) return '${diff.inHours}시간 전';
+    return '${diff.inDays}일 전';
   }
 }

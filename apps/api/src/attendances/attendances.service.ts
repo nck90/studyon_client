@@ -23,6 +23,32 @@ export class AttendancesService {
     private readonly events: EventsService,
   ) {}
 
+  private serializeAttendance(attendance: {
+    id: string;
+    studentId: string;
+    attendanceDate: Date;
+    attendanceStatus: AttendanceStatus;
+    checkInAt: Date | null;
+    checkOutAt: Date | null;
+    stayMinutes: number;
+    lateStatus: AttendanceFlag;
+    earlyLeaveStatus: AttendanceFlag;
+  } | null) {
+    if (!attendance) return null;
+
+    return {
+      id: attendance.id,
+      studentId: attendance.studentId,
+      attendanceDate: attendance.attendanceDate.toISOString().slice(0, 10),
+      status: attendance.attendanceStatus,
+      checkInAt: attendance.checkInAt?.toISOString() ?? null,
+      checkOutAt: attendance.checkOutAt?.toISOString() ?? null,
+      stayMinutes: attendance.stayMinutes,
+      isLate: attendance.lateStatus === AttendanceFlag.LATE,
+      isEarlyLeave: attendance.earlyLeaveStatus === AttendanceFlag.EARLY_LEAVE,
+    };
+  }
+
   async getToday(studentId: string) {
     const attendance = await this.prisma.attendance.findUnique({
       where: {
@@ -47,7 +73,7 @@ export class AttendancesService {
       event: 'display.refresh',
       payload: { type: 'status' },
     });
-    return { success: true, data: attendance, meta: {} };
+    return { success: true, data: this.serializeAttendance(attendance), meta: {} };
   }
 
   async listStudentAttendances(
@@ -65,7 +91,11 @@ export class AttendancesService {
       },
       orderBy: { attendanceDate: 'desc' },
     });
-    return { success: true, data: items, meta: {} };
+    return {
+      success: true,
+      data: items.map((item) => this.serializeAttendance(item)),
+      meta: {},
+    };
   }
 
   async checkIn(studentId: string, seatId?: string) {
@@ -130,7 +160,7 @@ export class AttendancesService {
       return saved;
     });
 
-    return { success: true, data: attendance, meta: {} };
+    return { success: true, data: this.serializeAttendance(attendance), meta: {} };
   }
 
   async checkOut(studentId: string, forceCloseStudySession = true) {
@@ -236,7 +266,7 @@ export class AttendancesService {
       event: 'display.refresh',
       payload: { type: 'status' },
     });
-    return { success: true, data: result, meta: {} };
+    return { success: true, data: this.serializeAttendance(result), meta: {} };
   }
 
   async listAdmin(

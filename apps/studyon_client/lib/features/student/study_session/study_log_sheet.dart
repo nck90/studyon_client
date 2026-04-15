@@ -1,18 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
+
 import '../../../shared/utils/snackbar_helper.dart';
 
-class StudyLogSheet extends StatefulWidget {
-  const StudyLogSheet({super.key});
+class StudyLogDraft {
+  const StudyLogDraft({
+    required this.subject,
+    required this.pageCount,
+    required this.problemCount,
+    required this.goalCompleted,
+    required this.memo,
+  });
 
-  static Future<void> show(BuildContext context) {
-    return showModalBottomSheet(
+  final String subject;
+  final int pageCount;
+  final int problemCount;
+  final bool goalCompleted;
+  final String memo;
+}
+
+class StudyLogSheet extends StatefulWidget {
+  const StudyLogSheet({super.key, this.initialSubject});
+
+  final String? initialSubject;
+
+  static Future<StudyLogDraft?> show(
+    BuildContext context, {
+    String? initialSubject,
+  }) {
+    return showModalBottomSheet<StudyLogDraft>(
       context: context,
       isScrollControlled: true,
       enableDrag: true,
       showDragHandle: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const StudyLogSheet(),
+      builder: (_) => StudyLogSheet(initialSubject: initialSubject),
     );
   }
 
@@ -22,11 +44,20 @@ class StudyLogSheet extends StatefulWidget {
 
 class _StudyLogSheetState extends State<StudyLogSheet> {
   static const _subjects = ['수학', '영어', '국어', '과학', '사회', '기타'];
-  String _selectedSubject = '수학';
+
+  late String _selectedSubject;
   int _pageCount = 0;
   int _problemCount = 0;
   bool _goalCompleted = false;
   final TextEditingController _memoCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedSubject = _subjects.contains(widget.initialSubject)
+        ? widget.initialSubject!
+        : _subjects.first;
+  }
 
   @override
   void dispose() {
@@ -35,7 +66,15 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
   }
 
   void _save() {
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(
+      StudyLogDraft(
+        subject: _selectedSubject,
+        pageCount: _pageCount,
+        problemCount: _problemCount,
+        goalCompleted: _goalCompleted,
+        memo: _memoCtrl.text.trim(),
+      ),
+    );
     showStudyonSnackbar(context, '학습 기록이 저장되었어요');
   }
 
@@ -48,7 +87,10 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
     return Row(
       children: [
         Expanded(
-          child: Text(label, style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary)),
+          child: Text(
+            label,
+            style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+          ),
         ),
         GestureDetector(
           onTap: onDecrement,
@@ -103,7 +145,6 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Sheet handle
             Center(
               child: Container(
                 width: 40,
@@ -122,17 +163,15 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
               style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
             ),
             const SizedBox(height: 24),
-
-            // Subject chip selector
             Text('과목', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _subjects.map((s) {
-                final isSelected = _selectedSubject == s;
+              children: _subjects.map((subject) {
+                final isSelected = _selectedSubject == subject;
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedSubject = s),
+                  onTap: () => setState(() => _selectedSubject = subject),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
@@ -144,7 +183,7 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
                       ),
                     ),
                     child: Text(
-                      s,
+                      subject,
                       style: AppTypography.labelLarge.copyWith(
                         color: isSelected ? AppColors.primary : AppColors.textSecondary,
                         fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
@@ -155,26 +194,24 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
               }).toList(),
             ),
             const SizedBox(height: 20),
-
-            // Page count
             _buildStepper(
               label: '페이지 수',
               value: _pageCount,
-              onDecrement: () { if (_pageCount > 0) setState(() => _pageCount--); },
+              onDecrement: () {
+                if (_pageCount > 0) setState(() => _pageCount--);
+              },
               onIncrement: () => setState(() => _pageCount++),
             ),
             const SizedBox(height: 14),
-
-            // Problem count
             _buildStepper(
               label: '문제 수',
               value: _problemCount,
-              onDecrement: () { if (_problemCount > 0) setState(() => _problemCount--); },
+              onDecrement: () {
+                if (_problemCount > 0) setState(() => _problemCount--);
+              },
               onIncrement: () => setState(() => _problemCount++),
             ),
             const SizedBox(height: 20),
-
-            // Completion toggle
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
@@ -203,15 +240,13 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
                   ),
                   Switch(
                     value: _goalCompleted,
-                    onChanged: (v) => setState(() => _goalCompleted = v),
+                    onChanged: (value) => setState(() => _goalCompleted = value),
                     activeThumbColor: AppColors.accent,
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-
-            // Memo input
             Text('메모 (선택)', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary)),
             const SizedBox(height: 8),
             Container(
@@ -231,8 +266,6 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
               ),
             ),
             const SizedBox(height: 28),
-
-            // Save button
             StudyonButton(
               label: '저장',
               onPressed: _save,

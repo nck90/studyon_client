@@ -1,32 +1,81 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
 
-class LoginScreen extends StatefulWidget {
+import '../../shared/services/local_storage.dart';
+import '../../shared/utils/snackbar_helper.dart';
+import '../../shared/providers/student_providers.dart';
+
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
+
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isAdmin = false;
+  bool _isLoading = false;
   final _idController = TextEditingController();
+  final _nameController = TextEditingController();
   final _pwController = TextEditingController();
+  final _nameFocus = FocusNode();
   final _pwFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreLastLoginId();
+  }
+
+  Future<void> _restoreLastLoginId() async {
+    final lastLoginId = await LocalStorage.getLastLoginId();
+    if (!mounted || lastLoginId == null) return;
+    _idController.text = lastLoginId;
+  }
 
   @override
   void dispose() {
     _idController.dispose();
+    _nameController.dispose();
     _pwController.dispose();
+    _nameFocus.dispose();
     _pwFocus.dispose();
     super.dispose();
   }
 
-  void _login() {
+  Future<void> _login() async {
+    if (_isLoading) return;
+
     if (_isAdmin) {
-      context.go('/admin/dashboard');
-    } else {
-      context.go('/student/checkin');
+      showStudyonSnackbar(
+        context,
+        '관리자 영역 연동은 다음 단계에서 이어서 붙입니다. 현재는 학생 앱 실연동 우선입니다.',
+        isError: true,
+      );
+      return;
+    }
+
+    final studentNo = _idController.text.trim();
+    final name = _nameController.text.trim();
+    if (studentNo.isEmpty || name.isEmpty) {
+      showStudyonSnackbar(context, '학번과 이름을 입력해 주세요', isError: true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(studentProvider.notifier).login(studentNo, name);
+      await LocalStorage.setLastLoginId(studentNo);
+      if (!mounted) return;
+      final student = ref.read(studentProvider);
+      context.go(student.isCheckedIn ? '/student/home' : '/student/checkin');
+    } catch (error) {
+      if (!mounted) return;
+      showStudyonSnackbar(context, '로그인에 실패했어요: $error', isError: true);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -38,16 +87,12 @@ class _LoginScreenState extends State<LoginScreen> {
       return Scaffold(
         body: Row(
           children: [
-            // Left: Gradient branding panel
             Expanded(
               flex: 5,
               child: Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                ),
+                color: AppColors.primary,
                 child: Stack(
                   children: [
-                    // Branding content
                     Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -71,7 +116,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                     ),
-                    // Bottom stats
                     Positioned(
                       bottom: 48,
                       left: 0,
@@ -79,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         children: [
                           Text(
-                            '현재 이용 중',
+                            '실제 백엔드 연결',
                             style: TextStyle(
                               fontFamily: 'Pretendard',
                               fontSize: 13,
@@ -88,10 +132,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '18명',
+                            _isAdmin ? '관리자 준비 중' : '학생 로그인',
                             style: TextStyle(
                               fontFamily: 'Pretendard',
-                              fontSize: 28,
+                              fontSize: 24,
                               fontWeight: FontWeight.w800,
                               color: Colors.white.withValues(alpha: 0.7),
                             ),
@@ -103,7 +147,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-            // Right: Form panel
             Expanded(
               flex: 4,
               child: Container(
@@ -124,7 +167,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
 
-    // Phone layout: stacked gradient header + form
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
@@ -166,7 +208,8 @@ class _LoginScreenState extends State<LoginScreen> {
           Expanded(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
                 child: _buildForm(),
               ),
             ),
@@ -181,22 +224,25 @@ class _LoginScreenState extends State<LoginScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('로그인', style: AppTypography.headlineLarge),
+        Text(_isAdmin ? '관리자 로그인' : '학생 로그인', style: AppTypography.headlineLarge),
         const SizedBox(height: 32),
         _InputField(
           controller: _idController,
-          hint: '아이디',
+          hint: _isAdmin ? '이메일' : '학번',
           icon: Icons.person_outline_rounded,
           textInputAction: TextInputAction.next,
-          onSubmitted: (_) => _pwFocus.requestFocus(),
+          onSubmitted: (_) =>
+              _isAdmin ? _pwFocus.requestFocus() : _nameFocus.requestFocus(),
         ),
         const SizedBox(height: 12),
         _InputField(
-          controller: _pwController,
-          hint: '비밀번호',
-          icon: Icons.lock_outline_rounded,
-          obscure: true,
-          focusNode: _pwFocus,
+          controller: _isAdmin ? _pwController : _nameController,
+          hint: _isAdmin ? '비밀번호' : '이름',
+          icon: _isAdmin
+              ? Icons.lock_outline_rounded
+              : Icons.badge_outlined,
+          obscure: _isAdmin,
+          focusNode: _isAdmin ? _pwFocus : _nameFocus,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _login(),
         ),
@@ -210,18 +256,39 @@ class _LoginScreenState extends State<LoginScreen> {
               borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
             ),
             child: Center(
-              child: Text(
-                _isAdmin ? '관리자 로그인' : '로그인',
-                style: const TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(
+                      _isAdmin ? '관리자 로그인' : '로그인',
+                      style: const TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
         ),
+        if (!_isAdmin) ...[
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: () => context.push('/signup'),
+            child: Text(
+              '처음이면 회원가입',
+              style: AppTypography.titleMedium.copyWith(
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -237,6 +304,7 @@ class _InputField extends StatelessWidget {
     this.textInputAction,
     this.onSubmitted,
   });
+
   final TextEditingController controller;
   final String hint;
   final IconData icon;
@@ -281,7 +349,8 @@ class _InputField extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }

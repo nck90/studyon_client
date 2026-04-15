@@ -27,11 +27,15 @@ const logout_dto_1 = require("./dto/logout.dto");
 const qr_login_dto_1 = require("./dto/qr-login.dto");
 const refresh_token_dto_1 = require("./dto/refresh-token.dto");
 const register_device_dto_1 = require("./dto/register-device.dto");
+const student_signup_dto_1 = require("./dto/student-signup.dto");
 const student_login_dto_1 = require("./dto/student-login.dto");
 let AuthController = class AuthController {
     authService;
     constructor(authService) {
         this.authService = authService;
+    }
+    studentSignup(dto) {
+        return this.authService.studentSignup(dto);
     }
     studentLogin(dto) {
         return this.authService.studentLogin(dto);
@@ -62,6 +66,14 @@ let AuthController = class AuthController {
     }
 };
 exports.AuthController = AuthController;
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)('student/signup'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [student_signup_dto_1.StudentSignupDto]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "studentSignup", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Post)('student/login'),

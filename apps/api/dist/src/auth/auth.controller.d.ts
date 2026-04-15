@@ -6,14 +6,30 @@ import { LogoutDto } from './dto/logout.dto';
 import { QrLoginDto } from './dto/qr-login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDeviceDto } from './dto/register-device.dto';
+import { StudentSignupDto } from './dto/student-signup.dto';
 import { StudentLoginDto } from './dto/student-login.dto';
 import { JwtPayload } from './types/jwt-payload.type';
 export declare class AuthController {
     private readonly authService;
     constructor(authService: AuthService);
+    studentSignup(dto: StudentSignupDto): Promise<{
+        success: boolean;
+        data: {
+            sessionId: string;
+            user: {
+                id: string;
+                role: import("@prisma/client").$Enums.UserRole;
+                name: string;
+            };
+            accessToken: string;
+            refreshToken: string;
+        };
+        meta: {};
+    }>;
     studentLogin(dto: StudentLoginDto): Promise<{
         success: boolean;
         data: {
+            sessionId: string;
             user: {
                 id: string;
                 role: import("@prisma/client").$Enums.UserRole;
@@ -27,6 +43,7 @@ export declare class AuthController {
     studentQrLogin(dto: QrLoginDto): Promise<{
         success: boolean;
         data: {
+            sessionId: string;
             user: {
                 id: string;
                 role: import("@prisma/client").$Enums.UserRole;
@@ -40,6 +57,7 @@ export declare class AuthController {
     studentAutoLogin(dto: AutoLoginDto): Promise<{
         success: boolean;
         data: {
+            sessionId: string;
             user: {
                 id: string;
                 role: import("@prisma/client").$Enums.UserRole;
@@ -53,6 +71,7 @@ export declare class AuthController {
     adminLogin(dto: AdminLoginDto): Promise<{
         success: boolean;
         data: {
+            sessionId: string;
             user: {
                 id: string;
                 role: import("@prisma/client").$Enums.UserRole;

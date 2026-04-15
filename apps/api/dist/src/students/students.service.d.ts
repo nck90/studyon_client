@@ -6,40 +6,21 @@ export declare class StudentsService {
         success: boolean;
         data: {
             todayAttendance: {
-                id: string;
-                createdAt: Date;
-                updatedAt: Date;
-                createdById: string | null;
-                studentId: string;
-                seatId: string | null;
-                attendanceDate: Date;
-                checkInAt: Date | null;
-                checkOutAt: Date | null;
+                status: import("@prisma/client").$Enums.AttendanceStatus;
+                checkInAt: string | null;
+                checkOutAt: string | null;
                 stayMinutes: number;
-                lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
-                earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-                attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
-            } | null;
+            };
             seat: {
                 seatId: string;
                 seatNo: string;
                 status: import("@prisma/client").$Enums.SeatStatus;
             } | null;
             study: {
-                id: string;
-                createdAt: Date;
-                status: import("@prisma/client").$Enums.StudySessionStatus;
-                updatedAt: Date;
-                studentId: string;
-                startedAt: Date | null;
-                endedAt: Date | null;
-                attendanceId: string | null;
-                linkedPlanId: string | null;
-                sessionDate: Date;
+                sessionStatus: import("@prisma/client").$Enums.StudySessionStatus;
                 studyMinutes: number;
                 breakMinutes: number;
-                autoClosedReason: string | null;
-            } | null;
+            };
             plans: {
                 totalCount: number;
                 completedCount: number;
@@ -48,8 +29,6 @@ export declare class StudentsService {
             notifications: {
                 id: string;
                 title: string;
-                body: string;
-                readAt: Date | null;
             }[];
             student: {
                 id: string;

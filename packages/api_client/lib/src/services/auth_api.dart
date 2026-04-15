@@ -7,6 +7,16 @@ class AuthApi {
 
   final Dio _dio;
 
+  Future<StudentLoginResponse> studentSignup(StudentSignupRequest request) async {
+    final response = await _dio.post(
+      '/auth/student/signup',
+      data: request.toJson(),
+    );
+    return StudentLoginResponse.fromJson(
+      response.data['data'] as Map<String, dynamic>,
+    );
+  }
+
   Future<StudentLoginResponse> studentLogin(StudentLoginRequest request) async {
     final response = await _dio.post(
       ApiConstants.studentLogin,
@@ -35,10 +45,16 @@ class AuthApi {
     );
   }
 
-  Future<void> logout(String? sessionId) async {
+  Future<void> logout({
+    required String sessionId,
+    required String refreshToken,
+  }) async {
     await _dio.post(
       ApiConstants.logout,
-      data: sessionId != null ? {'sessionId': sessionId} : null,
+      data: {
+        'sessionId': sessionId,
+        'refreshToken': refreshToken,
+      },
     );
   }
 

@@ -98,10 +98,10 @@ class StudentShell extends ConsumerWidget {
               ),
               const SizedBox(height: 28),
               GestureDetector(
-                onTap: () {
+                onTap: () async {
                   Navigator.of(ctx).pop();
-                  ref.read(studentProvider.notifier).checkOut();
-                  context.go('/login');
+                  await ref.read(studentProvider.notifier).checkOut();
+                  if (context.mounted) context.go('/login');
                 },
                 child: Container(
                   width: double.infinity,
@@ -244,15 +244,7 @@ class StudentShell extends ConsumerWidget {
             // Divider
             Container(width: 1, color: AppColors.borderColor(context)),
             // Content
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 150),
-                child: KeyedSubtree(
-                  key: ValueKey(GoRouterState.of(context).uri.path),
-                  child: child,
-                ),
-              ),
-            ),
+            Expanded(child: child),
           ],
         ),
       );

@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #6C5CE7;
+  --color-primary-light: #A29BFE;
+  --color-primary-surface: #F0EEFF;
+  --color-accent: #00B894;
+  --color-accent-light: #E6F9F3;
+  --color-warm: #FDCB6E;
+  --color-warm-light: #FFF8E1;
+  --color-hot: #E17055;
+  --color-hot-light: #FFF0EC;
+  --color-bg: #F2F3F5;
+}
+
+:root {
+  --primary: #6C5CE7;
+  --primary-light: #A29BFE;
+  --accent: #00B894;
+  --warm: #FDCB6E;
+  --hot: #E17055;
+  --bg: #F2F3F5;
+}
+
+@layer base {
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background-color: #F2F3F5;
+    color: #1a1a2e;
+  }
+}

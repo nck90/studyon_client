@@ -9,6 +9,30 @@ import { UpdateStudyPlanDto } from './dto/update-study-plan.dto';
 export class StudyPlansService {
   constructor(private readonly prisma: PrismaService) {}
 
+  private serializePlan(plan: {
+    id: string;
+    studentId: string;
+    planDate: Date;
+    subjectName: string;
+    title: string;
+    description: string | null;
+    targetMinutes: number;
+    priority: string;
+    status: string;
+  }) {
+    return {
+      ...plan,
+      planDate: plan.planDate.toISOString().slice(0, 10),
+      priority: plan.priority.toLowerCase(),
+      status:
+        plan.status === 'PLANNED'
+          ? 'pending'
+          : plan.status === 'IN_PROGRESS'
+            ? 'in_progress'
+            : plan.status.toLowerCase(),
+    };
+  }
+
   list(studentId: string, date?: string) {
     return this.prisma.studyPlan
       .findMany({
@@ -18,7 +42,11 @@ export class StudyPlansService {
         },
         orderBy: [{ priority: 'asc' }, { createdAt: 'desc' }],
       })
-      .then((data) => ({ success: true, data, meta: {} }));
+      .then((data) => ({
+        success: true,
+        data: data.map((item) => this.serializePlan(item)),
+        meta: {},
+      }));
   }
 
   async get(studentId: string, planId: string) {
@@ -28,7 +56,7 @@ export class StudyPlansService {
     if (!plan) {
       throw new NotFoundException('계획을 찾을 수 없습니다.');
     }
-    return { success: true, data: plan, meta: {} };
+    return { success: true, data: this.serializePlan(plan), meta: {} };
   }
 
   create(studentId: string, dto: CreateStudyPlanDto) {
@@ -44,7 +72,11 @@ export class StudyPlansService {
           priority: dto.priority,
         },
       })
-      .then((data) => ({ success: true, data, meta: {} }));
+      .then((data) => ({
+        success: true,
+        data: this.serializePlan(data),
+        meta: {},
+      }));
   }
 
   async update(studentId: string, planId: string, dto: UpdateStudyPlanDto) {
@@ -60,7 +92,7 @@ export class StudyPlansService {
         priority: dto.priority,
       },
     });
-    return { success: true, data: plan, meta: {} };
+    return { success: true, data: this.serializePlan(plan), meta: {} };
   }
 
   async remove(studentId: string, planId: string) {
@@ -75,6 +107,6 @@ export class StudyPlansService {
       where: { id: planId },
       data: { status: StudyPlanStatus.COMPLETED, completedAt: new Date() },
     });
-    return { success: true, data: plan, meta: {} };
+    return { success: true, data: this.serializePlan(plan), meta: {} };
   }
 }

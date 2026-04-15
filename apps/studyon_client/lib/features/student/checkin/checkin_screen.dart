@@ -32,7 +32,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
     _hintCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 950),
     )..repeat(reverse: true);
   }
 
@@ -69,15 +69,26 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
     }
   }
 
-  void _checkIn() async {
+  Future<void> _checkIn() async {
     HapticFeedback.heavyImpact();
     setState(() => _isChecking = true);
     _hintCtrl.stop();
-    ref.read(studentProvider.notifier).checkIn();
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (mounted) {
-      showStudyonSnackbar(context, '입실 완료');
-      context.go('/student/home');
+    try {
+      await ref.read(studentProvider.notifier).checkIn();
+      await Future.delayed(const Duration(milliseconds: 400));
+      if (mounted) {
+        showStudyonSnackbar(context, '입실 완료');
+        context.go('/student/home');
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isChecking = false;
+          _dragOffset = 0;
+        });
+        _hintCtrl.repeat(reverse: true);
+        showStudyonSnackbar(context, '입실 처리에 실패했어요', isError: true);
+      }
     }
   }
 
@@ -86,6 +97,8 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
     final student = ref.watch(studentProvider);
     final isIPad = MediaQuery.of(context).size.shortestSide >= 600;
     final swipeProgress = (_dragOffset / 200).clamp(0.0, 1.0);
+    final widgetWidth = isIPad ? 170.0 : 148.0;
+    final widgetHeight = isIPad ? 92.0 : 82.0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -127,10 +140,10 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                           Text(
                             _hourStr,
                             style: TextStyle(
-                              fontSize: isIPad ? 104 : 76,
+                              fontSize: isIPad ? 116 : 86,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
-                              letterSpacing: -2,
+                              letterSpacing: -2.6,
                               height: 1.0,
                               fontFeatures: const [FontFeature.tabularFigures()],
                             ),
@@ -140,7 +153,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                             child: Text(
                               ':',
                               style: TextStyle(
-                                fontSize: isIPad ? 96 : 70,
+                                fontSize: isIPad ? 108 : 80,
                                 fontWeight: FontWeight.w300,
                                 color: Colors.white.withValues(alpha: 0.7),
                                 height: 1.0,
@@ -150,10 +163,10 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                           Text(
                             _minStr,
                             style: TextStyle(
-                              fontSize: isIPad ? 104 : 76,
+                              fontSize: isIPad ? 116 : 86,
                               fontWeight: FontWeight.w700,
                               color: Colors.white,
-                              letterSpacing: -2,
+                              letterSpacing: -2.6,
                               height: 1.0,
                               fontFeatures: const [FontFeature.tabularFigures()],
                             ),
@@ -166,7 +179,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                       Text(
                         _dateStr,
                         style: TextStyle(
-                          fontSize: isIPad ? 20 : 16,
+                          fontSize: isIPad ? 22 : 18,
                           fontWeight: FontWeight.w500,
                           color: Colors.white.withValues(alpha: 0.8),
                           letterSpacing: 0.5,
@@ -179,34 +192,34 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           _FrostedWidget(
-                            width: isIPad ? 150 : 130,
-                            height: isIPad ? 80 : 70,
+                            width: widgetWidth,
+                            height: widgetHeight,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.event_seat_rounded, size: 20, color: Colors.white60),
+                                const Icon(Icons.event_seat_rounded, size: 24, color: Colors.white60),
                                 const SizedBox(height: 6),
                                 Text(
                                   student.seatNo,
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
+                                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.white),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 14),
                           _FrostedWidget(
-                            width: isIPad ? 150 : 130,
-                            height: isIPad ? 80 : 70,
+                            width: widgetWidth,
+                            height: widgetHeight,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.people_outline_rounded, size: 20, color: Colors.white60),
+                                const Icon(Icons.people_outline_rounded, size: 24, color: Colors.white60),
                                 const SizedBox(height: 6),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Text('18', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white, fontFeatures: [FontFeature.tabularFigures()])),
-                                    Text('/22명', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w400, color: Colors.white.withValues(alpha: 0.5))),
+                                    const Text('18', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white, fontFeatures: [FontFeature.tabularFigures()])),
+                                    Text('/22명', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.58))),
                                   ],
                                 ),
                               ],
@@ -220,26 +233,29 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                       // Bottom: swipe hint with float animation
                       if (!_isChecking) ...[
                         AnimatedBuilder(
-                          animation: _hintCtrl,
+                          animation: CurvedAnimation(
+                            parent: _hintCtrl,
+                            curve: Curves.easeInOutSine,
+                          ),
                           builder: (context, _) => Transform.translate(
-                            offset: Offset(0, -6 * _hintCtrl.value),
+                            offset: Offset(0, -10 * _hintCtrl.value),
                             child: Opacity(
-                              opacity: 0.5 + 0.4 * _hintCtrl.value,
+                              opacity: 0.72 + 0.22 * _hintCtrl.value,
                               child: Column(
                                 children: [
                                   Icon(
                                     Icons.keyboard_arrow_up_rounded,
-                                    size: 32,
-                                    color: Colors.white.withValues(alpha: 0.7),
+                                    size: 48,
+                                    color: Colors.white.withValues(alpha: 0.86),
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 10),
                                   const Text(
                                     '위로 올려서 입실',
                                     style: TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
                                       color: Colors.white,
-                                      letterSpacing: 0.5,
+                                      letterSpacing: 0.3,
                                     ),
                                   ),
                                 ],
@@ -249,24 +265,24 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
                         ),
                       ] else ...[
                         const SizedBox(
-                          width: 24, height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                          width: 28, height: 28,
+                          child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white),
                         ),
                         const SizedBox(height: 10),
                         const Text(
                           '입실 중',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white70),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white70),
                         ),
                       ],
                       const SizedBox(height: 24),
 
                       // Home indicator bar - wider
                       Container(
-                        width: 180,
-                        height: 5,
+                        width: 270,
+                        height: 6,
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.35),
-                          borderRadius: BorderRadius.circular(3),
+                          borderRadius: BorderRadius.circular(4),
                         ),
                       ),
                       const SizedBox(height: 10),

@@ -58,7 +58,80 @@ let AuthService = class AuthService {
         this.redis = redis;
         this.jwtService = jwtService;
     }
+    async studentSignup(dto) {
+        const existingStudent = await this.prisma.student.findUnique({
+            where: { studentNo: dto.studentNo },
+            include: { user: true, class: true, assignedSeat: true },
+        });
+        if (existingStudent?.user.status === 'ACTIVE') {
+            throw new common_1.ConflictException('이미 가입된 학번입니다.');
+        }
+        if (existingStudent) {
+            await this.prisma.user.update({
+                where: { id: existingStudent.userId },
+                data: {
+                    name: dto.name,
+                    phone: dto.phone,
+                    status: 'ACTIVE',
+                },
+            });
+            await this.revokeActiveStudentSessions(existingStudent.id);
+            return this.createSessionAndTokens({
+                userId: existingStudent.userId,
+                role: client_1.UserRole.STUDENT,
+                name: dto.name,
+                studentId: existingStudent.id,
+                loginMethod: client_1.LoginMethod.STUDENT_NO_NAME,
+                deviceCode: dto.deviceCode,
+                meta: {
+                    student: {
+                        id: existingStudent.id,
+                        studentNo: existingStudent.studentNo,
+                        className: existingStudent.class?.name ?? null,
+                        assignedSeatNo: existingStudent.assignedSeat?.seatNo ?? null,
+                    },
+                },
+            });
+        }
+        const created = await this.prisma.$transaction(async (tx) => {
+            const user = await tx.user.create({
+                data: {
+                    role: client_1.UserRole.STUDENT,
+                    status: 'ACTIVE',
+                    name: dto.name,
+                    phone: dto.phone,
+                },
+            });
+            const student = await tx.student.create({
+                data: {
+                    userId: user.id,
+                    studentNo: dto.studentNo,
+                },
+                include: { class: true, assignedSeat: true },
+            });
+            return { user, student };
+        });
+        return this.createSessionAndTokens({
+            userId: created.user.id,
+            role: client_1.UserRole.STUDENT,
+            name: created.user.name,
+            studentId: created.student.id,
+            loginMethod: client_1.LoginMethod.STUDENT_NO_NAME,
+            deviceCode: dto.deviceCode,
+            meta: {
+                student: {
+                    id: created.student.id,
+                    studentNo: created.student.studentNo,
+                    className: created.student.class?.name ?? null,
+                    assignedSeatNo: created.student.assignedSeat?.seatNo ?? null,
+                },
+            },
+        });
+    }
     async studentLogin(dto) {
+        if (!dto.studentNo.trim() || !dto.name.trim()) {
+            throw new common_1.BadRequestException('학번과 이름을 입력해 주세요.');
+        }
         const student = await this.prisma.student.findFirst({
             where: {
                 studentNo: dto.studentNo,
@@ -341,6 +414,7 @@ let AuthService = class AuthService {
             success: true,
             data: {
                 ...tokens,
+                sessionId: session.id,
                 user: {
                     id: params.userId,
                     role: params.role,

@@ -25,6 +25,21 @@ let AttendancesService = class AttendancesService {
         this.audit = audit;
         this.events = events;
     }
+    serializeAttendance(attendance) {
+        if (!attendance)
+            return null;
+        return {
+            id: attendance.id,
+            studentId: attendance.studentId,
+            attendanceDate: attendance.attendanceDate.toISOString().slice(0, 10),
+            status: attendance.attendanceStatus,
+            checkInAt: attendance.checkInAt?.toISOString() ?? null,
+            checkOutAt: attendance.checkOutAt?.toISOString() ?? null,
+            stayMinutes: attendance.stayMinutes,
+            isLate: attendance.lateStatus === client_1.AttendanceFlag.LATE,
+            isEarlyLeave: attendance.earlyLeaveStatus === client_1.AttendanceFlag.EARLY_LEAVE,
+        };
+    }
     async getToday(studentId) {
         const attendance = await this.prisma.attendance.findUnique({
             where: {
@@ -49,7 +64,7 @@ let AttendancesService = class AttendancesService {
             event: 'display.refresh',
             payload: { type: 'status' },
         });
-        return { success: true, data: attendance, meta: {} };
+        return { success: true, data: this.serializeAttendance(attendance), meta: {} };
     }
     async listStudentAttendances(studentId, startDate, endDate) {
         const items = await this.prisma.attendance.findMany({
@@ -62,7 +77,11 @@ let AttendancesService = class AttendancesService {
             },
             orderBy: { attendanceDate: 'desc' },
         });
-        return { success: true, data: items, meta: {} };
+        return {
+            success: true,
+            data: items.map((item) => this.serializeAttendance(item)),
+            meta: {},
+        };
     }
     async checkIn(studentId, seatId) {
         const student = await this.prisma.student.findUnique({
@@ -117,7 +136,7 @@ let AttendancesService = class AttendancesService {
             }
             return saved;
         });
-        return { success: true, data: attendance, meta: {} };
+        return { success: true, data: this.serializeAttendance(attendance), meta: {} };
     }
     async checkOut(studentId, forceCloseStudySession = true) {
         const today = (0, date_util_1.dateOnly)();
@@ -208,7 +227,7 @@ let AttendancesService = class AttendancesService {
             event: 'display.refresh',
             payload: { type: 'status' },
         });
-        return { success: true, data: result, meta: {} };
+        return { success: true, data: this.serializeAttendance(result), meta: {} };
     }
     async listAdmin(date, classId, groupId, attendanceStatus) {
         const items = await this.prisma.attendance.findMany({

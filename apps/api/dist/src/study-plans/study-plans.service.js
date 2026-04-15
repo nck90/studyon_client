@@ -19,6 +19,18 @@ let StudyPlansService = class StudyPlansService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    serializePlan(plan) {
+        return {
+            ...plan,
+            planDate: plan.planDate.toISOString().slice(0, 10),
+            priority: plan.priority.toLowerCase(),
+            status: plan.status === 'PLANNED'
+                ? 'pending'
+                : plan.status === 'IN_PROGRESS'
+                    ? 'in_progress'
+                    : plan.status.toLowerCase(),
+        };
+    }
     list(studentId, date) {
         return this.prisma.studyPlan
             .findMany({
@@ -28,7 +40,11 @@ let StudyPlansService = class StudyPlansService {
             },
             orderBy: [{ priority: 'asc' }, { createdAt: 'desc' }],
         })
-            .then((data) => ({ success: true, data, meta: {} }));
+            .then((data) => ({
+            success: true,
+            data: data.map((item) => this.serializePlan(item)),
+            meta: {},
+        }));
     }
     async get(studentId, planId) {
         const plan = await this.prisma.studyPlan.findFirst({
@@ -37,7 +53,7 @@ let StudyPlansService = class StudyPlansService {
         if (!plan) {
             throw new common_1.NotFoundException('계획을 찾을 수 없습니다.');
         }
-        return { success: true, data: plan, meta: {} };
+        return { success: true, data: this.serializePlan(plan), meta: {} };
     }
     create(studentId, dto) {
         return this.prisma.studyPlan
@@ -52,7 +68,11 @@ let StudyPlansService = class StudyPlansService {
                 priority: dto.priority,
             },
         })
-            .then((data) => ({ success: true, data, meta: {} }));
+            .then((data) => ({
+            success: true,
+            data: this.serializePlan(data),
+            meta: {},
+        }));
     }
     async update(studentId, planId, dto) {
         await this.get(studentId, planId);
@@ -67,7 +87,7 @@ let StudyPlansService = class StudyPlansService {
                 priority: dto.priority,
             },
         });
-        return { success: true, data: plan, meta: {} };
+        return { success: true, data: this.serializePlan(plan), meta: {} };
     }
     async remove(studentId, planId) {
         await this.get(studentId, planId);
@@ -80,7 +100,7 @@ let StudyPlansService = class StudyPlansService {
             where: { id: planId },
             data: { status: client_1.StudyPlanStatus.COMPLETED, completedAt: new Date() },
         });
-        return { success: true, data: plan, meta: {} };
+        return { success: true, data: this.serializePlan(plan), meta: {} };
     }
 };
 exports.StudyPlansService = StudyPlansService;

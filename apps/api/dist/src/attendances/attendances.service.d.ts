@@ -8,80 +8,65 @@ export declare class AttendancesService {
     private readonly audit;
     private readonly events;
     constructor(prisma: PrismaService, audit: AuditService, events: EventsService);
+    private serializeAttendance;
     getToday(studentId: string): Promise<{
         success: boolean;
         data: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            createdById: string | null;
             studentId: string;
-            seatId: string | null;
-            attendanceDate: Date;
-            checkInAt: Date | null;
-            checkOutAt: Date | null;
+            attendanceDate: string;
+            status: import("@prisma/client").$Enums.AttendanceStatus;
+            checkInAt: string | null;
+            checkOutAt: string | null;
             stayMinutes: number;
-            lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
+            isLate: boolean;
+            isEarlyLeave: boolean;
         } | null;
         meta: {};
     }>;
     listStudentAttendances(studentId: string, startDate?: string, endDate?: string): Promise<{
         success: boolean;
-        data: {
+        data: ({
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            createdById: string | null;
             studentId: string;
-            seatId: string | null;
-            attendanceDate: Date;
-            checkInAt: Date | null;
-            checkOutAt: Date | null;
+            attendanceDate: string;
+            status: import("@prisma/client").$Enums.AttendanceStatus;
+            checkInAt: string | null;
+            checkOutAt: string | null;
             stayMinutes: number;
-            lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
-        }[];
+            isLate: boolean;
+            isEarlyLeave: boolean;
+        } | null)[];
         meta: {};
     }>;
     checkIn(studentId: string, seatId?: string): Promise<{
         success: boolean;
         data: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            createdById: string | null;
             studentId: string;
-            seatId: string | null;
-            attendanceDate: Date;
-            checkInAt: Date | null;
-            checkOutAt: Date | null;
+            attendanceDate: string;
+            status: import("@prisma/client").$Enums.AttendanceStatus;
+            checkInAt: string | null;
+            checkOutAt: string | null;
             stayMinutes: number;
-            lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
-        };
+            isLate: boolean;
+            isEarlyLeave: boolean;
+        } | null;
         meta: {};
     }>;
     checkOut(studentId: string, forceCloseStudySession?: boolean): Promise<{
         success: boolean;
         data: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            createdById: string | null;
             studentId: string;
-            seatId: string | null;
-            attendanceDate: Date;
-            checkInAt: Date | null;
-            checkOutAt: Date | null;
+            attendanceDate: string;
+            status: import("@prisma/client").$Enums.AttendanceStatus;
+            checkInAt: string | null;
+            checkOutAt: string | null;
             stayMinutes: number;
-            lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
-        };
+            isLate: boolean;
+            isEarlyLeave: boolean;
+        } | null;
         meta: {};
     }>;
     listAdmin(date?: string, classId?: string, groupId?: string, attendanceStatus?: AttendanceStatus): Promise<{

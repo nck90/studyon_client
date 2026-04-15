@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
   DeviceStatus,
@@ -17,6 +22,7 @@ import { CreateQrTokenDto } from './dto/create-qr-token.dto';
 import { QrLoginDto } from './dto/qr-login.dto';
 import { RegisterDeviceDto } from './dto/register-device.dto';
 import { StudentLoginDto } from './dto/student-login.dto';
+import { StudentSignupDto } from './dto/student-signup.dto';
 import { JwtPayload } from './types/jwt-payload.type';
 
 @Injectable()
@@ -27,7 +33,90 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  async studentSignup(dto: StudentSignupDto) {
+    const existingStudent = await this.prisma.student.findUnique({
+      where: { studentNo: dto.studentNo },
+      include: { user: true, class: true, assignedSeat: true },
+    });
+
+    if (existingStudent?.user.status === 'ACTIVE') {
+      throw new ConflictException('이미 가입된 학번입니다.');
+    }
+
+    if (existingStudent) {
+      await this.prisma.user.update({
+        where: { id: existingStudent.userId },
+        data: {
+          name: dto.name,
+          phone: dto.phone,
+          status: 'ACTIVE',
+        },
+      });
+
+      await this.revokeActiveStudentSessions(existingStudent.id);
+
+      return this.createSessionAndTokens({
+        userId: existingStudent.userId,
+        role: UserRole.STUDENT,
+        name: dto.name,
+        studentId: existingStudent.id,
+        loginMethod: LoginMethod.STUDENT_NO_NAME,
+        deviceCode: dto.deviceCode,
+        meta: {
+          student: {
+            id: existingStudent.id,
+            studentNo: existingStudent.studentNo,
+            className: existingStudent.class?.name ?? null,
+            assignedSeatNo: existingStudent.assignedSeat?.seatNo ?? null,
+          },
+        },
+      });
+    }
+
+    const created = await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          role: UserRole.STUDENT,
+          status: 'ACTIVE',
+          name: dto.name,
+          phone: dto.phone,
+        },
+      });
+
+      const student = await tx.student.create({
+        data: {
+          userId: user.id,
+          studentNo: dto.studentNo,
+        },
+        include: { class: true, assignedSeat: true },
+      });
+
+      return { user, student };
+    });
+
+    return this.createSessionAndTokens({
+      userId: created.user.id,
+      role: UserRole.STUDENT,
+      name: created.user.name,
+      studentId: created.student.id,
+      loginMethod: LoginMethod.STUDENT_NO_NAME,
+      deviceCode: dto.deviceCode,
+      meta: {
+        student: {
+          id: created.student.id,
+          studentNo: created.student.studentNo,
+          className: created.student.class?.name ?? null,
+          assignedSeatNo: created.student.assignedSeat?.seatNo ?? null,
+        },
+      },
+    });
+  }
+
   async studentLogin(dto: StudentLoginDto) {
+    if (!dto.studentNo.trim() || !dto.name.trim()) {
+      throw new BadRequestException('학번과 이름을 입력해 주세요.');
+    }
+
     const student = await this.prisma.student.findFirst({
       where: {
         studentNo: dto.studentNo,
@@ -370,6 +459,7 @@ export class AuthService {
       success: true,
       data: {
         ...tokens,
+        sessionId: session.id,
         user: {
           id: params.userId,
           role: params.role,

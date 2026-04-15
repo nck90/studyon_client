@@ -8,72 +8,60 @@ export declare class StudyPlansController {
     list(user: JwtPayload, date?: string): Promise<{
         success: boolean;
         data: {
+            planDate: string;
+            priority: string;
+            status: string;
             id: string;
-            createdAt: Date;
-            status: import("@prisma/client").$Enums.StudyPlanStatus;
-            updatedAt: Date;
-            description: string | null;
             studentId: string;
-            title: string;
-            planDate: Date;
             subjectName: string;
+            title: string;
+            description: string | null;
             targetMinutes: number;
-            priority: import("@prisma/client").$Enums.StudyPlanPriority;
-            completedAt: Date | null;
         }[];
         meta: {};
     }>;
     get(user: JwtPayload, planId: string): Promise<{
         success: boolean;
         data: {
+            planDate: string;
+            priority: string;
+            status: string;
             id: string;
-            createdAt: Date;
-            status: import("@prisma/client").$Enums.StudyPlanStatus;
-            updatedAt: Date;
-            description: string | null;
             studentId: string;
-            title: string;
-            planDate: Date;
             subjectName: string;
+            title: string;
+            description: string | null;
             targetMinutes: number;
-            priority: import("@prisma/client").$Enums.StudyPlanPriority;
-            completedAt: Date | null;
         };
         meta: {};
     }>;
     create(user: JwtPayload, dto: CreateStudyPlanDto): Promise<{
         success: boolean;
         data: {
+            planDate: string;
+            priority: string;
+            status: string;
             id: string;
-            createdAt: Date;
-            status: import("@prisma/client").$Enums.StudyPlanStatus;
-            updatedAt: Date;
-            description: string | null;
             studentId: string;
-            title: string;
-            planDate: Date;
             subjectName: string;
+            title: string;
+            description: string | null;
             targetMinutes: number;
-            priority: import("@prisma/client").$Enums.StudyPlanPriority;
-            completedAt: Date | null;
         };
         meta: {};
     }>;
     update(user: JwtPayload, planId: string, dto: UpdateStudyPlanDto): Promise<{
         success: boolean;
         data: {
+            planDate: string;
+            priority: string;
+            status: string;
             id: string;
-            createdAt: Date;
-            status: import("@prisma/client").$Enums.StudyPlanStatus;
-            updatedAt: Date;
-            description: string | null;
             studentId: string;
-            title: string;
-            planDate: Date;
             subjectName: string;
+            title: string;
+            description: string | null;
             targetMinutes: number;
-            priority: import("@prisma/client").$Enums.StudyPlanPriority;
-            completedAt: Date | null;
         };
         meta: {};
     }>;
@@ -88,18 +76,15 @@ export declare class StudyPlansController {
     complete(user: JwtPayload, planId: string): Promise<{
         success: boolean;
         data: {
+            planDate: string;
+            priority: string;
+            status: string;
             id: string;
-            createdAt: Date;
-            status: import("@prisma/client").$Enums.StudyPlanStatus;
-            updatedAt: Date;
-            description: string | null;
             studentId: string;
-            title: string;
-            planDate: Date;
             subjectName: string;
+            title: string;
+            description: string | null;
             targetMinutes: number;
-            priority: import("@prisma/client").$Enums.StudyPlanPriority;
-            completedAt: Date | null;
         };
         meta: {};
     }>;

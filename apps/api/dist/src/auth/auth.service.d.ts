@@ -7,15 +7,31 @@ import { CreateQrTokenDto } from './dto/create-qr-token.dto';
 import { QrLoginDto } from './dto/qr-login.dto';
 import { RegisterDeviceDto } from './dto/register-device.dto';
 import { StudentLoginDto } from './dto/student-login.dto';
+import { StudentSignupDto } from './dto/student-signup.dto';
 import { JwtPayload } from './types/jwt-payload.type';
 export declare class AuthService {
     private readonly prisma;
     private readonly redis;
     private readonly jwtService;
     constructor(prisma: PrismaService, redis: RedisService, jwtService: JwtService);
+    studentSignup(dto: StudentSignupDto): Promise<{
+        success: boolean;
+        data: {
+            sessionId: string;
+            user: {
+                id: string;
+                role: import("@prisma/client").$Enums.UserRole;
+                name: string;
+            };
+            accessToken: string;
+            refreshToken: string;
+        };
+        meta: {};
+    }>;
     studentLogin(dto: StudentLoginDto): Promise<{
         success: boolean;
         data: {
+            sessionId: string;
             user: {
                 id: string;
                 role: import("@prisma/client").$Enums.UserRole;
@@ -29,6 +45,7 @@ export declare class AuthService {
     qrLogin(dto: QrLoginDto): Promise<{
         success: boolean;
         data: {
+            sessionId: string;
             user: {
                 id: string;
                 role: import("@prisma/client").$Enums.UserRole;
@@ -42,6 +59,7 @@ export declare class AuthService {
     autoLogin(dto: AutoLoginDto): Promise<{
         success: boolean;
         data: {
+            sessionId: string;
             user: {
                 id: string;
                 role: import("@prisma/client").$Enums.UserRole;
@@ -55,6 +73,7 @@ export declare class AuthService {
     adminLogin(dto: AdminLoginDto): Promise<{
         success: boolean;
         data: {
+            sessionId: string;
             user: {
                 id: string;
                 role: import("@prisma/client").$Enums.UserRole;

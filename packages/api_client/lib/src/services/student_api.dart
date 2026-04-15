@@ -7,6 +7,11 @@ class StudentApi {
 
   final Dio _dio;
 
+  Future<Map<String, dynamic>> getProfile() async {
+    final response = await _dio.get(ApiConstants.studentProfile);
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
   // Home
   Future<StudentHome> getHome() async {
     final response = await _dio.get(ApiConstants.studentHome);
@@ -49,6 +54,37 @@ class StudentApi {
     final data = response.data['data'];
     if (data == null) return null;
     return Seat.fromJson(data as Map<String, dynamic>);
+  }
+
+  Future<List<Map<String, dynamic>>> getSeatMap({String? zone}) async {
+    final response = await _dio.get(
+      ApiConstants.studentSeatMap,
+      queryParameters: zone != null ? {'zone': zone} : null,
+    );
+    final list = response.data['data'] as List;
+    return list.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getAvailableSeats({String? zone}) async {
+    final response = await _dio.get(
+      ApiConstants.studentSeatsAvailable,
+      queryParameters: zone != null ? {'zone': zone} : null,
+    );
+    final list = response.data['data'] as List;
+    return list.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  Future<void> requestSeatChange({
+    required String toSeatId,
+    String? reason,
+  }) async {
+    await _dio.post(
+      '/student/seat-change-requests',
+      data: {
+        'toSeatId': toSeatId,
+        if (reason != null && reason.isNotEmpty) 'reason': reason,
+      },
+    );
   }
 
   // Study Plans
@@ -185,5 +221,15 @@ class StudentApi {
     return RankingResponse.fromJson(
       response.data['data'] as Map<String, dynamic>,
     );
+  }
+
+  Future<List<Map<String, dynamic>>> getNotifications() async {
+    final response = await _dio.get(ApiConstants.studentNotifications);
+    final list = response.data['data'] as List;
+    return list.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  Future<void> markNotificationRead(String notificationId) async {
+    await _dio.post('/student/notifications/$notificationId/read');
   }
 }

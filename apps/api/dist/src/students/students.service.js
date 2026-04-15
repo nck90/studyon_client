@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StudentsService = void 0;
 const common_1 = require("@nestjs/common");
+const client_1 = require("@prisma/client");
 const prisma_service_1 = require("../database/prisma.service");
 const date_util_1 = require("../common/utils/date.util");
 let StudentsService = class StudentsService {
@@ -50,7 +51,19 @@ let StudentsService = class StudentsService {
         return {
             success: true,
             data: {
-                todayAttendance: attendance,
+                todayAttendance: attendance
+                    ? {
+                        status: attendance.attendanceStatus,
+                        checkInAt: attendance.checkInAt?.toISOString() ?? null,
+                        checkOutAt: attendance.checkOutAt?.toISOString() ?? null,
+                        stayMinutes: attendance.stayMinutes,
+                    }
+                    : {
+                        status: client_1.AttendanceStatus.NOT_CHECKED_IN,
+                        checkInAt: null,
+                        checkOutAt: null,
+                        stayMinutes: 0,
+                    },
                 seat: student.assignedSeat
                     ? {
                         seatId: student.assignedSeat.id,
@@ -58,7 +71,17 @@ let StudentsService = class StudentsService {
                         status: student.assignedSeat.status,
                     }
                     : null,
-                study: activeSession,
+                study: activeSession
+                    ? {
+                        sessionStatus: activeSession.status,
+                        studyMinutes: activeSession.studyMinutes,
+                        breakMinutes: activeSession.breakMinutes,
+                    }
+                    : {
+                        sessionStatus: client_1.StudySessionStatus.READY,
+                        studyMinutes: 0,
+                        breakMinutes: 0,
+                    },
                 plans: {
                     totalCount: plans.length,
                     completedCount: plans.filter((item) => item.status === 'COMPLETED')
@@ -68,8 +91,6 @@ let StudentsService = class StudentsService {
                 notifications: notifications.map((receipt) => ({
                     id: receipt.notification.id,
                     title: receipt.notification.title,
-                    body: receipt.notification.body,
-                    readAt: receipt.readAt,
                 })),
                 student: {
                     id: student.id,

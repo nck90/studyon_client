@@ -50,6 +50,7 @@ class SseClient {
       final stream = response.data!.stream;
 
       _subscription = stream
+          .cast<List<int>>()
           .transform(utf8.decoder)
           .transform(const LineSplitter())
           .listen(

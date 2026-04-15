@@ -1,9 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studyon_client/shared/repositories/student_repository.dart';
+import '../repositories/student_repository.dart';
+import 'app_providers.dart';
+import '../services/local_storage.dart';
 
-final studentRepositoryProvider = Provider<StudentRepository>(
-  (ref) => StudentRepository(),
-);
+final studentRepositoryProvider = Provider<StudentRepository>((ref) {
+  return StudentRepository(
+    authNotifier: ref.read(authNotifierProvider.notifier),
+    studentApi: ref.read(studentApiProvider),
+    dio: ref.read(authenticatedApiClientProvider).dio,
+  );
+});
 
 // ── Data Models ──
 
@@ -199,7 +205,9 @@ class StudentState {
 // ── Notifier ──
 
 class StudentNotifier extends StateNotifier<StudentState> {
-  StudentNotifier() : super(_initialState);
+  StudentNotifier(this._repository) : super(_initialState);
+
+  final StudentRepository _repository;
 
   static final _initialState = StudentState(
     goalSubject: '수학',
@@ -296,29 +304,53 @@ class StudentNotifier extends StateNotifier<StudentState> {
     ],
   );
 
-  void checkIn() {
-    state = state.copyWith(isCheckedIn: true, checkInTime: DateTime.now());
+  Future<void> hydrate() async {
+    final next = await _repository.fetchState(isDarkMode: state.isDarkMode);
+    state = next;
   }
 
-  void checkOut() {
+  Future<void> login(String studentNo, String name) async {
+    await _repository.login(studentNo, name);
+    await hydrate();
+  }
+
+  Future<void> signup({
+    required String studentNo,
+    required String name,
+    String? phone,
+  }) async {
+    await _repository.signup(studentNo: studentNo, name: name, phone: phone);
+    await hydrate();
+  }
+
+  Future<void> logout() async {
+    await _repository.logout();
     state = state.copyWith(
       isCheckedIn: false,
       clearCheckInTime: true,
       todayStudySeconds: 0,
       todayBreakSeconds: 0,
+      isStudying: false,
     );
+  }
+
+  Future<void> checkIn({String? seatId}) async {
+    final checkInTime = await _repository.checkIn(seatId: seatId);
+    state = state.copyWith(isCheckedIn: true, checkInTime: checkInTime);
+    await hydrate();
+  }
+
+  Future<void> checkOut() async {
+    await _repository.checkOut();
+    await hydrate();
   }
 
   void addStudyTime(int seconds) {
-    state = state.copyWith(
-      todayStudySeconds: state.todayStudySeconds + seconds,
-    );
+    state = state.copyWith(todayStudySeconds: state.todayStudySeconds + seconds);
   }
 
   void addBreakTime(int seconds) {
-    state = state.copyWith(
-      todayBreakSeconds: state.todayBreakSeconds + seconds,
-    );
+    state = state.copyWith(todayBreakSeconds: state.todayBreakSeconds + seconds);
   }
 
   void setGoal(String subject, String detail, int hours) {
@@ -334,14 +366,35 @@ class StudentNotifier extends StateNotifier<StudentState> {
     state = state.copyWith(goalProgress: progress.clamp(0.0, 1.0));
   }
 
-  void addPlan(StudyPlanItem plan) {
-    state = state.copyWith(plans: [...state.plans, plan]);
+  Future<void> addPlan(StudyPlanItem plan) async {
+    await _repository.addPlan(
+      subject: plan.subject,
+      detail: plan.detail,
+      targetHours: plan.targetHours,
+      priority: plan.priority,
+    );
+    await hydrate();
   }
 
-  void removePlan(String id) {
-    state = state.copyWith(
-      plans: state.plans.where((p) => p.id != id).toList(),
+  Future<void> updatePlan(StudyPlanItem plan) async {
+    await _repository.updatePlan(
+      planId: plan.id,
+      subject: plan.subject,
+      detail: plan.detail,
+      targetHours: plan.targetHours,
+      priority: plan.priority,
     );
+    await hydrate();
+  }
+
+  Future<void> removePlan(String id) async {
+    await _repository.deletePlan(id);
+    await hydrate();
+  }
+
+  Future<void> completePlan(String id) async {
+    await _repository.completePlan(id);
+    await hydrate();
   }
 
   void addSessionRecord(String subject, int studyMinutes, bool goalAchieved) {
@@ -368,9 +421,16 @@ class StudentNotifier extends StateNotifier<StudentState> {
 
   void toggleDarkMode() {
     state = state.copyWith(isDarkMode: !state.isDarkMode);
+    LocalStorage.setDarkMode(state.isDarkMode);
   }
 
-  void markNotificationRead(String id) {
+  void setDarkMode(bool value) {
+    state = state.copyWith(isDarkMode: value);
+    LocalStorage.setDarkMode(value);
+  }
+
+  Future<void> markNotificationRead(String id) async {
+    await _repository.markNotificationRead(id);
     state = state.copyWith(
       notifications: state.notifications
           .map(
@@ -392,5 +452,5 @@ class StudentNotifier extends StateNotifier<StudentState> {
 
 final studentProvider =
     StateNotifierProvider<StudentNotifier, StudentState>(
-  (ref) => StudentNotifier(),
+  (ref) => StudentNotifier(ref.read(studentRepositoryProvider)),
 );

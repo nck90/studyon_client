@@ -1,11 +1,12 @@
 import 'dart:async';
-import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
 import 'package:studyon_client/shared/providers/student_providers.dart';
+import 'package:studyon_models/studyon_models.dart';
 import 'study_log_sheet.dart';
 
 class StudySessionScreen extends ConsumerStatefulWidget {
@@ -24,24 +25,20 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   bool _goalReached = false;
   bool _pomodoroNotified = false;
   String? _selectedPlan;
+  String? _selectedPlanId;
+  String? _sessionId;
+  bool _isSubmitting = false;
 
   DateTime? _startedAt;
   DateTime? _pausedAt;
   int _accumulatedBeforePause = 0;
   int _breakAccumulated = 0;
-
-  late final AnimationController _glowCtrl;
-
   static const int _goalSeconds = 3 * 3600;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _glowCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2500),
-    )..repeat(reverse: true);
   }
 
   @override
@@ -68,7 +65,44 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
       _startedAt = DateTime.now();
     });
     ref.read(studentProvider.notifier).startStudying();
-    _startTimer();
+    _startSessionOnServer();
+  }
+
+  Future<void> _startSessionOnServer() async {
+    try {
+      final session = await ref.read(studentRepositoryProvider).startSession(
+            linkedPlanId: _selectedPlanId,
+          );
+      _sessionId = session.id;
+      _syncFromSession(session);
+      _startTimer();
+    } catch (_) {
+      if (!mounted) return;
+      ref.read(studentProvider.notifier).stopStudying();
+      setState(() {
+        _isStarted = false;
+        _startedAt = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('공부 시작에 실패했어요'),
+          backgroundColor: AppColors.hot,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
+  }
+
+  void _syncFromSession(StudySession session) {
+    setState(() {
+      _sessionId = session.id;
+      _elapsed = session.studyMinutes * 60;
+      _breakElapsed = session.breakMinutes * 60;
+      _accumulatedBeforePause = _elapsed;
+      _breakAccumulated = _breakElapsed;
+    });
   }
 
   void _startTimer() {
@@ -117,16 +151,10 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E30),
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          '공부를 중단할까요?',
-          style: TextStyle(fontFamily: 'Pretendard', fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
-        ),
-        content: const Text(
-          '기록이 저장되지 않아요',
-          style: TextStyle(fontFamily: 'Pretendard', fontSize: 14, color: Colors.white60),
-        ),
+        title: const Text('공부를 멈출까요?', style: TextStyle(fontFamily: 'Pretendard', fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        content: const Text('지금 나가면 이번 기록은 저장되지 않아요.', style: TextStyle(fontFamily: 'Pretendard', fontSize: 14, color: AppColors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -157,7 +185,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
       isScrollControlled: true,
       enableDrag: true,
       showDragHandle: true,
-      backgroundColor: const Color(0xFF1E1E30),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -170,7 +198,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
             children: [
               Row(
                 children: [
-                  const Icon(Icons.flag_rounded, size: 18, color: AppColors.primaryLight),
+                  const Icon(Icons.flag_rounded, size: 18, color: AppColors.primary),
                   const SizedBox(width: 8),
                   const Text(
                     '오늘 어떤 과목을 공부할까요?',
@@ -178,7 +206,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                       fontFamily: 'Pretendard',
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -193,7 +221,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                       style: TextStyle(
                         fontFamily: 'Pretendard',
                         fontSize: 14,
-                        color: Colors.white38,
+                        color: AppColors.textTertiary,
                       ),
                     ),
                   ),
@@ -201,7 +229,10 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
               else
                 ...plans.map((plan) => GestureDetector(
                       onTap: () {
-                        setState(() => _selectedPlan = plan.subject);
+                        setState(() {
+                          _selectedPlan = plan.subject;
+                          _selectedPlanId = plan.id;
+                        });
                         Navigator.of(ctx).pop();
                         _start();
                       },
@@ -210,9 +241,9 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         margin: const EdgeInsets.only(bottom: 10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.06),
+                          color: AppColors.background,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                          border: Border.all(color: AppColors.divider),
                         ),
                         child: Row(
                           children: [
@@ -228,7 +259,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                                   fontFamily: 'Pretendard',
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.primaryLight,
+                                  color: AppColors.primary,
                                 ),
                               ),
                             ),
@@ -240,7 +271,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                                   fontFamily: 'Pretendard',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.white70,
+                                  color: AppColors.textPrimary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -250,7 +281,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                               style: const TextStyle(
                                 fontFamily: 'Pretendard',
                                 fontSize: 13,
-                                color: Colors.white38,
+                                color: AppColors.textTertiary,
                               ),
                             ),
                           ],
@@ -262,17 +293,18 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                   Navigator.of(ctx).pop();
                   HapticFeedback.mediumImpact();
                   setState(() {
+                    _selectedPlanId = null;
                     _isStarted = true;
                     _startedAt = DateTime.now();
                   });
                   ref.read(studentProvider.notifier).startStudying();
-                  _startTimer();
+                  _startSessionOnServer();
                 },
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.04),
+                    color: AppColors.background,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Center(
@@ -282,7 +314,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                         fontFamily: 'Pretendard',
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white38,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ),
@@ -295,39 +327,76 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     );
   }
 
-  void _pause() {
+  Future<void> _pause() async {
+    if (_sessionId == null || _isSubmitting) return;
     HapticFeedback.lightImpact();
-    _accumulatedBeforePause = _elapsed;
-    _startedAt = null;
-    _pausedAt = DateTime.now();
-    setState(() => _isPaused = true);
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() {
-        _breakElapsed = _breakAccumulated + DateTime.now().difference(_pausedAt!).inSeconds;
+    setState(() => _isSubmitting = true);
+    try {
+      final session = await ref.read(studentRepositoryProvider).pauseSession(_sessionId!);
+      _syncFromSession(session);
+      _accumulatedBeforePause = _elapsed;
+      _startedAt = null;
+      _pausedAt = DateTime.now();
+      setState(() => _isPaused = true);
+      _timer?.cancel();
+      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+        setState(() {
+          _breakElapsed =
+              _breakAccumulated + DateTime.now().difference(_pausedAt!).inSeconds;
+        });
       });
-    });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('휴식 전환에 실패했어요'),
+            backgroundColor: AppColors.hot,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
-  void _resume() {
+  Future<void> _resume() async {
+    if (_sessionId == null || _isSubmitting) return;
     HapticFeedback.lightImpact();
-    _breakAccumulated = _breakElapsed;
-    _pausedAt = null;
-    _startedAt = DateTime.now();
-    setState(() => _isPaused = false);
-    _startTimer();
+    setState(() => _isSubmitting = true);
+    try {
+      final session = await ref.read(studentRepositoryProvider).resumeSession(_sessionId!);
+      _syncFromSession(session);
+      _breakAccumulated = _breakElapsed;
+      _pausedAt = null;
+      _startedAt = DateTime.now();
+      setState(() => _isPaused = false);
+      _startTimer();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('공부 재개에 실패했어요'),
+            backgroundColor: AppColors.hot,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   Future<void> _end() async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E30),
+        backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('공부를 종료할까요?', style: TextStyle(fontFamily: 'Pretendard', fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+        title: const Text('공부를 종료할까요?', style: TextStyle(fontFamily: 'Pretendard', fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
         content: Text(
-          '${_fmt(_elapsed)} 공부했어요',
-          style: const TextStyle(fontFamily: 'Pretendard', fontSize: 14, color: Colors.white60),
+          '${_fmt(_elapsed)} 동안 공부했어요.',
+          style: const TextStyle(fontFamily: 'Pretendard', fontSize: 14, color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -343,19 +412,49 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     );
     if (confirmed != true || !mounted) return;
 
-    _timer?.cancel();
-    await StudyLogSheet.show(context);
-    if (mounted) {
-      final student = ref.read(studentProvider);
-      ref.read(studentProvider.notifier).addStudyTime(_elapsed);
-      ref.read(studentProvider.notifier).addBreakTime(_breakElapsed);
-      ref.read(studentProvider.notifier).addSessionRecord(
-        _selectedPlan ?? student.goalSubject,
-        _elapsed ~/ 60,
-        _elapsed >= _goalSeconds,
-      );
+    final draft = await StudyLogSheet.show(
+      context,
+      initialSubject: _selectedPlan,
+    );
+    if (!mounted) return;
+
+    setState(() => _isSubmitting = true);
+    try {
+      _timer?.cancel();
+      StudySession? session;
+      if (_sessionId != null) {
+        session = await ref.read(studentRepositoryProvider).endSession(_sessionId!);
+        _syncFromSession(session);
+      }
+
+      final subjectName =
+          draft?.subject ?? _selectedPlan ?? ref.read(studentProvider).goalSubject;
+
+      await ref.read(studentRepositoryProvider).createStudyLog(
+            subjectName: subjectName.isEmpty ? '공부' : subjectName,
+            planId: _selectedPlanId,
+            studySessionId: session?.id ?? _sessionId,
+            memo: draft?.memo,
+            progressPercent: (_elapsed / _goalSeconds).clamp(0.0, 1.0),
+            isCompleted: draft?.goalCompleted ?? (_elapsed >= _goalSeconds),
+          );
+
+      await ref.read(studentProvider.notifier).hydrate();
       ref.read(studentProvider.notifier).stopStudying();
-      context.go('/student/summary');
+      if (mounted) context.go('/student/summary');
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('공부 종료 저장에 실패했어요'),
+            backgroundColor: AppColors.hot,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+      _startTimer();
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -363,7 +462,6 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
-    _glowCtrl.dispose();
     super.dispose();
   }
 
@@ -374,280 +472,310 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     final progress = (_elapsed / _goalSeconds).clamp(0.0, 1.0);
     final subject = _selectedPlan ?? (student.goalSubject.isNotEmpty ? student.goalSubject : '공부');
 
-    // Sizes adapt to screen
-    final screenH = MediaQuery.of(context).size.height;
-    final ringSize = isIPad ? (screenH * 0.38).clamp(240.0, 360.0) : 200.0;
-    final timerFontSize = isIPad ? (ringSize * 0.18).clamp(36.0, 56.0) : 40.0;
-
     return PopScope(
       canPop: !_isStarted,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          _showExitDialog();
-        }
+        if (!didPop) _showExitDialog();
       },
       child: Scaffold(
         body: Container(
           width: double.infinity,
           height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color.lerp(const Color(0xFF1A1A2E), const Color(0xFF1E1A2E), (_elapsed / _goalSeconds).clamp(0.0, 1.0))!,
-              Color.lerp(const Color(0xFF0F0F1E), const Color(0xFF150F1E), (_elapsed / _goalSeconds).clamp(0.0, 1.0))!,
-            ],
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFF7F8FB), Color(0xFFF2F3F5)],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Top bar
-              Padding(
-                padding: EdgeInsets.fromLTRB(isIPad ? 32.0 : 20.0, 12, isIPad ? 32.0 : 20.0, 0),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => context.pop(),
-                      child: Container(
-                        width: 40, height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.close_rounded, size: 20, color: Colors.white70),
-                      ),
-                    ),
-                    const Spacer(),
-                    // Status pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: !_isStarted
-                            ? Colors.white.withValues(alpha: 0.06)
-                            : (_isPaused ? AppColors.warm.withValues(alpha: 0.15) : AppColors.accent.withValues(alpha: 0.15)),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6, height: 6,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: !_isStarted ? Colors.white38 : (_isPaused ? AppColors.warm : AppColors.accent),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            !_isStarted ? '준비' : (_isPaused ? '휴식' : '집중'),
-                            style: TextStyle(
-                              fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w600,
-                              color: !_isStarted ? Colors.white38 : (_isPaused ? AppColors.warm : AppColors.accent),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Spacer(),
-                    // Subject label
-                    Text(subject, style: TextStyle(
-                      fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w500, color: Colors.white38,
-                    )),
-                  ],
-                ),
-              ),
-
-              // Main timer area - centered, full width
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+          child: SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(isIPad ? 32.0 : 20.0, 12, isIPad ? 32.0 : 20.0, 0),
+                  child: Row(
                     children: [
-                      // Timer ring
-                      SizedBox(
-                        width: ringSize,
-                        height: ringSize,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Glow
-                            if (_isStarted && !_isPaused)
-                              AnimatedBuilder(
-                                animation: _glowCtrl,
-                                builder: (context, _) => Container(
-                                  width: ringSize,
-                                  height: ringSize,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: AppColors.primary.withValues(alpha: 0.03 + 0.04 * _glowCtrl.value),
-                                  ),
-                                ),
-                              ),
-                            // Ring
-                            RepaintBoundary(
-                              child: CustomPaint(
-                                size: Size(ringSize - 20, ringSize - 20),
-                                painter: _RingPainter(progress: progress, isPaused: _isPaused),
-                              ),
-                            ),
-                            // Time
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 32),
-                                child: Text(
-                                  _fmt(_elapsed),
-                                  style: TextStyle(
-                                    fontFamily: 'Pretendard',
-                                    fontSize: timerFontSize,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                    letterSpacing: -1,
-                                    fontFeatures: const [FontFeature.tabularFigures()],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+                      GestureDetector(
+                        onTap: _isStarted ? _showExitDialog : () => context.pop(),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.78),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: const Color(0xE8E9EDF4)),
+                          ),
+                          child: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF555B65)),
                         ),
                       ),
-                      const SizedBox(height: 20),
-
-                      // Progress text
-                      Text(
-                        '${(progress * 100).toInt()}%  목표 3시간',
-                        style: TextStyle(
-                          fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(alpha: 0.4),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        () {
-                          final remaining = (_goalSeconds - _elapsed).clamp(0, _goalSeconds);
-                          final m = (remaining ~/ 60).toString().padLeft(2, '0');
-                          final s = (remaining % 60).toString().padLeft(2, '0');
-                          return '남은 시간 $m:$s';
-                        }(),
-                        style: TextStyle(
-                          fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(alpha: 0.25),
-                        ),
-                      ),
-                      if (!_isStarted) ...[
-                        const SizedBox(height: 20),
-                        GestureDetector(
-                          onTap: _showPlanPicker,
+                      const Spacer(),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.06),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                              color: Colors.white.withValues(alpha: 0.76),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(
+                                color: !_isStarted
+                                    ? const Color(0xE8E9EDF4)
+                                    : (_isPaused ? AppColors.warm.withValues(alpha: 0.30) : AppColors.accent.withValues(alpha: 0.22)),
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.flag_rounded, size: 16, color: AppColors.primaryLight),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _selectedPlan ?? '과목 선택',
-                                  style: TextStyle(
-                                    fontFamily: 'Pretendard',
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: _selectedPlan != null ? Colors.white : Colors.white54,
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: !_isStarted ? AppColors.textTertiary : (_isPaused ? AppColors.warm : AppColors.accent),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: Colors.white38),
+                                const SizedBox(width: 6),
+                                Text(
+                                  !_isStarted ? '준비' : (_isPaused ? '휴식' : '집중'),
+                                  style: TextStyle(
+                                    fontFamily: 'Pretendard',
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: !_isStarted ? AppColors.textTertiary : (_isPaused ? AppColors.hot : AppColors.accent),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
                         ),
-                      ],
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.76),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: const Color(0xE8E9EDF4)),
+                        ),
+                        child: Text(
+                          subject,
+                          style: const TextStyle(
+                            fontFamily: 'Pretendard',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ),
-
-              // Bottom section - stats + buttons
-              Padding(
-                padding: EdgeInsets.fromLTRB(isIPad ? 80.0 : 24.0, 0, isIPad ? 80.0 : 24.0, 0),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Column(
-                    children: [
-                      // Mini stats row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _MiniStat(label: '공부', value: _fmt(_elapsed).substring(0, 5), color: AppColors.primaryLight),
-                          ),
-                          Container(width: 1, height: 32, color: Colors.white.withValues(alpha: 0.08)),
-                          Expanded(
-                            child: _MiniStat(label: '휴식', value: _fmt(_breakElapsed).substring(0, 5), color: AppColors.warm),
+                Expanded(
+                  child: Center(
+                    child: Container(
+                      width: isIPad ? 820 : double.infinity,
+                      margin: EdgeInsets.symmetric(horizontal: isIPad ? 32 : 20),
+                      padding: EdgeInsets.fromLTRB(isIPad ? 48 : 24, 30, isIPad ? 48 : 24, 28),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Color(0xFFFFFFFF), Color(0xFFF6F7FA)],
+                        ),
+                        borderRadius: BorderRadius.circular(36),
+                        border: Border.all(color: const Color(0xFFE8EBF2)),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x0B1A1D29),
+                            blurRadius: 28,
+                            offset: Offset(0, 12),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
-
-                      // Goal progress bar
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(3),
-                        child: LinearProgressIndicator(
-                          value: progress,
-                          minHeight: 4,
-                          backgroundColor: Colors.white.withValues(alpha: 0.06),
-                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Action buttons
-                      if (!_isStarted)
-                        Semantics(
-                          label: '공부 시작',
-                          button: true,
-                          child: _ActionBtn(label: '시작', icon: Icons.play_arrow_rounded, color: AppColors.accent, onTap: _start),
-                        )
-                      else
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Semantics(
-                                label: _isPaused ? '공부 재개' : '휴식',
-                                button: true,
-                                child: _ActionBtn(
-                                  label: _isPaused ? '재개' : '휴식',
-                                  icon: _isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
-                                  color: Colors.transparent,
-                                  borderColor: Colors.white.withValues(alpha: 0.15),
-                                  textColor: Colors.white70,
-                                  onTap: _isPaused ? _resume : _pause,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            !_isStarted ? '공부를 시작해요' : (_isPaused ? '잠깐 쉬고 있어요' : '집중 흐름을 유지하고 있어요'),
+                            style: AppTypography.headlineSmall.copyWith(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '시선이 바로 꽂히는 타이머로 정리했어요.',
+                            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 28),
+                          _AppleStyleTimer(value: _fmt(_elapsed), isIPad: isIPad),
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.88),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(color: const Color(0xFFE8EBF2)),
+                            ),
+                            child: Text(
+                              '${(progress * 100).toInt()}% 진행 중 · 목표 3시간',
+                              style: const TextStyle(
+                                fontFamily: 'Pretendard',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            () {
+                              final remaining = (_goalSeconds - _elapsed).clamp(0, _goalSeconds);
+                              final h = (remaining ~/ 3600).toString().padLeft(2, '0');
+                              final m = ((remaining % 3600) ~/ 60).toString().padLeft(2, '0');
+                              final s = (remaining % 60).toString().padLeft(2, '0');
+                              return '남은 시간 $h:$m:$s';
+                            }(),
+                            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: 20),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: LinearProgressIndicator(
+                              value: progress,
+                              minHeight: 12,
+                              backgroundColor: const Color(0xFFE9ECF4),
+                              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                            ),
+                          ),
+                          if (!_isStarted) ...[
+                            const SizedBox(height: 22),
+                            GestureDetector(
+                              onTap: _showPlanPicker,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF5F6FA),
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: const Color(0xFFE8EBF2)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.flag_rounded, size: 16, color: AppColors.primary),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      _selectedPlan ?? '과목 선택',
+                                      style: TextStyle(
+                                        fontFamily: 'Pretendard',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: _selectedPlan != null ? AppColors.textPrimary : AppColors.textSecondary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textTertiary),
+                                  ],
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.fromLTRB(isIPad ? 80.0 : 24.0, 0, isIPad ? 80.0 : 24.0, 0),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
                             Expanded(
-                              child: Semantics(
-                                label: '공부 종료',
-                                button: true,
-                                child: _ActionBtn(label: '종료', icon: Icons.stop_rounded, color: AppColors.hot, onTap: _end),
-                              ),
+                              child: _MiniStat(label: '공부', value: _fmt(_elapsed).substring(0, 5), color: AppColors.primary),
+                            ),
+                            Container(width: 1, height: 32, color: AppColors.divider),
+                            Expanded(
+                              child: _MiniStat(label: '휴식', value: _fmt(_breakElapsed).substring(0, 5), color: AppColors.warm),
                             ),
                           ],
                         ),
-                      SizedBox(height: isIPad ? 40 : 24),
-                    ],
+                        const SizedBox(height: 20),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(3),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 4,
+                            backgroundColor: AppColors.primarySurface,
+                            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        if (!_isStarted)
+                          Semantics(
+                            label: '공부 시작',
+                            button: true,
+                            child: _ActionBtn(
+                              label: '시작',
+                              icon: Icons.play_arrow_rounded,
+                              color: AppColors.accent,
+                              onTap: _start,
+                            ),
+                          )
+                        else
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Semantics(
+                                  label: _isPaused ? '공부 재개' : '휴식',
+                                  button: true,
+                                  child: _ActionBtn(
+                                    label: _isPaused ? '재개' : '휴식',
+                                    icon: _isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
+                                    color: Colors.white,
+                                    borderColor: AppColors.divider,
+                                    textColor: AppColors.textSecondary,
+                                    onTap: () {
+                                      if (_isSubmitting) return;
+                                      if (_isPaused) {
+                                        _resume();
+                                      } else {
+                                        _pause();
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Semantics(
+                                  label: '공부 종료',
+                                  button: true,
+                                  child: _ActionBtn(
+                                    label: '종료',
+                                    icon: Icons.stop_rounded,
+                                    color: AppColors.hot,
+                                    onTap: () {
+                                      if (_isSubmitting) return;
+                                      _end();
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        SizedBox(height: isIPad ? 40 : 24),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
         ),
       ),
     );
@@ -680,7 +808,7 @@ class _MiniStat extends StatelessWidget {
         )),
         const SizedBox(height: 2),
         Text(label, style: TextStyle(
-          fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w500, color: Colors.white38,
+          fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary,
         )),
       ],
     );
@@ -704,13 +832,22 @@ class _ActionBtn extends StatelessWidget {
         height: 52,
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(16),
-          border: borderColor != null ? Border.all(color: borderColor!, width: 1.5) : null,
+          borderRadius: BorderRadius.circular(18),
+          border: borderColor != null ? Border.all(color: borderColor!, width: 1.2) : null,
+          boxShadow: color == Colors.white
+              ? const []
+              : const [
+                  BoxShadow(
+                    color: Color(0x14000000),
+                    blurRadius: 14,
+                    offset: Offset(0, 8),
+                  ),
+                ],
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 20, color: textColor ?? Colors.white),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 20, color: textColor ?? Colors.white),
             const SizedBox(width: 8),
             Text(label, style: TextStyle(
               fontFamily: 'Pretendard', fontSize: 16, fontWeight: FontWeight.w700,
@@ -723,36 +860,155 @@ class _ActionBtn extends StatelessWidget {
   }
 }
 
-class _RingPainter extends CustomPainter {
-  const _RingPainter({required this.progress, required this.isPaused});
-  final double progress;
-  final bool isPaused;
+class _AppleStyleTimer extends StatelessWidget {
+  const _AppleStyleTimer({required this.value, required this.isIPad});
+
+  final String value;
+  final bool isIPad;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-
-    // Track
-    canvas.drawCircle(center, radius, Paint()
-      ..color = Colors.white.withValues(alpha: 0.05)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 8);
-
-    if (progress > 0) {
-      // Progress arc
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        -pi / 2, 2 * pi * progress, false,
-        Paint()
-          ..color = isPaused ? const Color(0xFFFDCB6E) : const Color(0xFF6C5CE7)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 8
-          ..strokeCap = StrokeCap.round,
-      );
-    }
+  Widget build(BuildContext context) {
+    final chars = value.split('');
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (final ch in chars)
+            ch == ':'
+                ? Padding(
+                    padding: EdgeInsets.symmetric(horizontal: isIPad ? 12 : 8),
+                    child: Text(
+                      ':',
+                      style: TextStyle(
+                        fontFamily: 'Pretendard',
+                        fontSize: isIPad ? 72 : 58,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF2A2D33),
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
+                  )
+                : _AppleDigitCard(digit: ch, isIPad: isIPad),
+        ],
+      ),
+    );
   }
+}
+
+class _AppleDigitCard extends StatelessWidget {
+  const _AppleDigitCard({required this.digit, required this.isIPad});
+
+  final String digit;
+  final bool isIPad;
 
   @override
-  bool shouldRepaint(covariant _RingPainter old) => old.progress != progress || old.isPaused != isPaused;
+  Widget build(BuildContext context) {
+    return Container(
+      width: isIPad ? 92 : 70,
+      height: isIPad ? 132 : 102,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F9FC),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE7EAF1)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A0F172A),
+            blurRadius: 12,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFFFFFFF), Color(0xFFF6F8FC)],
+                      ),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(isIPad ? 20 : 18),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFFF0F3F8), Color(0xFFE8ECF3)],
+                      ),
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(isIPad ? 20 : 18),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            top: isIPad ? 65 : 50,
+            child: Container(height: 1, color: const Color(0xFFDDE1EA)),
+          ),
+          Positioned(
+            left: 14,
+            right: 14,
+            top: 8,
+            child: Container(
+              height: 8,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.85),
+                    Colors.white.withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Center(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 140),
+              transitionBuilder: (child, animation) {
+                return SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.06),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+                  child: FadeTransition(opacity: animation, child: child),
+                );
+              },
+              child: Text(
+                digit,
+                key: ValueKey(digit),
+                style: TextStyle(
+                  fontFamily: 'Pretendard',
+                  fontSize: isIPad ? 70 : 54,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF171A20),
+                  height: 1,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -1,0 +1,7 @@
+{
+  "tool_name": "Read",
+  "tool_input_preview": "{\"file_path\":\"/Users/bagjun-won/studyon/apps/admin_web/node_modules/next/dist/docs/01-app/03-api-reference/04-functions/generate-metadata.md\"}",
+  "error": "File content (14047 tokens) exceeds maximum allowed tokens (10000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
+  "timestamp": "2026-04-15T13:47:12.980Z",
+  "retry_count": 3
+}

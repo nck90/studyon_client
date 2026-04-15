@@ -17,6 +17,20 @@ class StudentLoginRequest with _$StudentLoginRequest {
 }
 
 @freezed
+class StudentSignupRequest with _$StudentSignupRequest {
+  const StudentSignupRequest._();
+  const factory StudentSignupRequest({
+    required String studentNo,
+    required String name,
+    String? phone,
+    String? deviceCode,
+  }) = _StudentSignupRequest;
+
+  factory StudentSignupRequest.fromJson(Map<String, dynamic> json) =>
+      _$StudentSignupRequestFromJson(json);
+}
+
+@freezed
 class AdminLoginRequest with _$AdminLoginRequest {
   const AdminLoginRequest._();
   const factory AdminLoginRequest({
@@ -34,6 +48,7 @@ class StudentLoginResponse with _$StudentLoginResponse {
   const factory StudentLoginResponse({
     required String accessToken,
     required String refreshToken,
+    required String sessionId,
     required UserSummaryData user,
     required StudentSummaryData student,
   }) = _StudentLoginResponse;

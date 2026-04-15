@@ -216,6 +216,230 @@ abstract class _StudentLoginRequest extends StudentLoginRequest {
       throw _privateConstructorUsedError;
 }
 
+StudentSignupRequest _$StudentSignupRequestFromJson(Map<String, dynamic> json) {
+  return _StudentSignupRequest.fromJson(json);
+}
+
+/// @nodoc
+mixin _$StudentSignupRequest {
+  String get studentNo => throw _privateConstructorUsedError;
+  String get name => throw _privateConstructorUsedError;
+  String? get phone => throw _privateConstructorUsedError;
+  String? get deviceCode => throw _privateConstructorUsedError;
+
+  /// Serializes this StudentSignupRequest to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of StudentSignupRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $StudentSignupRequestCopyWith<StudentSignupRequest> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $StudentSignupRequestCopyWith<$Res> {
+  factory $StudentSignupRequestCopyWith(
+    StudentSignupRequest value,
+    $Res Function(StudentSignupRequest) then,
+  ) = _$StudentSignupRequestCopyWithImpl<$Res, StudentSignupRequest>;
+  @useResult
+  $Res call({String studentNo, String name, String? phone, String? deviceCode});
+}
+
+/// @nodoc
+class _$StudentSignupRequestCopyWithImpl<
+  $Res,
+  $Val extends StudentSignupRequest
+>
+    implements $StudentSignupRequestCopyWith<$Res> {
+  _$StudentSignupRequestCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of StudentSignupRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? studentNo = null,
+    Object? name = null,
+    Object? phone = freezed,
+    Object? deviceCode = freezed,
+  }) {
+    return _then(
+      _value.copyWith(
+            studentNo: null == studentNo
+                ? _value.studentNo
+                : studentNo // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            phone: freezed == phone
+                ? _value.phone
+                : phone // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            deviceCode: freezed == deviceCode
+                ? _value.deviceCode
+                : deviceCode // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$StudentSignupRequestImplCopyWith<$Res>
+    implements $StudentSignupRequestCopyWith<$Res> {
+  factory _$$StudentSignupRequestImplCopyWith(
+    _$StudentSignupRequestImpl value,
+    $Res Function(_$StudentSignupRequestImpl) then,
+  ) = __$$StudentSignupRequestImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String studentNo, String name, String? phone, String? deviceCode});
+}
+
+/// @nodoc
+class __$$StudentSignupRequestImplCopyWithImpl<$Res>
+    extends _$StudentSignupRequestCopyWithImpl<$Res, _$StudentSignupRequestImpl>
+    implements _$$StudentSignupRequestImplCopyWith<$Res> {
+  __$$StudentSignupRequestImplCopyWithImpl(
+    _$StudentSignupRequestImpl _value,
+    $Res Function(_$StudentSignupRequestImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of StudentSignupRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? studentNo = null,
+    Object? name = null,
+    Object? phone = freezed,
+    Object? deviceCode = freezed,
+  }) {
+    return _then(
+      _$StudentSignupRequestImpl(
+        studentNo: null == studentNo
+            ? _value.studentNo
+            : studentNo // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        phone: freezed == phone
+            ? _value.phone
+            : phone // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        deviceCode: freezed == deviceCode
+            ? _value.deviceCode
+            : deviceCode // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$StudentSignupRequestImpl extends _StudentSignupRequest {
+  const _$StudentSignupRequestImpl({
+    required this.studentNo,
+    required this.name,
+    this.phone,
+    this.deviceCode,
+  }) : super._();
+
+  factory _$StudentSignupRequestImpl.fromJson(Map<String, dynamic> json) =>
+      _$$StudentSignupRequestImplFromJson(json);
+
+  @override
+  final String studentNo;
+  @override
+  final String name;
+  @override
+  final String? phone;
+  @override
+  final String? deviceCode;
+
+  @override
+  String toString() {
+    return 'StudentSignupRequest(studentNo: $studentNo, name: $name, phone: $phone, deviceCode: $deviceCode)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$StudentSignupRequestImpl &&
+            (identical(other.studentNo, studentNo) ||
+                other.studentNo == studentNo) &&
+            (identical(other.name, name) || other.name == name) &&
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.deviceCode, deviceCode) ||
+                other.deviceCode == deviceCode));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, studentNo, name, phone, deviceCode);
+
+  /// Create a copy of StudentSignupRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$StudentSignupRequestImplCopyWith<_$StudentSignupRequestImpl>
+  get copyWith =>
+      __$$StudentSignupRequestImplCopyWithImpl<_$StudentSignupRequestImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$StudentSignupRequestImplToJson(this);
+  }
+}
+
+abstract class _StudentSignupRequest extends StudentSignupRequest {
+  const factory _StudentSignupRequest({
+    required final String studentNo,
+    required final String name,
+    final String? phone,
+    final String? deviceCode,
+  }) = _$StudentSignupRequestImpl;
+  const _StudentSignupRequest._() : super._();
+
+  factory _StudentSignupRequest.fromJson(Map<String, dynamic> json) =
+      _$StudentSignupRequestImpl.fromJson;
+
+  @override
+  String get studentNo;
+  @override
+  String get name;
+  @override
+  String? get phone;
+  @override
+  String? get deviceCode;
+
+  /// Create a copy of StudentSignupRequest
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$StudentSignupRequestImplCopyWith<_$StudentSignupRequestImpl>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
 AdminLoginRequest _$AdminLoginRequestFromJson(Map<String, dynamic> json) {
   return _AdminLoginRequest.fromJson(json);
 }
@@ -398,6 +622,7 @@ StudentLoginResponse _$StudentLoginResponseFromJson(Map<String, dynamic> json) {
 mixin _$StudentLoginResponse {
   String get accessToken => throw _privateConstructorUsedError;
   String get refreshToken => throw _privateConstructorUsedError;
+  String get sessionId => throw _privateConstructorUsedError;
   UserSummaryData get user => throw _privateConstructorUsedError;
   StudentSummaryData get student => throw _privateConstructorUsedError;
 
@@ -421,6 +646,7 @@ abstract class $StudentLoginResponseCopyWith<$Res> {
   $Res call({
     String accessToken,
     String refreshToken,
+    String sessionId,
     UserSummaryData user,
     StudentSummaryData student,
   });
@@ -449,6 +675,7 @@ class _$StudentLoginResponseCopyWithImpl<
   $Res call({
     Object? accessToken = null,
     Object? refreshToken = null,
+    Object? sessionId = null,
     Object? user = null,
     Object? student = null,
   }) {
@@ -461,6 +688,10 @@ class _$StudentLoginResponseCopyWithImpl<
             refreshToken: null == refreshToken
                 ? _value.refreshToken
                 : refreshToken // ignore: cast_nullable_to_non_nullable
+                      as String,
+            sessionId: null == sessionId
+                ? _value.sessionId
+                : sessionId // ignore: cast_nullable_to_non_nullable
                       as String,
             user: null == user
                 ? _value.user
@@ -508,6 +739,7 @@ abstract class _$$StudentLoginResponseImplCopyWith<$Res>
   $Res call({
     String accessToken,
     String refreshToken,
+    String sessionId,
     UserSummaryData user,
     StudentSummaryData student,
   });
@@ -534,6 +766,7 @@ class __$$StudentLoginResponseImplCopyWithImpl<$Res>
   $Res call({
     Object? accessToken = null,
     Object? refreshToken = null,
+    Object? sessionId = null,
     Object? user = null,
     Object? student = null,
   }) {
@@ -546,6 +779,10 @@ class __$$StudentLoginResponseImplCopyWithImpl<$Res>
         refreshToken: null == refreshToken
             ? _value.refreshToken
             : refreshToken // ignore: cast_nullable_to_non_nullable
+                  as String,
+        sessionId: null == sessionId
+            ? _value.sessionId
+            : sessionId // ignore: cast_nullable_to_non_nullable
                   as String,
         user: null == user
             ? _value.user
@@ -566,6 +803,7 @@ class _$StudentLoginResponseImpl extends _StudentLoginResponse {
   const _$StudentLoginResponseImpl({
     required this.accessToken,
     required this.refreshToken,
+    required this.sessionId,
     required this.user,
     required this.student,
   }) : super._();
@@ -578,13 +816,15 @@ class _$StudentLoginResponseImpl extends _StudentLoginResponse {
   @override
   final String refreshToken;
   @override
+  final String sessionId;
+  @override
   final UserSummaryData user;
   @override
   final StudentSummaryData student;
 
   @override
   String toString() {
-    return 'StudentLoginResponse(accessToken: $accessToken, refreshToken: $refreshToken, user: $user, student: $student)';
+    return 'StudentLoginResponse(accessToken: $accessToken, refreshToken: $refreshToken, sessionId: $sessionId, user: $user, student: $student)';
   }
 
   @override
@@ -596,14 +836,22 @@ class _$StudentLoginResponseImpl extends _StudentLoginResponse {
                 other.accessToken == accessToken) &&
             (identical(other.refreshToken, refreshToken) ||
                 other.refreshToken == refreshToken) &&
+            (identical(other.sessionId, sessionId) ||
+                other.sessionId == sessionId) &&
             (identical(other.user, user) || other.user == user) &&
             (identical(other.student, student) || other.student == student));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, accessToken, refreshToken, user, student);
+  int get hashCode => Object.hash(
+    runtimeType,
+    accessToken,
+    refreshToken,
+    sessionId,
+    user,
+    student,
+  );
 
   /// Create a copy of StudentLoginResponse
   /// with the given fields replaced by the non-null parameter values.
@@ -627,6 +875,7 @@ abstract class _StudentLoginResponse extends StudentLoginResponse {
   const factory _StudentLoginResponse({
     required final String accessToken,
     required final String refreshToken,
+    required final String sessionId,
     required final UserSummaryData user,
     required final StudentSummaryData student,
   }) = _$StudentLoginResponseImpl;
@@ -639,6 +888,8 @@ abstract class _StudentLoginResponse extends StudentLoginResponse {
   String get accessToken;
   @override
   String get refreshToken;
+  @override
+  String get sessionId;
   @override
   UserSummaryData get user;
   @override

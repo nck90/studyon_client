@@ -8,42 +8,10 @@ export declare class RankingsService {
     studentRanking(studentId: string, periodType: RankingPeriodType, rankingType: RankingType): Promise<{
         success: boolean;
         data: {
-            myRank: ({
-                student: {
-                    user: {
-                        id: string;
-                        name: string;
-                        createdAt: Date;
-                        status: import("@prisma/client").$Enums.UserStatus;
-                        updatedAt: Date;
-                        role: import("@prisma/client").$Enums.UserRole;
-                        phone: string | null;
-                        lastLoginAt: Date | null;
-                    };
-                } & {
-                    id: string;
-                    createdAt: Date;
-                    gradeId: string | null;
-                    classId: string | null;
-                    updatedAt: Date;
-                    userId: string;
-                    studentNo: string;
-                    groupId: string | null;
-                    assignedSeatId: string | null;
-                    enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
-                    joinedAt: Date | null;
-                    memo: string | null;
-                };
-            } & {
-                id: string;
-                createdAt: Date;
-                score: import("@prisma/client/runtime/library").Decimal;
-                subScore1: import("@prisma/client/runtime/library").Decimal;
-                subScore2: import("@prisma/client/runtime/library").Decimal;
-                studentId: string;
-                rankingSnapshotId: string;
+            myRank: {
                 rankNo: number;
-            }) | null;
+                score: number;
+            };
             items: {
                 studentId: string;
                 studentName: string;

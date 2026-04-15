@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { AttendanceStatus, StudySessionStatus } from '@prisma/client';
 import { PrismaService } from '@/database/prisma.service';
 import { dateOnly } from '@/common/utils/date.util';
 
@@ -41,7 +42,19 @@ export class StudentsService {
     return {
       success: true,
       data: {
-        todayAttendance: attendance,
+        todayAttendance: attendance
+          ? {
+              status: attendance.attendanceStatus,
+              checkInAt: attendance.checkInAt?.toISOString() ?? null,
+              checkOutAt: attendance.checkOutAt?.toISOString() ?? null,
+              stayMinutes: attendance.stayMinutes,
+            }
+          : {
+              status: AttendanceStatus.NOT_CHECKED_IN,
+              checkInAt: null,
+              checkOutAt: null,
+              stayMinutes: 0,
+            },
         seat: student.assignedSeat
           ? {
               seatId: student.assignedSeat.id,
@@ -49,7 +62,17 @@ export class StudentsService {
               status: student.assignedSeat.status,
             }
           : null,
-        study: activeSession,
+        study: activeSession
+          ? {
+              sessionStatus: activeSession.status,
+              studyMinutes: activeSession.studyMinutes,
+              breakMinutes: activeSession.breakMinutes,
+            }
+          : {
+              sessionStatus: StudySessionStatus.READY,
+              studyMinutes: 0,
+              breakMinutes: 0,
+            },
         plans: {
           totalCount: plans.length,
           completedCount: plans.filter((item) => item.status === 'COMPLETED')
@@ -62,8 +85,6 @@ export class StudentsService {
         notifications: notifications.map((receipt) => ({
           id: receipt.notification.id,
           title: receipt.notification.title,
-          body: receipt.notification.body,
-          readAt: receipt.readAt,
         })),
         student: {
           id: student.id,

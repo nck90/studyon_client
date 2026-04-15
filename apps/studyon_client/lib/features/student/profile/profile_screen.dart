@@ -612,10 +612,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: const Text('취소', style: TextStyle(fontFamily: 'Pretendard', color: AppColors.textTertiary)),
               ),
               TextButton(
-                onPressed: () {
+                onPressed: () async {
                   Navigator.of(ctx).pop();
-                  ref.read(studentProvider.notifier).checkOut();
-                  context.go('/login');
+                  await ref.read(studentProvider.notifier).checkOut();
+                  if (context.mounted) context.go('/login');
                 },
                 child: const Text(
                   '퇴실',

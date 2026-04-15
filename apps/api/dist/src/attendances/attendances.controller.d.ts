@@ -11,76 +11,60 @@ export declare class AttendancesController {
         success: boolean;
         data: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            createdById: string | null;
             studentId: string;
-            seatId: string | null;
-            attendanceDate: Date;
-            checkInAt: Date | null;
-            checkOutAt: Date | null;
+            attendanceDate: string;
+            status: import("@prisma/client").$Enums.AttendanceStatus;
+            checkInAt: string | null;
+            checkOutAt: string | null;
             stayMinutes: number;
-            lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
+            isLate: boolean;
+            isEarlyLeave: boolean;
         } | null;
         meta: {};
     }>;
     listStudent(user: JwtPayload, startDate?: string, endDate?: string): Promise<{
         success: boolean;
-        data: {
+        data: ({
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            createdById: string | null;
             studentId: string;
-            seatId: string | null;
-            attendanceDate: Date;
-            checkInAt: Date | null;
-            checkOutAt: Date | null;
+            attendanceDate: string;
+            status: import("@prisma/client").$Enums.AttendanceStatus;
+            checkInAt: string | null;
+            checkOutAt: string | null;
             stayMinutes: number;
-            lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
-        }[];
+            isLate: boolean;
+            isEarlyLeave: boolean;
+        } | null)[];
         meta: {};
     }>;
     checkIn(user: JwtPayload, dto: CheckInDto): Promise<{
         success: boolean;
         data: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            createdById: string | null;
             studentId: string;
-            seatId: string | null;
-            attendanceDate: Date;
-            checkInAt: Date | null;
-            checkOutAt: Date | null;
+            attendanceDate: string;
+            status: import("@prisma/client").$Enums.AttendanceStatus;
+            checkInAt: string | null;
+            checkOutAt: string | null;
             stayMinutes: number;
-            lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
-        };
+            isLate: boolean;
+            isEarlyLeave: boolean;
+        } | null;
         meta: {};
     }>;
     checkOut(user: JwtPayload, dto: CheckOutDto): Promise<{
         success: boolean;
         data: {
             id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            createdById: string | null;
             studentId: string;
-            seatId: string | null;
-            attendanceDate: Date;
-            checkInAt: Date | null;
-            checkOutAt: Date | null;
+            attendanceDate: string;
+            status: import("@prisma/client").$Enums.AttendanceStatus;
+            checkInAt: string | null;
+            checkOutAt: string | null;
             stayMinutes: number;
-            lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
-        };
+            isLate: boolean;
+            isEarlyLeave: boolean;
+        } | null;
         meta: {};
     }>;
     listAdmin(date?: string, classId?: string, groupId?: string, attendanceStatus?: AttendanceStatus): Promise<{

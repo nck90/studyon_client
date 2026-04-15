@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// 토스 프리미엄 스타일의 미세한 디테일을 위한 일러스트레이션 (SVG String)
 class AppIllustrations {
   // 선명하고 부드러운 3D 느낌의 원형 그래픽 (Hero용)

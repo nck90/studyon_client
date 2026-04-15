@@ -34,7 +34,15 @@ let RankingsService = class RankingsService {
         return {
             success: true,
             data: {
-                myRank,
+                myRank: myRank
+                    ? {
+                        rankNo: myRank.rankNo,
+                        score: Number(myRank.score),
+                    }
+                    : {
+                        rankNo: 0,
+                        score: 0,
+                    },
                 items: items.map((item) => ({
                     studentId: item.studentId,
                     studentName: item.student.user.name,

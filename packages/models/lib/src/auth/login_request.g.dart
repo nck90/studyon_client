@@ -22,6 +22,24 @@ Map<String, dynamic> _$$StudentLoginRequestImplToJson(
   'deviceCode': instance.deviceCode,
 };
 
+_$StudentSignupRequestImpl _$$StudentSignupRequestImplFromJson(
+  Map<String, dynamic> json,
+) => _$StudentSignupRequestImpl(
+  studentNo: json['studentNo'] as String,
+  name: json['name'] as String,
+  phone: json['phone'] as String?,
+  deviceCode: json['deviceCode'] as String?,
+);
+
+Map<String, dynamic> _$$StudentSignupRequestImplToJson(
+  _$StudentSignupRequestImpl instance,
+) => <String, dynamic>{
+  'studentNo': instance.studentNo,
+  'name': instance.name,
+  'phone': instance.phone,
+  'deviceCode': instance.deviceCode,
+};
+
 _$AdminLoginRequestImpl _$$AdminLoginRequestImplFromJson(
   Map<String, dynamic> json,
 ) => _$AdminLoginRequestImpl(
@@ -38,6 +56,7 @@ _$StudentLoginResponseImpl _$$StudentLoginResponseImplFromJson(
 ) => _$StudentLoginResponseImpl(
   accessToken: json['accessToken'] as String,
   refreshToken: json['refreshToken'] as String,
+  sessionId: json['sessionId'] as String,
   user: UserSummaryData.fromJson(json['user'] as Map<String, dynamic>),
   student: StudentSummaryData.fromJson(json['student'] as Map<String, dynamic>),
 );
@@ -47,6 +66,7 @@ Map<String, dynamic> _$$StudentLoginResponseImplToJson(
 ) => <String, dynamic>{
   'accessToken': instance.accessToken,
   'refreshToken': instance.refreshToken,
+  'sessionId': instance.sessionId,
   'user': instance.user,
   'student': instance.student,
 };

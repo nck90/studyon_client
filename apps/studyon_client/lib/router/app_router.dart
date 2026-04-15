@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../features/splash/splash_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/login/login_screen.dart';
+import '../features/login/signup_screen.dart';
 import '../features/student/checkin/checkin_screen.dart';
 import '../features/student/shell/student_shell.dart';
 import '../features/student/home/home_screen.dart';
@@ -44,6 +45,7 @@ final appRouter = GoRouter(
     GoRoute(path: '/', pageBuilder: (context, state) => _noTransition(const SplashScreen(), state)),
     GoRoute(path: '/onboarding', pageBuilder: (context, state) => _noTransition(const OnboardingScreen(), state)),
     GoRoute(path: '/login', pageBuilder: (context, state) => _noTransition(const LoginScreen(), state)),
+    GoRoute(path: '/signup', pageBuilder: (context, state) => _noTransition(const SignupScreen(), state)),
     GoRoute(path: '/student/checkin', pageBuilder: (context, state) => _noTransition(const CheckInScreen(), state)),
 
     // ── Student ──

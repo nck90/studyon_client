@@ -12,6 +12,7 @@ import { LogoutDto } from './dto/logout.dto';
 import { QrLoginDto } from './dto/qr-login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDeviceDto } from './dto/register-device.dto';
+import { StudentSignupDto } from './dto/student-signup.dto';
 import { StudentLoginDto } from './dto/student-login.dto';
 import { JwtPayload } from './types/jwt-payload.type';
 
@@ -19,6 +20,12 @@ import { JwtPayload } from './types/jwt-payload.type';
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Public()
+  @Post('student/signup')
+  studentSignup(@Body() dto: StudentSignupDto) {
+    return this.authService.studentSignup(dto);
+  }
 
   @Public()
   @Post('student/login')

@@ -62,80 +62,96 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Column(
+      body: Stack(
         children: [
-          // Gradient header
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: headerColors,
-              ),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(pad, 32, pad, 40),
-                child: Column(
-                  children: [
-                    if (achieved) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(16),
+          Column(
+            children: [
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: headerColors,
+                  ),
+                ),
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(pad, 32, pad, 40),
+                    child: Column(
+                      children: [
+                        if (achieved) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Text(
+                              '목표 달성',
+                              style: TextStyle(
+                                fontFamily: 'Pretendard',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        ScaleTransition(
+                          scale: _checkmarkScale,
+                          child: TossFace(achieved ? '🎉' : '✅', size: 48),
                         ),
-                        child: const Text(
-                          '목표 달성',
-                          style: TextStyle(
-                            fontFamily: 'Pretendard',
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
+                        const SizedBox(height: 20),
+                        Text(
+                          achieved ? '목표를 다 채웠어요' : '공부를 마쳤어요',
+                          style: AppTypography.headlineLarge.copyWith(
                             color: Colors.white,
+                            fontSize: isIPad ? 28 : 24,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    ScaleTransition(
-                      scale: _checkmarkScale,
-                      child: TossFace(achieved ? '🎉' : '✅', size: 48),
+                        const SizedBox(height: 8),
+                        Text(
+                          achieved ? '오늘 목표를 모두 채웠고 흐름도 좋아요.' : '오늘 기록을 한 번에 정리해뒀어요.',
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: Colors.white.withValues(alpha: 0.85),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    Text(
-                      achieved ? '목표 달성!' : '공부 종료',
-                      style: AppTypography.headlineLarge.copyWith(
-                        color: Colors.white,
-                        fontSize: isIPad ? 28 : 24,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      achieved ? '오늘 목표를 모두 달성했어요!' : '오늘의 학습 기록이에요',
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: Colors.white.withValues(alpha: 0.85),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.fromLTRB(pad, 28, pad, 156),
+                  children: [
+                    if (isIPad)
+                      _buildIPadContent(pad, student.todayStudyFormatted, student.streakDays)
+                    else
+                      _buildPhoneContent(student.todayStudyFormatted, student.streakDays),
                   ],
                 ),
               ),
-            ),
+            ],
           ),
-
-          // Content
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.fromLTRB(pad, 28, pad, 40),
-              children: [
-                if (isIPad)
-                  _buildIPadContent(pad, student.todayStudyFormatted, student.streakDays)
-                else
-                  _buildPhoneContent(student.todayStudyFormatted, student.streakDays),
-              ],
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: SafeArea(
+              top: false,
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(pad, 12, pad, 20),
+                decoration: const BoxDecoration(
+                  color: AppColors.background,
+                  border: Border(top: BorderSide(color: AppColors.divider)),
+                ),
+                child: _buildButtons(),
+              ),
             ),
           ),
         ],
@@ -146,115 +162,87 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
   Widget _buildIPadContent(double pad, String studyTime, int streakDays) {
     return Column(
       children: [
-        // Stats grid + weekly chart side by side
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Left: Stats grid
-            Expanded(
-              flex: 5,
-              child: GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.6,
-                children: [
-                  FadeTransition(
-                    opacity: _cardFades[0],
-                    child: _BigStatCard(
-                      value: studyTime,
-                      label: '공부 시간',
-                      icon: Icons.timer_rounded,
-                      bgColor: AppColors.tintPurple,
-                      valueColor: AppColors.primary,
-                      iconColor: AppColors.primary,
-                    ),
-                  ),
-                  FadeTransition(
-                    opacity: _cardFades[1],
-                    child: const _BigStatCard(
-                      value: '104%',
-                      label: '목표 달성률',
-                      icon: Icons.flag_rounded,
-                      bgColor: AppColors.tintMint,
-                      valueColor: AppColors.accent,
-                      iconColor: AppColors.accent,
-                    ),
-                  ),
-                  FadeTransition(
-                    opacity: _cardFades[2],
-                    child: const _BigStatCard(
-                      value: '#2',
-                      label: '오늘 순위',
-                      icon: Icons.leaderboard_rounded,
-                      bgColor: AppColors.tintYellow,
-                      valueColor: AppColors.rankGold,
-                      iconColor: AppColors.rankGold,
-                    ),
-                  ),
-                  FadeTransition(
-                    opacity: _cardFades[3],
-                    child: _BigStatCard(
-                      value: '$streakDays일',
-                      label: '연속 학습',
-                      icon: Icons.local_fire_department_rounded,
-                      bgColor: AppColors.tintCoral,
-                      valueColor: AppColors.hot,
-                      iconColor: AppColors.hot,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 20),
-            // Right: Weekly chart
-            Expanded(
-              flex: 4,
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final leftWidth = ((constraints.maxWidth - 20) * 5) / 9;
+            final cardWidth = (leftWidth - 12) / 2;
+            final cardHeight = cardWidth / 1.6;
+            final gridHeight = (cardHeight * 2) + 12;
+
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: SizedBox(
+                    height: gridHeight,
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.6,
                       children: [
-                        Text('이번 주 학습', style: AppTypography.headlineSmall),
-                        Text(
-                          '총 17시간',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
+                        FadeTransition(
+                          opacity: _cardFades[0],
+                          child: _BigStatCard(
+                            value: studyTime,
+                            label: '공부 시간',
+                            icon: Icons.timer_rounded,
+                            bgColor: AppColors.tintPurple,
+                            valueColor: AppColors.primary,
+                            iconColor: AppColors.primary,
+                          ),
+                        ),
+                        FadeTransition(
+                          opacity: _cardFades[1],
+                          child: const _BigStatCard(
+                            value: '104%',
+                            label: '목표 달성률',
+                            icon: Icons.flag_rounded,
+                            bgColor: AppColors.tintMint,
+                            valueColor: AppColors.accent,
+                            iconColor: AppColors.accent,
+                          ),
+                        ),
+                        FadeTransition(
+                          opacity: _cardFades[2],
+                          child: const _BigStatCard(
+                            value: '#2',
+                            label: '오늘 순위',
+                            icon: Icons.leaderboard_rounded,
+                            bgColor: AppColors.tintYellow,
+                            valueColor: AppColors.rankGold,
+                            iconColor: AppColors.rankGold,
+                          ),
+                        ),
+                        FadeTransition(
+                          opacity: _cardFades[3],
+                          child: _BigStatCard(
+                            value: '$streakDays일',
+                            label: '연속 학습',
+                            icon: Icons.local_fire_department_rounded,
+                            bgColor: AppColors.tintCoral,
+                            valueColor: AppColors.hot,
+                            iconColor: AppColors.hot,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    const SizedBox(
-                      height: 160,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _Bar(day: '월', h: 60),
-                          _Bar(day: '화', h: 80),
-                          _Bar(day: '수', h: 45),
-                          _Bar(day: '목', h: 70),
-                          _Bar(day: '금', h: 90),
-                          _Bar(day: '토', h: 100, today: true),
-                          _Bar(day: '일', h: 0),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+                const SizedBox(width: 20),
+                Expanded(
+                  flex: 4,
+                  child: SizedBox(
+                    height: gridHeight,
+                    child: _WeeklyLearningCard(chartHeight: gridHeight - 76),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 20),
 
@@ -274,8 +262,7 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
         const SizedBox(height: 20),
 
         _buildMotivationalCard(),
-        const SizedBox(height: 28),
-        _buildButtons(),
+        const SizedBox(height: 12),
       ],
     );
   }
@@ -340,48 +327,7 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
         ),
         const SizedBox(height: 20),
 
-        // Weekly chart
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('이번 주 학습', style: AppTypography.headlineSmall),
-                  Text(
-                    '총 17시간',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              const SizedBox(
-                height: 110,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    _Bar(day: '월', h: 60),
-                    _Bar(day: '화', h: 80),
-                    _Bar(day: '수', h: 45),
-                    _Bar(day: '목', h: 70),
-                    _Bar(day: '금', h: 90),
-                    _Bar(day: '토', h: 100, today: true),
-                    _Bar(day: '일', h: 0),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        const _WeeklyLearningCard(chartHeight: 110),
         const SizedBox(height: 20),
 
         _buildComparisonCard(),
@@ -389,8 +335,7 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
         _buildMotivationalCard(),
         const SizedBox(height: 20),
         _buildNextGoalCard(),
-        const SizedBox(height: 28),
-        _buildButtons(),
+        const SizedBox(height: 12),
       ],
     );
   }
@@ -690,6 +635,57 @@ class _BigStatCard extends StatelessWidget {
                 style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WeeklyLearningCard extends StatelessWidget {
+  const _WeeklyLearningCard({required this.chartHeight});
+
+  final double chartHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('이번 주 학습', style: AppTypography.headlineSmall),
+              Text(
+                '총 17시간',
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            height: chartHeight,
+            child: const Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _Bar(day: '월', h: 60),
+                _Bar(day: '화', h: 80),
+                _Bar(day: '수', h: 45),
+                _Bar(day: '목', h: 70),
+                _Bar(day: '금', h: 90),
+                _Bar(day: '토', h: 100, today: true),
+                _Bar(day: '일', h: 0),
+              ],
+            ),
           ),
         ],
       ),

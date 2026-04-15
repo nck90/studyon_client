@@ -39,6 +39,26 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await tokenStorage.saveTokens(
       accessToken: response.accessToken,
       refreshToken: response.refreshToken,
+      sessionId: response.sessionId,
+      role: 'student',
+    );
+    state = AuthState(
+      status: AuthStatus.authenticated,
+      accessToken: response.accessToken,
+      user: UserSummary(
+        id: response.user.id,
+        role: response.user.role,
+        name: response.user.name,
+      ),
+    );
+  }
+
+  Future<void> signupAsStudent(StudentSignupRequest request) async {
+    final response = await authApi.studentSignup(request);
+    await tokenStorage.saveTokens(
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+      sessionId: response.sessionId,
       role: 'student',
     );
     state = AuthState(
@@ -55,7 +75,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> logout() async {
     try {
       final sessionId = await tokenStorage.sessionId;
-      await authApi.logout(sessionId);
+      final refreshToken = await tokenStorage.refreshToken;
+      if (sessionId != null && refreshToken != null) {
+        await authApi.logout(
+          sessionId: sessionId,
+          refreshToken: refreshToken,
+        );
+      }
     } catch (_) {}
     await tokenStorage.clearAll();
     state = AuthState.unauthenticated;
