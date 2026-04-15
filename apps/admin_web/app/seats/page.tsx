@@ -5,7 +5,7 @@ import { getSeats } from '@/lib/mock-data';
 import type { Seat } from '@/lib/types';
 
 const statusStyle: Record<string, string> = {
-  studying: 'bg-purple-600 text-white',
+  studying: 'bg-[#6C5CE7] text-white',
   break: 'bg-yellow-400 text-gray-800',
   empty: 'bg-gray-100 text-gray-400',
   absent: 'bg-red-400 text-white',
@@ -37,12 +37,12 @@ export default function SeatsPage() {
       <div className="flex items-center gap-4 mb-6">
         <div className="bg-white rounded-xl shadow-sm px-5 py-3">
           <span className="text-sm text-gray-500">사용중</span>
-          <span className="ml-2 text-lg font-bold text-purple-600">{occupied}</span>
+          <span className="ml-2 text-lg font-bold text-[#6C5CE7] tabular-nums">{occupied}</span>
           <span className="text-sm text-gray-400"> / {total}</span>
         </div>
         <div className="bg-white rounded-xl shadow-sm px-5 py-3">
           <span className="text-sm text-gray-500">점유율</span>
-          <span className="ml-2 text-lg font-bold text-purple-600">
+          <span className="ml-2 text-lg font-bold text-[#6C5CE7] tabular-nums">
             {total > 0 ? Math.round((occupied / total) * 100) : 0}%
           </span>
         </div>

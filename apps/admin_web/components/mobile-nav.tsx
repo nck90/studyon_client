@@ -22,7 +22,7 @@ export function MobileNav() {
               <Link
                 href={href}
                 className={`flex items-center justify-center py-3 text-xs font-medium transition-colors ${
-                  active ? 'text-gray-900 font-semibold' : 'text-gray-400'
+                  active ? 'text-[#6C5CE7] font-bold' : 'text-gray-400'
                 }`}
               >
                 {label}

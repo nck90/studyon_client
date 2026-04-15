@@ -84,10 +84,10 @@ export default function TvPage() {
                   key={m}
                   onClick={() => setMode(m)}
                   className={`p-4 rounded-xl border-2 text-left transition-all ${
-                    mode === m ? 'border-purple-500 bg-purple-50' : 'border-gray-100 hover:border-gray-200'
+                    mode === m ? 'border-[#6C5CE7] bg-[#F0EEFF]' : 'border-gray-100 hover:border-gray-200'
                   }`}
                 >
-                  <p className={`font-semibold text-sm ${mode === m ? 'text-purple-600' : 'text-gray-700'}`}>
+                  <p className={`font-semibold text-sm ${mode === m ? 'text-[#6C5CE7]' : 'text-gray-700'}`}>
                     {modeLabel[m]}
                   </p>
                   <p className="text-[11px] text-gray-400 mt-0.5">{modeDesc[m]}</p>
@@ -126,7 +126,7 @@ export default function TvPage() {
               </button>
               <button
                 onClick={() => alert('전체화면 모드로 전환합니다.')}
-                className="flex-1 py-3 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors"
+                className="flex-1 py-3 bg-[#6C5CE7] text-white rounded-xl text-sm font-medium hover:bg-[#5A4BD1] transition-colors"
               >
                 전체화면
               </button>

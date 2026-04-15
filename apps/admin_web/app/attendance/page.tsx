@@ -45,7 +45,7 @@ export default function AttendancePage() {
               key={v}
               onClick={() => setView(v)}
               className={`px-4 py-2.5 text-sm font-medium transition-colors ${
-                view === v ? 'bg-purple-600 text-white' : 'text-gray-600 hover:bg-gray-50'
+                view === v ? 'bg-[#6C5CE7] text-white' : 'text-gray-600 hover:bg-gray-50'
               }`}
             >
               {v === 'daily' ? '일간' : v === 'weekly' ? '주간' : '월간'}
@@ -119,7 +119,7 @@ export default function AttendancePage() {
             { label: '출석', value: data.filter(r => r.status === 'present').length, color: 'text-green-600' },
             { label: '지각', value: data.filter(r => r.status === 'late').length, color: 'text-yellow-600' },
             { label: '결석', value: data.filter(r => r.status === 'absent').length, color: 'text-red-600' },
-            { label: '출석률', value: `${data.length > 0 ? Math.round(data.filter(r => r.status !== 'absent').length / data.length * 100) : 0}%`, color: 'text-purple-600' },
+            { label: '출석률', value: `${data.length > 0 ? Math.round(data.filter(r => r.status !== 'absent').length / data.length * 100) : 0}%`, color: 'text-[#6C5CE7]' },
           ].map(stat => (
             <div key={stat.label} className="bg-white rounded-2xl shadow-sm p-6 text-center">
               <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>

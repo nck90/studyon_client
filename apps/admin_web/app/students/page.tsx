@@ -6,7 +6,7 @@ import { getStudents } from '@/lib/mock-data';
 import type { Student } from '@/lib/types';
 
 const statusStyle: Record<string, string> = {
-  studying: 'bg-purple-100 text-purple-700',
+  studying: 'bg-[#F0EEFF] text-[#6C5CE7]',
   break: 'bg-yellow-100 text-yellow-700',
   absent: 'bg-red-100 text-red-700',
   checkedOut: 'bg-gray-100 text-gray-600',
@@ -49,7 +49,7 @@ export default function StudentsPage() {
         />
         <button
           onClick={() => alert('학생 추가 기능은 준비 중입니다.')}
-          className="px-5 py-2.5 bg-purple-600 text-white text-sm font-medium rounded-xl hover:bg-purple-700 transition-colors whitespace-nowrap"
+          className="px-5 py-2.5 bg-[#6C5CE7] text-white text-sm font-medium rounded-xl hover:bg-[#5A4BD1] transition-colors whitespace-nowrap"
         >
           학생 추가
         </button>
@@ -87,7 +87,7 @@ export default function StudentsPage() {
                 <td className="px-6 py-4">
                   <button
                     onClick={e => { e.stopPropagation(); router.push(`/students/${student.id}`); }}
-                    className="text-purple-600 hover:text-purple-800 text-xs font-medium"
+                    className="text-[#6C5CE7] hover:text-[#5A4BD1] text-xs font-medium"
                   >
                     상세보기
                   </button>

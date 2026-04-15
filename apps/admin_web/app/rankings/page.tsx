@@ -46,7 +46,7 @@ export default function RankingsPage() {
             key={p}
             onClick={() => setPeriod(p)}
             className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
-              period === p ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-500'
+              period === p ? 'bg-white text-[#6C5CE7] shadow-sm' : 'text-gray-500'
             }`}
           >
             {p === 'daily' ? '일간' : p === 'weekly' ? '주간' : '월간'}
@@ -64,10 +64,10 @@ export default function RankingsPage() {
               return (
                 <div key={entry.studentId} className="flex flex-col items-center gap-2">
                   <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                    <span className="text-lg font-bold text-purple-600">{entry.studentName[0]}</span>
+                    <span className="text-lg font-bold text-[#6C5CE7]">{entry.studentName[0]}</span>
                   </div>
                   <p className="text-sm font-semibold text-gray-800">{entry.studentName}</p>
-                  <p className="text-xs text-purple-600 font-medium">{Math.round(entry.minutes / 60)}h</p>
+                  <p className="text-xs text-[#6C5CE7] font-medium tabular-nums">{Math.round(entry.minutes / 60)}h</p>
                   <div className={`w-20 ${podiumHeight[idx]} ${medalColor[idx]} rounded-t-xl flex items-center justify-center`}>
                     <span className="text-2xl font-black">{podiumRank[idx]}</span>
                   </div>
@@ -98,7 +98,7 @@ export default function RankingsPage() {
                   </span>
                 </td>
                 <td className="px-6 py-4 font-medium text-gray-800">{entry.studentName}</td>
-                <td className="px-6 py-4 font-semibold text-purple-600">{Math.round(entry.minutes / 60)}h</td>
+                <td className="px-6 py-4 font-semibold text-[#6C5CE7] tabular-nums">{Math.round(entry.minutes / 60)}h</td>
                 <td className="px-6 py-4 hidden md:table-cell">
                   <span className={`text-xs font-medium ${
                     entry.trend > 0 ? 'text-green-600' : entry.trend < 0 ? 'text-red-600' : 'text-gray-400'
@@ -128,14 +128,14 @@ export default function RankingsPage() {
               {period === 'daily' ? '오늘' : period === 'weekly' ? '이번 주' : '이번 달'} 1위
             </p>
             {top3[0] && (
-              <p className="text-2xl font-bold text-purple-600 mb-1">{top3[0].studentName}</p>
+              <p className="text-2xl font-bold text-[#6C5CE7] mb-1">{top3[0].studentName}</p>
             )}
             {top3[0] && (
               <p className="text-sm text-gray-500 mb-6">총 {Math.round(top3[0].minutes / 60)}시간 공부</p>
             )}
             <button
               onClick={() => { alert('시상 처리 완료!'); setShowAward(false); }}
-              className="w-full py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors"
+              className="w-full py-3 bg-[#6C5CE7] text-white rounded-xl font-medium hover:bg-[#5A4BD1] transition-colors"
             >
               시상하기
             </button>

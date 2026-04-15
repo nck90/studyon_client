@@ -38,7 +38,7 @@ export default function AnalyticsPage() {
             key={p.value}
             onClick={() => setPeriod(p.value)}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              period === p.value ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+              period === p.value ? 'bg-[#6C5CE7] text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >
             {p.label}
@@ -61,7 +61,7 @@ export default function AnalyticsPage() {
             key={cls}
             onClick={() => setSelectedClass(cls)}
             className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              selectedClass === cls ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 border border-gray-200'
+              selectedClass === cls ? 'bg-[#F0EEFF] text-[#6C5CE7]' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >
             {cls}
@@ -80,7 +80,7 @@ export default function AnalyticsPage() {
                 <div key={idx} className="flex-1 flex flex-col items-center gap-1">
                   <span className="text-[10px] text-gray-500 font-medium">{d.hours}h</span>
                   <div
-                    className="w-full bg-purple-500 rounded-t-lg transition-all"
+                    className="w-full bg-[#6C5CE7] rounded-t-lg transition-all"
                     style={{ height: `${heightPct}%`, minHeight: d.hours > 0 ? '4px' : '0' }}
                   />
                   <span className="text-[10px] text-gray-400">{DAYS[idx % 7]}</span>
@@ -104,7 +104,7 @@ export default function AnalyticsPage() {
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div
-                      className="bg-purple-500 h-2 rounded-full transition-all"
+                      className="bg-[#6C5CE7] h-2 rounded-full transition-all"
                       style={{ width: `${pct}%` }}
                     />
                   </div>

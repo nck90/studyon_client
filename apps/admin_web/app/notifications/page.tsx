@@ -49,7 +49,7 @@ export default function NotificationsPage() {
         />
         <button
           onClick={() => setShowCompose(true)}
-          className="px-5 py-2.5 bg-purple-600 text-white text-sm font-medium rounded-xl hover:bg-purple-700 transition-colors whitespace-nowrap"
+          className="px-5 py-2.5 bg-[#6C5CE7] text-white text-sm font-medium rounded-xl hover:bg-[#5A4BD1] transition-colors whitespace-nowrap"
         >
           공지 작성
         </button>
@@ -60,8 +60,8 @@ export default function NotificationsPage() {
           <div
             key={notif.id}
             onClick={() => toggle(notif.id)}
-            className={`bg-white rounded-2xl shadow-sm p-5 cursor-pointer transition-all hover:shadow-md ${
-              !notif.isRead ? 'border-l-4 border-purple-500' : ''
+            className={`bg-white rounded-2xl shadow-sm p-5 cursor-pointer transition-all hover:shadow-md hover:bg-gray-50 ${
+              !notif.isRead ? 'border-l-4 border-[#6C5CE7]' : ''
             }`}
           >
             <div className="flex items-start gap-4">
@@ -75,7 +75,7 @@ export default function NotificationsPage() {
                   </p>
                   <div className="flex items-center gap-2 shrink-0">
                     {!notif.isRead && (
-                      <span className="w-2 h-2 rounded-full bg-purple-500" />
+                      <span className="w-2 h-2 rounded-full bg-[#6C5CE7]" />
                     )}
                     <span className="text-xs text-gray-400">{notif.createdAt}</span>
                   </div>
@@ -148,7 +148,7 @@ export default function NotificationsPage() {
                   setBody('');
                   setShowCompose(false);
                 }}
-                className="w-full py-3 bg-purple-600 text-white rounded-xl font-medium hover:bg-purple-700 transition-colors"
+                className="w-full py-3 bg-[#6C5CE7] text-white rounded-xl font-medium hover:bg-[#5A4BD1] transition-colors"
               >
                 발송하기
               </button>

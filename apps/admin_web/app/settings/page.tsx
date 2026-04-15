@@ -6,7 +6,7 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean
   return (
     <button
       onClick={() => onChange(!enabled)}
-      className={`relative w-12 h-6 rounded-full transition-colors ${enabled ? 'bg-purple-600' : 'bg-gray-200'}`}
+      className={`relative w-12 h-6 rounded-full transition-colors ${enabled ? 'bg-[#6C5CE7]' : 'bg-gray-200'}`}
     >
       <span
         className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
@@ -154,7 +154,7 @@ export default function SettingsPage() {
           <button
             onClick={handleSave}
             className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all ${
-              saved ? 'bg-green-500 text-white' : 'bg-purple-600 text-white hover:bg-purple-700'
+              saved ? 'bg-green-500 text-white' : 'bg-[#6C5CE7] text-white hover:bg-[#5A4BD1]'
             }`}
           >
             {saved ? '저장 완료' : '설정 저장'}

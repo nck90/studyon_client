@@ -39,3 +39,17 @@
     color: #1a1a2e;
   }
 }
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+* {
+  transition-property: background-color, border-color, color, opacity, transform;
+  transition-timing-function: ease;
+  transition-duration: 0ms;
+}
+
+a, button, [role="button"] {
+  transition-duration: 150ms;
+}

@@ -21,7 +21,7 @@ export function Sidebar() {
     <aside className="hidden md:flex w-56 flex-col bg-white border-r border-gray-100 shrink-0">
       {/* Brand */}
       <div className="px-5 py-6">
-        <p className="text-lg font-extrabold text-gray-900 tracking-tight">자습ON</p>
+        <p className="text-lg font-extrabold text-[#6C5CE7] tracking-tight">자습ON</p>
         <p className="text-xs text-gray-400 mt-0.5">관리자</p>
       </div>
 
@@ -34,10 +34,10 @@ export function Sidebar() {
               <li key={href}>
                 <Link
                   href={href}
-                  className={`block px-3 py-2 rounded-lg text-[13px] font-medium transition-colors ${
+                  className={`block px-3 py-2 rounded-lg text-[13px] font-medium transition-colors border-l-[3px] ${
                     active
-                      ? 'bg-gray-900 text-white'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'bg-[#F0EEFF] text-[#6C5CE7] font-semibold border-[#6C5CE7]'
+                      : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 border-transparent'
                   }`}
                 >
                   {label}
