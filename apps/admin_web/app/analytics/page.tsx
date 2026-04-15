@@ -1,7 +1,5 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { KpiCard } from '@/components/kpi-card';
-import { PageHeader } from '@/components/page-header';
 import { getAnalytics } from '@/lib/mock-data';
 import type { AnalyticsData } from '@/lib/types';
 
@@ -11,7 +9,7 @@ const PERIODS = [
   { value: 'semester', label: '이번 학기' },
 ];
 
-const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+const SUBJECT_COLORS = ['#6C5CE7', '#00B894', '#FDCB6E', '#E17055', '#74B9FF'];
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState('week');
@@ -23,67 +21,83 @@ export default function AnalyticsPage() {
   }, [period, selectedClass]);
 
   const classes = ['전체', '1학년', '2학년', '3학년'];
-
   const maxDaily = Math.max(...(data?.dailyHours ?? []).map(d => d.hours), 1);
   const maxSubject = Math.max(...(data?.subjectDistribution ?? []).map(s => s.hours), 1);
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
-      <PageHeader title="분석" description="학습 통계와 트렌드를 확인합니다" />
-
-      {/* Period selector */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {PERIODS.map(p => (
-          <button
-            key={p.value}
-            onClick={() => setPeriod(p.value)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              period === p.value ? 'bg-[#6C5CE7] text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-            }`}
-          >
-            {p.label}
-          </button>
-        ))}
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-gray-900">분석</h1>
+        <p className="text-sm text-gray-400 mt-0.5">학습 통계와 트렌드</p>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <KpiCard title="총 공부시간" value={`${data?.totalHours ?? 0}h`} />
-        <KpiCard title="평균 공부시간" value={`${data?.avgHours ?? 0}h`} />
-        <KpiCard title="출석률" value={`${data?.attendanceRate ?? 0}%`} />
-        <KpiCard title="활성 학생" value={data?.activeStudents ?? 0} />
+      {/* Period segmented control */}
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <div className="flex bg-gray-100 rounded-xl p-1">
+          {PERIODS.map(p => (
+            <button
+              key={p.value}
+              onClick={() => setPeriod(p.value)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                period === p.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex gap-1.5">
+          {classes.map(cls => (
+            <button
+              key={cls}
+              onClick={() => setSelectedClass(cls)}
+              className={`h-8 px-3 rounded-lg text-xs font-semibold transition-all ${
+                selectedClass === cls
+                  ? 'bg-[#F0EEFF] text-[#6C5CE7]'
+                  : 'bg-white text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              {cls}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Class filter chips */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {classes.map(cls => (
-          <button
-            key={cls}
-            onClick={() => setSelectedClass(cls)}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              selectedClass === cls ? 'bg-[#F0EEFF] text-[#6C5CE7]' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-            }`}
-          >
-            {cls}
-          </button>
-        ))}
+      {/* KPI row - no cards, just numbers */}
+      <div className="bg-white rounded-2xl p-6 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[
+            { label: '총 공부시간', value: `${data?.totalHours ?? 0}h` },
+            { label: '평균 공부시간', value: `${data?.avgHours ?? 0}h` },
+            { label: '출석률', value: `${data?.attendanceRate ?? 0}%` },
+            { label: '활성 학생', value: `${data?.activeStudents ?? 0}명` },
+          ].map(kpi => (
+            <div key={kpi.label}>
+              <p className="text-2xl font-extrabold tabular-nums text-gray-900">{kpi.value}</p>
+              <p className="text-xs font-semibold text-gray-400 mt-1">{kpi.label}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Daily hours bar chart */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h3 className="text-base font-semibold text-gray-800 mb-4">일별 공부시간</h3>
-          <div className="flex items-end gap-2 h-40">
+        {/* Daily bar chart */}
+        <div className="bg-white rounded-2xl p-6">
+          <h3 className="text-sm font-semibold text-gray-400 mb-5">일별 공부시간</h3>
+          <div className="flex items-end gap-2 h-36">
             {(data?.dailyHours ?? []).map((d, idx) => {
               const heightPct = Math.round((d.hours / maxDaily) * 100);
               return (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-1">
-                  <span className="text-[10px] text-gray-500 font-medium">{d.hours}h</span>
+                <div key={idx} className="flex-1 flex flex-col items-center gap-1 group">
+                  <span className="text-[10px] text-gray-400 tabular-nums opacity-0 group-hover:opacity-100 transition-opacity">
+                    {d.hours}h
+                  </span>
                   <div
-                    className="w-full bg-[#6C5CE7] rounded-t-lg transition-all"
+                    className="w-full bg-[#6C5CE7] rounded-t-lg transition-all hover:bg-[#5A4BD1] cursor-default"
                     style={{ height: `${heightPct}%`, minHeight: d.hours > 0 ? '4px' : '0' }}
                   />
-                  <span className="text-[10px] text-gray-400">{DAYS[idx % 7]}</span>
+                  <span className="text-[11px] text-gray-400 font-medium">{d.day}</span>
                 </div>
               );
             })}
@@ -91,21 +105,22 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Subject distribution */}
-        <div className="bg-white rounded-2xl shadow-sm p-6">
-          <h3 className="text-base font-semibold text-gray-800 mb-4">과목별 분포</h3>
-          <div className="space-y-3">
+        <div className="bg-white rounded-2xl p-6">
+          <h3 className="text-sm font-semibold text-gray-400 mb-5">과목별 분포</h3>
+          <div className="space-y-4">
             {(data?.subjectDistribution ?? []).map((s, idx) => {
               const pct = Math.round((s.hours / maxSubject) * 100);
+              const color = SUBJECT_COLORS[idx % SUBJECT_COLORS.length];
               return (
                 <div key={idx}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-700 font-medium">{s.subject}</span>
-                    <span className="text-gray-500">{s.hours}h</span>
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="font-semibold text-gray-700">{s.subject}</span>
+                    <span className="tabular-nums text-gray-400 font-medium">{s.hours}h</span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div className="w-full bg-gray-100 rounded-full h-1.5">
                     <div
-                      className="bg-[#6C5CE7] h-2 rounded-full transition-all"
-                      style={{ width: `${pct}%` }}
+                      className="h-1.5 rounded-full transition-all"
+                      style={{ width: `${pct}%`, backgroundColor: color }}
                     />
                   </div>
                 </div>

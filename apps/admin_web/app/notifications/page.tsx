@@ -1,24 +1,24 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { PageHeader } from '@/components/page-header';
 import { getNotifications } from '@/lib/mock-data';
 import type { AppNotification } from '@/lib/types';
 
-const typeIcon: Record<string, string> = {
-  announcement: '📢',
-  attendance: 'ℹ',
-  late: '⚠',
-  checkout: '↩',
-  goal: '★',
+const typeLabel: Record<string, string> = {
+  announcement: '공지',
+  attendance: '출석',
+  late: '지각',
+  checkout: '퇴실',
+  goal: '목표',
 };
 
-const typeStyle: Record<string, string> = {
-  announcement: 'bg-blue-100 text-blue-700',
-  attendance: 'bg-gray-100 text-gray-600',
-  late: 'bg-red-100 text-red-600',
-  checkout: 'bg-gray-100 text-gray-600',
-  goal: 'bg-yellow-100 text-yellow-700',
-};
+function formatTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return iso;
+  }
+}
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -32,70 +32,69 @@ export default function NotificationsPage() {
   }, []);
 
   const toggle = (id: string) => {
-    setExpanded(prev => prev === id ? null : id);
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, isRead: true } : n)
-    );
+    setExpanded(prev => (prev === id ? null : id));
+    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, isRead: true } : n)));
   };
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto">
-      <div className="flex items-start justify-between mb-6">
-        <PageHeader
-          title="알림"
-          description={unreadCount > 0 ? `읽지 않은 알림 ${unreadCount}개` : '모든 알림을 읽었습니다'}
-        />
-        <button
-          onClick={() => setShowCompose(true)}
-          className="px-5 py-2.5 bg-[#6C5CE7] text-white text-sm font-medium rounded-xl hover:bg-[#5A4BD1] transition-colors whitespace-nowrap"
-        >
-          공지 작성
-        </button>
+    <div className="p-6 md:p-8 max-w-3xl mx-auto pb-24">
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-gray-900">알림</h1>
+        <p className="text-sm text-gray-400 mt-0.5">
+          {unreadCount > 0 ? `읽지 않은 알림 ${unreadCount}개` : '모든 알림을 읽었습니다'}
+        </p>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-1.5">
         {notifications.map(notif => (
           <div
             key={notif.id}
             onClick={() => toggle(notif.id)}
-            className={`bg-white rounded-2xl shadow-sm p-5 cursor-pointer transition-all hover:shadow-md hover:bg-gray-50 ${
-              !notif.isRead ? 'border-l-4 border-[#6C5CE7]' : ''
-            }`}
+            className="bg-white rounded-2xl px-5 py-4 cursor-pointer hover:bg-gray-50/50 transition-colors"
           >
-            <div className="flex items-start gap-4">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0 ${typeStyle[notif.type]}`}>
-                {typeIcon[notif.type] ?? 'ℹ'}
+            <div className="flex items-start gap-3">
+              {/* Unread dot or spacer */}
+              <div className="mt-1.5 shrink-0 w-1.5">
+                {!notif.isRead && (
+                  <span className="block w-1.5 h-1.5 rounded-full bg-[#6C5CE7]" />
+                )}
               </div>
+
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-2">
-                  <p className={`font-semibold text-sm ${!notif.isRead ? 'text-gray-900' : 'text-gray-700'}`}>
-                    {notif.title}
-                  </p>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {!notif.isRead && (
-                      <span className="w-2 h-2 rounded-full bg-[#6C5CE7]" />
-                    )}
-                    <span className="text-xs text-gray-400">{notif.createdAt}</span>
+                <div className="flex items-center justify-between gap-2 mb-0.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-xs font-semibold text-gray-400 shrink-0">
+                      {typeLabel[notif.type] ?? notif.type}
+                    </span>
+                    <p className={`text-sm font-semibold truncate ${!notif.isRead ? 'text-gray-900' : 'text-gray-600'}`}>
+                      {notif.title}
+                    </p>
                   </div>
+                  <span className="text-xs text-gray-400 shrink-0 tabular-nums">{formatTime(notif.createdAt)}</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-0.5 truncate">{notif.body}</p>
+                <p className={`text-sm text-gray-500 ${expanded === notif.id ? '' : 'truncate'}`}>
+                  {notif.body}
+                </p>
               </div>
             </div>
-
-            {expanded === notif.id && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{notif.body}</p>
-              </div>
-            )}
           </div>
         ))}
 
         {notifications.length === 0 && (
-          <div className="text-center py-20 text-gray-400">알림이 없습니다.</div>
+          <div className="text-center py-20 text-gray-400 text-sm">알림이 없습니다.</div>
         )}
       </div>
+
+      {/* Floating compose button */}
+      <button
+        onClick={() => setShowCompose(true)}
+        className="fixed bottom-8 right-8 w-14 h-14 bg-[#6C5CE7] text-white rounded-full shadow-lg hover:bg-[#5A4BD1] transition-colors flex items-center justify-center text-2xl font-light"
+        title="공지 작성"
+      >
+        +
+      </button>
 
       {/* Compose Modal */}
       {showCompose && (
@@ -108,28 +107,33 @@ export default function NotificationsPage() {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-lg font-bold text-gray-800">공지 작성</h3>
-              <button onClick={() => setShowCompose(false)} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
+              <h3 className="text-base font-bold text-gray-900">공지 작성</h3>
+              <button
+                onClick={() => setShowCompose(false)}
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors rounded-xl hover:bg-gray-100 text-lg"
+              >
+                ×
+              </button>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">제목</label>
+                <label className="text-xs font-semibold text-gray-400 mb-1.5 block">제목</label>
                 <input
                   type="text"
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="공지 제목을 입력하세요"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                  className="w-full rounded-xl bg-gray-50 border-0 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6C5CE7]/20 placeholder:text-gray-400"
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-500 mb-1 block">내용</label>
+                <label className="text-xs font-semibold text-gray-400 mb-1.5 block">내용</label>
                 <textarea
                   value={body}
                   onChange={e => setBody(e.target.value)}
                   placeholder="공지 내용을 입력하세요"
                   rows={4}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 resize-none"
+                  className="w-full rounded-xl bg-gray-50 border-0 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6C5CE7]/20 placeholder:text-gray-400 resize-none"
                 />
               </div>
               <button
@@ -140,7 +144,7 @@ export default function NotificationsPage() {
                     type: 'announcement',
                     title,
                     body,
-                    createdAt: '방금',
+                    createdAt: new Date().toISOString(),
                     isRead: false,
                   };
                   setNotifications(prev => [newNotif, ...prev]);
@@ -148,7 +152,7 @@ export default function NotificationsPage() {
                   setBody('');
                   setShowCompose(false);
                 }}
-                className="w-full py-3 bg-[#6C5CE7] text-white rounded-xl font-medium hover:bg-[#5A4BD1] transition-colors"
+                className="w-full h-12 bg-[#6C5CE7] text-white rounded-xl font-semibold text-sm hover:bg-[#5A4BD1] transition-colors"
               >
                 발송하기
               </button>

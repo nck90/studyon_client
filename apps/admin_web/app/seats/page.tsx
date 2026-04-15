@@ -1,26 +1,25 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { PageHeader } from '@/components/page-header';
 import { getSeats } from '@/lib/mock-data';
 import type { Seat } from '@/lib/types';
 
-const statusStyle: Record<string, string> = {
-  studying: 'bg-[#6C5CE7] text-white',
-  break: 'bg-yellow-400 text-gray-800',
+const seatStyle: Record<string, string> = {
+  studying: 'bg-[#F0EEFF] text-[#6C5CE7]',
+  onBreak: 'bg-amber-50 text-amber-600',
   empty: 'bg-gray-100 text-gray-400',
-  absent: 'bg-red-400 text-white',
+  notCheckedIn: 'bg-red-50 text-red-400',
 };
 
 const statusLabel: Record<string, string> = {
   studying: '공부중',
-  break: '휴식',
+  onBreak: '휴식',
   empty: '빈자리',
-  absent: '결석',
+  notCheckedIn: '미입실',
 };
 
 export default function SeatsPage() {
   const [seats, setSeats] = useState<Seat[]>([]);
-  const [selected, setSelected] = useState<Seat | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
 
   useEffect(() => {
     setSeats(getSeats());
@@ -28,85 +27,57 @@ export default function SeatsPage() {
 
   const occupied = seats.filter(s => s.status === 'studying' || s.status === 'onBreak').length;
   const total = seats.length;
+  const pct = total > 0 ? Math.round((occupied / total) * 100) : 0;
 
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto">
-      <PageHeader title="좌석 배치" description="실시간 좌석 현황을 확인합니다" />
-
-      {/* Summary */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className="bg-white rounded-xl shadow-sm px-5 py-3">
-          <span className="text-sm text-gray-500">사용중</span>
-          <span className="ml-2 text-lg font-bold text-[#6C5CE7] tabular-nums">{occupied}</span>
-          <span className="text-sm text-gray-400"> / {total}</span>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm px-5 py-3">
-          <span className="text-sm text-gray-500">점유율</span>
-          <span className="ml-2 text-lg font-bold text-[#6C5CE7] tabular-nums">
-            {total > 0 ? Math.round((occupied / total) * 100) : 0}%
-          </span>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-gray-900">좌석 배치</h1>
+        <p className="text-sm text-gray-400 mt-0.5">
+          <span className="font-semibold tabular-nums text-gray-700">{occupied}</span>
+          <span className="text-gray-400">/{total}석 사용 중</span>
+          <span className="ml-2 tabular-nums text-[#6C5CE7] font-semibold">{pct}%</span>
+        </p>
       </div>
 
       {/* Legend */}
-      <div className="flex gap-4 mb-4 flex-wrap">
+      <div className="flex gap-5 mb-5 flex-wrap">
         {Object.entries(statusLabel).map(([key, label]) => (
           <div key={key} className="flex items-center gap-1.5">
-            <div className={`w-4 h-4 rounded ${statusStyle[key]}`} />
-            <span className="text-xs text-gray-600">{label}</span>
+            <div className={`w-3 h-3 rounded-md ${seatStyle[key].split(' ')[0]}`} />
+            <span className="text-xs text-gray-500">{label}</span>
           </div>
         ))}
       </div>
 
-      {/* Seat Grid */}
-      <div className="bg-white rounded-2xl shadow-sm p-6">
-        <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
+      {/* Seat grid */}
+      <div className="bg-white rounded-2xl p-6">
+        <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
           {seats.map(seat => (
-            <button
+            <div
               key={seat.id}
-              onClick={() => setSelected(seat.status !== 'empty' ? seat : null)}
-              className={`rounded-xl p-3 text-center transition-all active:scale-95 hover:opacity-90 ${statusStyle[seat.status]}`}
+              className="relative"
+              onMouseEnter={() => setHovered(seat.id)}
+              onMouseLeave={() => setHovered(null)}
             >
-              <div className="text-sm font-bold">{seat.seatNo}</div>
-              {seat.studentName ? (
-                <div className="text-[10px] mt-0.5 opacity-80 truncate">{seat.studentName}</div>
-              ) : (
-                <div className="text-[10px] mt-0.5 opacity-60">{statusLabel[seat.status]}</div>
+              <button
+                className={`w-full h-12 rounded-xl flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95 ${seatStyle[seat.status]}`}
+              >
+                <span className="text-xs font-bold tabular-nums">{seat.seatNo}</span>
+              </button>
+              {/* Tooltip */}
+              {hovered === seat.id && seat.studentName && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-10 pointer-events-none">
+                  <div className="bg-gray-900 text-white text-xs rounded-lg px-2.5 py-1.5 whitespace-nowrap">
+                    {seat.studentName}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900" />
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
           ))}
         </div>
       </div>
-
-      {/* Popup */}
-      {selected && (
-        <div
-          className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4"
-          onClick={() => setSelected(null)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-800">좌석 {selected.seatNo}</h3>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
-            </div>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">학생</span>
-                <span className="font-medium text-gray-800">{selected.studentName ?? '-'}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">상태</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusStyle[selected.status]}`}>
-                  {statusLabel[selected.status]}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
