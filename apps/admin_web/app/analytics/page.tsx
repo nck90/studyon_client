@@ -48,10 +48,10 @@ export default function AnalyticsPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <KpiCard title="총 공부시간" value={`${data?.totalHours ?? 0}h`} color="primary" />
-        <KpiCard title="평균 공부시간" value={`${data?.avgHours ?? 0}h`} color="accent" />
-        <KpiCard title="출석률" value={`${data?.attendanceRate ?? 0}%`} color="warm" />
-        <KpiCard title="활성 학생" value={data?.activeStudents ?? 0} color="hot" />
+        <KpiCard title="총 공부시간" value={`${data?.totalHours ?? 0}h`} />
+        <KpiCard title="평균 공부시간" value={`${data?.avgHours ?? 0}h`} />
+        <KpiCard title="출석률" value={`${data?.attendanceRate ?? 0}%`} />
+        <KpiCard title="활성 학생" value={data?.activeStudents ?? 0} />
       </div>
 
       {/* Class filter chips */}

@@ -16,7 +16,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body className="bg-bg text-gray-900 antialiased">
+      <body className="bg-[#F7F8FA] text-gray-900 antialiased">
         <div className="flex h-screen">
           {/* Desktop sidebar */}
           <Sidebar />
