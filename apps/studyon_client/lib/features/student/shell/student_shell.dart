@@ -170,7 +170,10 @@ class StudentShell extends ConsumerWidget {
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(24, 0, 24, 28),
-                      child: Text('${student.name}님', style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary)),
+                      child: Text(
+                        student.name.isEmpty ? '학생' : '${student.name}님',
+                        style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+                      ),
                     ),
                     // Nav items
                     _SidebarItem(icon: Icons.home_rounded, label: '홈', selected: idx == 0,
@@ -198,8 +201,20 @@ class StudentShell extends ConsumerWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('좌석 A-12', style: AppTypography.titleMedium.copyWith(color: AppColors.primary)),
-                                Text('입실 중', style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),
+                                Text(
+                                  student.seatNo.isEmpty
+                                      ? '좌석 미배정'
+                                      : '좌석 ${student.seatNo}',
+                                  style: AppTypography.titleMedium.copyWith(
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                Text(
+                                  student.isCheckedIn ? '입실 중' : '미입실',
+                                  style: AppTypography.labelSmall.copyWith(
+                                    color: AppColors.textTertiary,
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -322,26 +337,37 @@ class _SidebarItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      child: GestureDetector(
+      child: Semantics(
+        container: true,
+        button: true,
+        selected: selected,
+        identifier: 'nav-$label',
+        label: label,
         onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.tintPurple : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 22, color: selected ? AppColors.primary : AppColors.textTertiary),
-              const SizedBox(width: 14),
-              Text(label, style: TextStyle(
-                fontFamily: 'Pretendard', fontSize: 15,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: selected ? AppColors.primary : AppColors.textSecondary,
-              )),
-            ],
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.tintPurple : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                ExcludeSemantics(
+                  child: Icon(icon, size: 22, color: selected ? AppColors.primary : AppColors.textTertiary),
+                ),
+                const SizedBox(width: 14),
+                ExcludeSemantics(
+                  child: Text(label, style: TextStyle(
+                    fontFamily: 'Pretendard', fontSize: 15,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected ? AppColors.primary : AppColors.textSecondary,
+                  )),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -359,20 +385,32 @@ class _BottomTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
+      child: Semantics(
+        container: true,
+        button: true,
+        selected: selected,
+        identifier: 'nav-$label',
+        label: label,
         onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 22, color: selected ? AppColors.primary : AppColors.textTertiary),
-            const SizedBox(height: 4),
-            Text(label, style: TextStyle(
-              fontFamily: 'Pretendard', fontSize: 11,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-              color: selected ? AppColors.primary : AppColors.textTertiary,
-            )),
-          ],
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ExcludeSemantics(
+                child: Icon(icon, size: 22, color: selected ? AppColors.primary : AppColors.textTertiary),
+              ),
+              const SizedBox(height: 4),
+              ExcludeSemantics(
+                child: Text(label, style: TextStyle(
+                  fontFamily: 'Pretendard', fontSize: 11,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                  color: selected ? AppColors.primary : AppColors.textTertiary,
+                )),
+              ),
+            ],
+          ),
         ),
       ),
     );

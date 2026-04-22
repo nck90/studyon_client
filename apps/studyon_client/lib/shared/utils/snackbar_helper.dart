@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
 
 void showStudyonSnackbar(
@@ -6,14 +7,23 @@ void showStudyonSnackbar(
   String message, {
   bool isError = false,
 }) {
+  // ignore: deprecated_member_use
+  SemanticsService.announce(
+    message,
+    Directionality.of(context),
+    assertiveness: isError ? Assertiveness.assertive : Assertiveness.polite,
+  );
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text(
-        message,
-        style: const TextStyle(
-          fontFamily: 'Pretendard',
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
+      content: Semantics(
+        liveRegion: true,
+        child: Text(
+          message,
+          style: const TextStyle(
+            fontFamily: 'Pretendard',
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
       ),
       backgroundColor: isError ? AppColors.hot : AppColors.accent,

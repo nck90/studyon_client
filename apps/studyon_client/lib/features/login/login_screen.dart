@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
+import 'package:studyon_models/studyon_models.dart';
 
 import '../../shared/services/local_storage.dart';
+import '../../shared/providers/app_providers.dart';
 import '../../shared/utils/snackbar_helper.dart';
 import '../../shared/providers/student_providers.dart';
+import '../../shared/widgets/studyon_logo.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -18,9 +21,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isAdmin = false;
   bool _isLoading = false;
   final _idController = TextEditingController();
-  final _nameController = TextEditingController();
   final _pwController = TextEditingController();
-  final _nameFocus = FocusNode();
   final _pwFocus = FocusNode();
 
   @override
@@ -38,9 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void dispose() {
     _idController.dispose();
-    _nameController.dispose();
     _pwController.dispose();
-    _nameFocus.dispose();
     _pwFocus.dispose();
     super.dispose();
   }
@@ -48,29 +47,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _login() async {
     if (_isLoading) return;
 
-    if (_isAdmin) {
-      showStudyonSnackbar(
-        context,
-        '관리자 영역 연동은 다음 단계에서 이어서 붙입니다. 현재는 학생 앱 실연동 우선입니다.',
-        isError: true,
-      );
-      return;
-    }
-
-    final studentNo = _idController.text.trim();
-    final name = _nameController.text.trim();
-    if (studentNo.isEmpty || name.isEmpty) {
-      showStudyonSnackbar(context, '학번과 이름을 입력해 주세요', isError: true);
+    final loginId = _idController.text.trim();
+    final password = _pwController.text.trim();
+    if (loginId.isEmpty || password.isEmpty) {
+      showStudyonSnackbar(context, '아이디와 비밀번호를 입력해 주세요', isError: true);
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      await ref.read(studentProvider.notifier).login(studentNo, name);
-      await LocalStorage.setLastLoginId(studentNo);
+      if (_isAdmin) {
+        await ref.read(authNotifierProvider.notifier).loginAsAdmin(
+              AdminLoginRequest(email: loginId, password: password),
+            );
+      } else {
+        await ref.read(studentProvider.notifier).login(loginId, password);
+      }
+      await LocalStorage.setLastLoginId(loginId);
       if (!mounted) return;
-      final student = ref.read(studentProvider);
-      context.go(student.isCheckedIn ? '/student/home' : '/student/checkin');
+      if (_isAdmin) {
+        context.go('/admin/dashboard');
+      } else {
+        final student = ref.read(studentProvider);
+        context.go(student.isCheckedIn ? '/student/home' : '/student/checkin');
+      }
     } catch (error) {
       if (!mounted) return;
       showStudyonSnackbar(context, '로그인에 실패했어요: $error', isError: true);
@@ -100,18 +100,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           GestureDetector(
                             onLongPress: () =>
                                 setState(() => _isAdmin = !_isAdmin),
-                            child: const TossFace('📚', size: 48),
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            '자습ON',
-                            style: TextStyle(
-                              fontFamily: 'Pretendard',
-                              fontSize: 36,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: -1.5,
-                            ),
+                            child: const StudyonLogo(scale: 0.95),
                           ),
                         ],
                       ),
@@ -122,15 +111,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       right: 0,
                       child: Column(
                         children: [
-                          Text(
-                            '실제 백엔드 연결',
-                            style: TextStyle(
-                              fontFamily: 'Pretendard',
-                              fontSize: 13,
-                              color: Colors.white.withValues(alpha: 0.5),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
                           Text(
                             _isAdmin ? '관리자 준비 중' : '학생 로그인',
                             style: TextStyle(
@@ -189,18 +169,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 GestureDetector(
                   onLongPress: () => setState(() => _isAdmin = !_isAdmin),
-                  child: const TossFace('📚', size: 48),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  '자습ON',
-                  style: TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -1,
-                  ),
+                  child: const StudyonLogo(scale: 0.9),
                 ),
               ],
             ),
@@ -224,67 +193,88 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(_isAdmin ? '관리자 로그인' : '학생 로그인', style: AppTypography.headlineLarge),
+        Semantics(
+          header: true,
+          child: Text(_isAdmin ? '관리자 로그인' : '학생 로그인', style: AppTypography.headlineLarge),
+        ),
         const SizedBox(height: 32),
         _InputField(
+          identifier: 'login-id',
           controller: _idController,
-          hint: _isAdmin ? '이메일' : '학번',
+          hint: _isAdmin ? '이메일' : '아이디',
           icon: Icons.person_outline_rounded,
           textInputAction: TextInputAction.next,
-          onSubmitted: (_) =>
-              _isAdmin ? _pwFocus.requestFocus() : _nameFocus.requestFocus(),
+          onSubmitted: (_) => _pwFocus.requestFocus(),
         ),
         const SizedBox(height: 12),
         _InputField(
-          controller: _isAdmin ? _pwController : _nameController,
-          hint: _isAdmin ? '비밀번호' : '이름',
-          icon: _isAdmin
-              ? Icons.lock_outline_rounded
-              : Icons.badge_outlined,
-          obscure: _isAdmin,
-          focusNode: _isAdmin ? _pwFocus : _nameFocus,
+          identifier: 'login-password',
+          controller: _pwController,
+          hint: '비밀번호',
+          icon: Icons.lock_outline_rounded,
+          obscure: true,
+          focusNode: _pwFocus,
           textInputAction: TextInputAction.done,
           onSubmitted: (_) => _login(),
         ),
         const SizedBox(height: 32),
-        GestureDetector(
+        Semantics(
+          container: true,
+          button: true,
+          enabled: !_isLoading,
+          identifier: 'login-submit',
+          label: _isAdmin ? '관리자 로그인' : '로그인',
           onTap: _login,
-          child: Container(
-            height: 52,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-            ),
-            child: Center(
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
+          child: GestureDetector(
+            onTap: _login,
+            child: Container(
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+              ),
+              child: Center(
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : ExcludeSemantics(
+                        child: Text(
+                          _isAdmin ? '관리자 로그인' : '로그인',
+                          style: const TextStyle(
+                            fontFamily: 'Pretendard',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    )
-                  : Text(
-                      _isAdmin ? '관리자 로그인' : '로그인',
-                      style: const TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
+              ),
             ),
           ),
         ),
         if (!_isAdmin) ...[
           const SizedBox(height: 16),
-          TextButton(
-            onPressed: () => context.push('/signup'),
-            child: Text(
-              '처음이면 회원가입',
-              style: AppTypography.titleMedium.copyWith(
-                color: AppColors.primary,
+          Semantics(
+            container: true,
+            button: true,
+            identifier: 'go-signup',
+            label: '처음이면 회원가입',
+            onTap: () => context.push('/signup'),
+            child: TextButton(
+              onPressed: () => context.push('/signup'),
+              child: ExcludeSemantics(
+                child: Text(
+                  '처음이면 회원가입',
+                  style: AppTypography.titleMedium.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
               ),
             ),
           ),
@@ -299,6 +289,7 @@ class _InputField extends StatelessWidget {
     required this.controller,
     required this.hint,
     required this.icon,
+    this.identifier,
     this.obscure = false,
     this.focusNode,
     this.textInputAction,
@@ -308,6 +299,7 @@ class _InputField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
   final IconData icon;
+  final String? identifier;
   final bool obscure;
   final FocusNode? focusNode;
   final TextInputAction? textInputAction;
@@ -315,7 +307,7 @@ class _InputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    final field = TextField(
       controller: controller,
       obscureText: obscure,
       focusNode: focusNode,
@@ -353,5 +345,7 @@ class _InputField extends StatelessWidget {
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
+    if (identifier == null) return field;
+    return Semantics(identifier: identifier, container: true, child: field);
   }
 }
