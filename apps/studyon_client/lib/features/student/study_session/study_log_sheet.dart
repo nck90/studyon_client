@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
 
+import '../../../shared/providers/student_providers.dart';
 import '../../../shared/utils/snackbar_helper.dart';
 
 class StudyLogDraft {
@@ -19,7 +21,7 @@ class StudyLogDraft {
   final String memo;
 }
 
-class StudyLogSheet extends StatefulWidget {
+class StudyLogSheet extends ConsumerStatefulWidget {
   const StudyLogSheet({super.key, this.initialSubject});
 
   final String? initialSubject;
@@ -39,12 +41,12 @@ class StudyLogSheet extends StatefulWidget {
   }
 
   @override
-  State<StudyLogSheet> createState() => _StudyLogSheetState();
+  ConsumerState<StudyLogSheet> createState() => _StudyLogSheetState();
 }
 
-class _StudyLogSheetState extends State<StudyLogSheet> {
-  static const _subjects = ['수학', '영어', '국어', '과학', '사회', '기타'];
-
+class _StudyLogSheetState extends ConsumerState<StudyLogSheet> {
+  late final Future<List<String>> _subjectsFuture;
+  List<String> _subjects = const [];
   late String _selectedSubject;
   int _pageCount = 0;
   int _problemCount = 0;
@@ -54,9 +56,9 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedSubject = _subjects.contains(widget.initialSubject)
-        ? widget.initialSubject!
-        : _subjects.first;
+    _subjectsFuture = ref.read(studentRepositoryProvider).getSubjects();
+    _selectedSubject = widget.initialSubject ?? '';
+    _bootstrapSubjects();
   }
 
   @override
@@ -78,7 +80,32 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
     showStudyonSnackbar(context, '학습 기록이 저장되었어요');
   }
 
+  Future<void> _bootstrapSubjects() async {
+    try {
+      final subjects = await _subjectsFuture;
+      if (!mounted) return;
+      setState(() {
+        _subjects = subjects.isEmpty ? const ['기타'] : subjects;
+        _selectedSubject = _subjects.contains(widget.initialSubject)
+            ? widget.initialSubject!
+            : (_selectedSubject.isNotEmpty && _subjects.contains(_selectedSubject))
+                ? _selectedSubject
+                : _subjects.first;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _subjects = const ['기타'];
+        _selectedSubject = widget.initialSubject?.trim().isNotEmpty == true
+            ? widget.initialSubject!
+            : '기타';
+      });
+      showStudyonSnackbar(context, '과목 목록을 불러오지 못해 직접 기록으로 저장할게요');
+    }
+  }
+
   Widget _buildStepper({
+    required BuildContext context,
     required String label,
     required int value,
     required VoidCallback onDecrement,
@@ -89,7 +116,8 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
         Expanded(
           child: Text(
             label,
-            style: AppTypography.bodyMedium.copyWith(color: AppColors.textSecondary),
+            style: AppTypography.bodyMedium
+                .copyWith(color: AppColors.textSub(context)),
           ),
         ),
         GestureDetector(
@@ -98,10 +126,11 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: AppColors.bg(context),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.remove_rounded, size: 18, color: AppColors.textSecondary),
+            child: Icon(Icons.remove_rounded,
+                size: 18, color: AppColors.textSub(context)),
           ),
         ),
         const SizedBox(width: 12),
@@ -110,7 +139,10 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
           child: Text(
             '$value',
             textAlign: TextAlign.center,
-            style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
+            style: AppTypography.titleLarge.copyWith(
+              fontWeight: FontWeight.w700,
+              color: AppColors.text(context),
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -120,10 +152,11 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
             width: 34,
             height: 34,
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: AppColors.bg(context),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.add_rounded, size: 18, color: AppColors.textSecondary),
+            child: Icon(Icons.add_rounded,
+                size: 18, color: AppColors.textSub(context)),
           ),
         ),
       ],
@@ -137,7 +170,7 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomInset),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(28),
       ),
       child: SingleChildScrollView(
@@ -150,51 +183,30 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.divider,
+                  color: AppColors.borderColor(context),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            Text('오늘 뭘 공부했나요?', style: AppTypography.headlineSmall),
+            Text('오늘 뭘 공부했나요?',
+                style: AppTypography.headlineSmall
+                    .copyWith(color: AppColors.text(context))),
             const SizedBox(height: 6),
             Text(
               '학습한 내용을 기록하면 성장을 추적할 수 있어요',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+              style: AppTypography.bodySmall
+                  .copyWith(color: AppColors.textTertiary),
             ),
             const SizedBox(height: 24),
-            Text('과목', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary)),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _subjects.map((subject) {
-                final isSelected = _selectedSubject == subject;
-                return GestureDetector(
-                  onTap: () => setState(() => _selectedSubject = subject),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.tintPurple : AppColors.background,
-                      borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
-                      border: Border.all(
-                        color: isSelected ? AppColors.primary : AppColors.cardBorder,
-                        width: isSelected ? 1.5 : 1,
-                      ),
-                    ),
-                    child: Text(
-                      subject,
-                      style: AppTypography.labelLarge.copyWith(
-                        color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
+            if (_subjects.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else ...[
             _buildStepper(
+              context: context,
               label: '페이지 수',
               value: _pageCount,
               onDecrement: () {
@@ -204,6 +216,7 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
             ),
             const SizedBox(height: 14),
             _buildStepper(
+              context: context,
               label: '문제 수',
               value: _problemCount,
               onDecrement: () {
@@ -212,56 +225,84 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
               onIncrement: () => setState(() => _problemCount++),
             ),
             const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: _goalCompleted ? AppColors.tintMint : AppColors.background,
-                borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-                border: Border.all(
-                  color: _goalCompleted ? AppColors.accent : AppColors.cardBorder,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.check_circle_rounded,
-                    size: 20,
-                    color: _goalCompleted ? AppColors.accent : AppColors.textTertiary,
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => setState(() => _goalCompleted = !_goalCompleted),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: _goalCompleted
+                      ? AppColors.tintMint
+                      : AppColors.bg(context),
+                  borderRadius:
+                      BorderRadius.circular(AppSpacing.inputRadius),
+                  border: Border.all(
+                    color: _goalCompleted
+                        ? AppColors.accent
+                        : AppColors.borderColor(context),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      '목표 완료했어요',
-                      style: AppTypography.titleMedium.copyWith(
-                        color: _goalCompleted ? AppColors.accent : AppColors.textSecondary,
-                        fontWeight: FontWeight.w600,
+                ),
+                child: Row(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 120),
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: _goalCompleted
+                              ? AppColors.accent
+                              : AppColors.borderColor(context),
+                          width: 1.5,
+                        ),
+                        color: _goalCompleted
+                            ? AppColors.accent
+                            : Colors.transparent,
+                      ),
+                      child: _goalCompleted
+                          ? const Icon(Icons.check_rounded,
+                              size: 16, color: Colors.white)
+                          : null,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        '목표 완료했어요',
+                        style: AppTypography.titleMedium.copyWith(
+                          color: _goalCompleted
+                              ? AppColors.accent
+                              : AppColors.text(context),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                  Switch(
-                    value: _goalCompleted,
-                    onChanged: (value) => setState(() => _goalCompleted = value),
-                    activeThumbColor: AppColors.accent,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            Text('메모 (선택)', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary)),
+            Text('메모 (선택)',
+                style: AppTypography.labelLarge
+                    .copyWith(color: AppColors.textSub(context))),
             const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
-                color: AppColors.background,
+                color: AppColors.bg(context),
                 borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
               ),
               child: TextField(
                 controller: _memoCtrl,
-                style: AppTypography.bodyMedium.copyWith(color: AppColors.textPrimary),
+                style: AppTypography.bodyMedium
+                    .copyWith(color: AppColors.text(context)),
                 decoration: InputDecoration(
                   hintText: '한 줄 메모를 남겨보세요',
-                  hintStyle: AppTypography.bodyMedium.copyWith(color: AppColors.textTertiary),
+                  hintStyle: AppTypography.bodyMedium
+                      .copyWith(color: AppColors.textTertiary),
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 14),
                 ),
               ),
             ),
@@ -271,6 +312,7 @@ class _StudyLogSheetState extends State<StudyLogSheet> {
               onPressed: _save,
               variant: StudyonButtonVariant.primary,
             ),
+            ],
           ],
         ),
       ),

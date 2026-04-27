@@ -14,10 +14,86 @@ class PlanScreen extends ConsumerStatefulWidget {
 }
 
 class _PlanScreenState extends ConsumerState<PlanScreen> {
-  static const _subjects = ['수학', '영어', '국어', '과학', '사회', '기타'];
   bool _isSaving = false;
+  DateTime _selectedDate = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    DateTime.now().day,
+  );
+  bool _loadingDate = false;
+  List<StudyPlanItem>? _datePlans;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDate(_selectedDate);
+  }
+
+  bool get _isToday {
+    final now = DateTime.now();
+    return _selectedDate.year == now.year &&
+        _selectedDate.month == now.month &&
+        _selectedDate.day == now.day;
+  }
+
+  String _dateLabel(DateTime d) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final diff = d.difference(today).inDays;
+    final weekday = const ['월', '화', '수', '목', '금', '토', '일'][d.weekday - 1];
+    final base = '${d.month}월 ${d.day}일 ($weekday)';
+    if (diff == 0) return '오늘 · $base';
+    if (diff == -1) return '어제 · $base';
+    if (diff == 1) return '내일 · $base';
+    return base;
+  }
+
+  String _toIso(DateTime d) {
+    final mm = d.month.toString().padLeft(2, '0');
+    final dd = d.day.toString().padLeft(2, '0');
+    return '${d.year}-$mm-${dd}T00:00:00.000Z';
+  }
+
+  Future<void> _loadDate(DateTime date) async {
+    setState(() {
+      _loadingDate = true;
+      _datePlans = null;
+    });
+    try {
+      if (_isToday) {
+        await ref.read(studentProvider.notifier).hydrate();
+        if (mounted) setState(() => _datePlans = null);
+      } else {
+        final iso = _toIso(date).split('T').first;
+        final plans = await ref
+            .read(studentRepositoryProvider)
+            .getPlans(date: iso);
+        if (mounted) setState(() => _datePlans = plans);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _datePlans = const []);
+    } finally {
+      if (mounted) setState(() => _loadingDate = false);
+    }
+  }
+
+  void _shiftDate(int days) {
+    final next = _selectedDate.add(Duration(days: days));
+    setState(() => _selectedDate = next);
+    _loadDate(next);
+  }
 
   Future<void> _showAddSheet({StudyPlanItem? editing}) async {
+    List<String> subjects;
+    try {
+      subjects = await ref.read(studentRepositoryProvider).getSubjects();
+    } catch (_) {
+      subjects = const ['기타'];
+      if (mounted) {
+        showStudyonSnackbar(context, '과목 목록을 불러오지 못해 기본 목록으로 열었어요');
+      }
+    }
+    if (!mounted) return;
     final item = await showModalBottomSheet<StudyPlanItem>(
       context: context,
       isScrollControlled: true,
@@ -26,7 +102,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       backgroundColor: Colors.transparent,
       builder: (_) => _PlanFormSheet(
         editing: editing,
-        subjects: _subjects,
+        subjects: subjects,
       ),
     );
 
@@ -38,9 +114,12 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
         await ref.read(studentProvider.notifier).updatePlan(item);
         if (mounted) showStudyonSnackbar(context, '계획이 수정되었어요');
       } else {
-        await ref.read(studentProvider.notifier).addPlan(item);
+        await ref
+            .read(studentProvider.notifier)
+            .addPlan(item, planDate: _toIso(_selectedDate));
         if (mounted) showStudyonSnackbar(context, '계획이 추가되었어요');
       }
+      await _loadDate(_selectedDate);
     } catch (error) {
       if (mounted) {
         showStudyonSnackbar(context, '계획 저장에 실패했어요', isError: true);
@@ -54,6 +133,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     setState(() => _isSaving = true);
     try {
       await ref.read(studentProvider.notifier).removePlan(item.id);
+      await _loadDate(_selectedDate);
       if (mounted) {
         showStudyonSnackbar(context, '계획이 삭제되었어요', isError: true);
       }
@@ -76,14 +156,16 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
             id: item.id,
             subject: item.subject,
             detail: item.detail,
-            targetHours: item.targetHours,
-            priority: item.priority,
+            targetMinutes: item.targetMinutes,
+            priorityStars: item.priorityStars,
             progress: 0.0,
+            planDate: item.planDate,
           ),
         );
       } else {
         await notifier.completePlan(item.id);
       }
+      await _loadDate(_selectedDate);
     } catch (_) {
       if (mounted) {
         showStudyonSnackbar(context, '계획 상태를 바꾸지 못했어요', isError: true);
@@ -93,55 +175,21 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     }
   }
 
-  Color _priorityColor(String p) {
-    switch (p) {
-      case '높음':
-        return AppColors.hot;
-      case '낮음':
-        return AppColors.accent;
-      default:
-        return AppColors.warm;
-    }
-  }
-
-  static Color subjectBadgeColor(String subject) {
-    switch (subject) {
-      case '수학':
-        return AppColors.tintPurple;
-      case '영어':
-        return AppColors.tintMint;
-      case '과학':
-        return AppColors.tintYellow;
-      case '국어':
-        return AppColors.tintCoral;
-      default:
-        return AppColors.background;
-    }
-  }
-
-  static Color subjectTextColor(String subject) {
-    switch (subject) {
-      case '수학':
-        return AppColors.primary;
-      case '영어':
-        return AppColors.accent;
-      case '과학':
-        return AppColors.warm;
-      case '국어':
-        return AppColors.hot;
-      default:
-        return AppColors.textSecondary;
-    }
+  Color _starColor(int stars) {
+    if (stars >= 5) return AppColors.hot;
+    if (stars >= 3) return AppColors.warm;
+    return AppColors.accent;
   }
 
   @override
   Widget build(BuildContext context) {
     final isIPad = MediaQuery.of(context).size.shortestSide >= 600;
     final hPad = isIPad ? 32.0 : 20.0;
-    final plans = ref.watch(studentProvider).plans;
+    final livePlans = ref.watch(studentProvider).plans;
+    final plans = _isToday ? livePlans : (_datePlans ?? const <StudyPlanItem>[]);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.bg(context),
       body: Stack(
         children: [
           SafeArea(
@@ -158,19 +206,24 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
+                            color: AppColors.card(context),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.arrow_back_rounded,
                             size: 20,
-                            color: AppColors.textSecondary,
+                            color: AppColors.textSub(context),
                           ),
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: Text('오늘의 학습 계획', style: AppTypography.headlineLarge),
+                        child: Text(
+                          '학습 계획',
+                          style: AppTypography.headlineLarge.copyWith(
+                            color: AppColors.text(context),
+                          ),
+                        ),
                       ),
                       StudyonButton(
                         label: '추가',
@@ -183,41 +236,71 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
-                Expanded(
-                  child: plans.isEmpty
-                      ? _EmptyState(onAdd: _isSaving ? null : () => _showAddSheet())
-                      : ListView.separated(
-                          padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 32),
-                          itemCount: plans.length,
-                          separatorBuilder: (_, index) => const SizedBox(height: 12),
-                          itemBuilder: (_, i) {
-                            final item = plans[i];
-                            return Dismissible(
-                              key: Key(item.id),
-                              direction: _isSaving
-                                  ? DismissDirection.none
-                                  : DismissDirection.endToStart,
-                              background: Container(
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.only(right: 20),
-                                decoration: BoxDecoration(
-                                  color: AppColors.hot.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: const Icon(Icons.delete_rounded, color: AppColors.hot),
-                              ),
-                              onDismissed: (_) => _delete(item),
-                              child: _PlanCard(
-                                item: item,
-                                priorityColor: _priorityColor(item.priority),
-                                onDelete: _isSaving ? null : () => _delete(item),
-                                onTap: _isSaving ? null : () => _showAddSheet(editing: item),
-                                onToggle: _isSaving ? null : () => _toggle(item),
-                              ),
-                            );
+                const SizedBox(height: 16),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: hPad),
+                  child: _DateBar(
+                    label: _dateLabel(_selectedDate),
+                    onPrev: _loadingDate ? null : () => _shiftDate(-1),
+                    onNext: _loadingDate ? null : () => _shiftDate(1),
+                    onToday: _isToday
+                        ? null
+                        : () {
+                            final now = DateTime.now();
+                            final today =
+                                DateTime(now.year, now.month, now.day);
+                            setState(() => _selectedDate = today);
+                            _loadDate(today);
                           },
-                        ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: _loadingDate
+                      ? const Center(child: CircularProgressIndicator())
+                      : (plans.isEmpty
+                          ? _EmptyState(
+                              isToday: _isToday,
+                              isFuture: _selectedDate.isAfter(DateTime.now()),
+                              onAdd: _isSaving ? null : () => _showAddSheet(),
+                            )
+                          : ListView.separated(
+                              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 32),
+                              itemCount: plans.length,
+                              separatorBuilder: (_, index) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (_, i) {
+                                final item = plans[i];
+                                return Dismissible(
+                                  key: Key(item.id),
+                                  direction: _isSaving
+                                      ? DismissDirection.none
+                                      : DismissDirection.endToStart,
+                                  background: Container(
+                                    alignment: Alignment.centerRight,
+                                    padding: const EdgeInsets.only(right: 20),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.hot.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: const Icon(Icons.delete_rounded,
+                                        color: AppColors.hot),
+                                  ),
+                                  onDismissed: (_) => _delete(item),
+                                  child: _PlanCard(
+                                    item: item,
+                                    starColor: _starColor(item.priorityStars),
+                                    onDelete:
+                                        _isSaving ? null : () => _delete(item),
+                                    onTap: _isSaving
+                                        ? null
+                                        : () => _showAddSheet(editing: item),
+                                    onToggle:
+                                        _isSaving ? null : () => _toggle(item),
+                                  ),
+                                );
+                              },
+                            )),
                 ),
               ],
             ),
@@ -226,9 +309,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
             const Positioned.fill(
               child: ColoredBox(
                 color: Color(0x33000000),
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               ),
             ),
         ],
@@ -237,17 +318,91 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   }
 }
 
+class _DateBar extends StatelessWidget {
+  const _DateBar({
+    required this.label,
+    required this.onPrev,
+    required this.onNext,
+    required this.onToday,
+  });
+
+  final String label;
+  final VoidCallback? onPrev;
+  final VoidCallback? onNext;
+  final VoidCallback? onToday;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.card(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderColor(context)),
+      ),
+      child: Row(
+        children: [
+          _NavBtn(icon: Icons.chevron_left_rounded, onTap: onPrev),
+          Expanded(
+            child: GestureDetector(
+              onTap: onToday,
+              child: Center(
+                child: Text(
+                  label,
+                  style: AppTypography.titleMedium.copyWith(
+                    color: AppColors.text(context),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          _NavBtn(icon: Icons.chevron_right_rounded, onTap: onNext),
+        ],
+      ),
+    );
+  }
+}
+
+class _NavBtn extends StatelessWidget {
+  const _NavBtn({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppColors.bg(context),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          icon,
+          size: 20,
+          color: onTap == null
+              ? AppColors.textTertiary
+              : AppColors.textSub(context),
+        ),
+      ),
+    );
+  }
+}
+
 class _PlanCard extends StatelessWidget {
   const _PlanCard({
     required this.item,
-    required this.priorityColor,
+    required this.starColor,
     required this.onDelete,
     required this.onTap,
     required this.onToggle,
   });
 
   final StudyPlanItem item;
-  final Color priorityColor;
+  final Color starColor;
   final VoidCallback? onDelete;
   final VoidCallback? onTap;
   final VoidCallback? onToggle;
@@ -259,7 +414,7 @@ class _PlanCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppColors.card(context),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -277,7 +432,7 @@ class _PlanCard extends StatelessWidget {
                       border: Border.all(
                         color: item.progress >= 1.0
                             ? AppColors.accent
-                            : AppColors.cardBorder,
+                            : AppColors.borderColor(context),
                         width: 1.5,
                       ),
                       color: item.progress >= 1.0
@@ -285,21 +440,24 @@ class _PlanCard extends StatelessWidget {
                           : Colors.transparent,
                     ),
                     child: item.progress >= 1.0
-                        ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                        ? const Icon(Icons.check_rounded,
+                            size: 13, color: Colors.white)
                         : null,
                   ),
                 ),
                 const SizedBox(width: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _PlanScreenState.subjectBadgeColor(item.subject),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                    color: AppColors.subjectTint(item.subject),
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusFull),
                   ),
                   child: Text(
                     item.subject,
                     style: AppTypography.labelSmall.copyWith(
-                      color: _PlanScreenState.subjectTextColor(item.subject),
+                      color: AppColors.subjectColor(item.subject),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -314,16 +472,16 @@ class _PlanCard extends StatelessWidget {
                           : null,
                       color: item.progress >= 1.0
                           ? AppColors.textTertiary
-                          : AppColors.textPrimary,
+                          : AppColors.text(context),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${item.targetHours}시간',
+                  item.targetLabel,
                   style: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.textSecondary,
+                    color: AppColors.textSub(context),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -338,7 +496,8 @@ class _PlanCard extends StatelessWidget {
                       color: AppColors.tintCoral,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.close_rounded, size: 16, color: AppColors.hot),
+                    child: const Icon(Icons.close_rounded,
+                        size: 16, color: AppColors.hot),
                   ),
                 ),
               ],
@@ -352,8 +511,9 @@ class _PlanCard extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: item.progress,
                       minHeight: 8,
-                      backgroundColor: AppColors.background,
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                      backgroundColor: AppColors.bg(context),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppColors.primary),
                     ),
                   ),
                 ),
@@ -361,25 +521,12 @@ class _PlanCard extends StatelessWidget {
                 Text(
                   '${(item.progress * 100).toInt()}%',
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.textSecondary,
+                    color: AppColors.textSub(context),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: priorityColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                  ),
-                  child: Text(
-                    item.priority,
-                    style: AppTypography.labelSmall.copyWith(
-                      color: priorityColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
+                _StarRow(stars: item.priorityStars, color: starColor),
               ],
             ),
           ],
@@ -389,18 +536,52 @@ class _PlanCard extends StatelessWidget {
   }
 }
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.onAdd});
+class _StarRow extends StatelessWidget {
+  const _StarRow({required this.stars, required this.color});
 
-  final VoidCallback? onAdd;
+  final int stars;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (i) {
+        final filled = i < stars;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1),
+          child: Icon(
+            filled ? Icons.star_rounded : Icons.star_outline_rounded,
+            size: 14,
+            color: filled ? color : AppColors.textTertiary,
+          ),
+        );
+      }),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState({
+    required this.onAdd,
+    required this.isToday,
+    required this.isFuture,
+  });
+
+  final VoidCallback? onAdd;
+  final bool isToday;
+  final bool isFuture;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = isToday
+        ? '오늘의 학습 계획이 없어요'
+        : (isFuture ? '아직 추가된 계획이 없어요' : '이 날에는 계획이 없었어요');
     return EmptyState(
       icon: Icons.flag_rounded,
-      message: '오늘의 학습 계획이 없어요',
-      actionLabel: '계획 추가하기',
-      onAction: onAdd,
+      message: message,
+      actionLabel: isFuture || isToday ? '계획 추가하기' : null,
+      onAction: isFuture || isToday ? onAdd : null,
     );
   }
 }
@@ -420,16 +601,34 @@ class _PlanFormSheet extends StatefulWidget {
 
 class _PlanFormSheetState extends State<_PlanFormSheet> {
   late String _subject;
-  late int _targetHours;
-  late String _priority;
+  late int _targetMinutes;
+  late int _priorityStars;
   late final TextEditingController _detailCtrl;
+
+  static const int _stepMinutes = 30;
+  static const int _maxMinutes = 12 * 60;
+
+  List<String> get _availableSubjects {
+    final items =
+        widget.subjects.where((item) => item.trim().isNotEmpty).toList();
+    if (widget.editing != null && !items.contains(widget.editing!.subject)) {
+      items.insert(0, widget.editing!.subject);
+    }
+    if (items.isEmpty) {
+      items.add('기타');
+    }
+    return items;
+  }
 
   @override
   void initState() {
     super.initState();
-    _subject = widget.editing?.subject ?? widget.subjects.first;
-    _targetHours = widget.editing?.targetHours ?? 1;
-    _priority = widget.editing?.priority ?? '보통';
+    final subjects = _availableSubjects;
+    _subject = widget.editing?.subject ?? subjects.first;
+    final minutes = widget.editing?.targetMinutes ?? 60;
+    _targetMinutes = ((minutes / _stepMinutes).round() * _stepMinutes)
+        .clamp(_stepMinutes, _maxMinutes);
+    _priorityStars = widget.editing?.priorityStars ?? 3;
     _detailCtrl = TextEditingController(text: widget.editing?.detail ?? '');
   }
 
@@ -439,6 +638,14 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
     super.dispose();
   }
 
+  String _formatMinutes(int minutes) {
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    if (h == 0) return '${m}분';
+    if (m == 0) return '${h}시간';
+    return '${h}시간 ${m}분';
+  }
+
   void _save() {
     if (_detailCtrl.text.trim().isEmpty) return;
     Navigator.of(context).pop(
@@ -446,169 +653,271 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
         id: widget.editing?.id ?? '',
         subject: _subject,
         detail: _detailCtrl.text.trim(),
-        targetHours: _targetHours,
-        priority: _priority,
+        targetMinutes: _targetMinutes,
+        priorityStars: _priorityStars,
         progress: widget.editing?.progress ?? 0.0,
+        planDate: widget.editing?.planDate ?? '',
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final subjects = _availableSubjects;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomInset),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.card(context),
         borderRadius: BorderRadius.circular(28),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.borderColor(context),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              widget.editing != null ? '계획 수정' : '계획 추가',
+              style: AppTypography.headlineSmall
+                  .copyWith(color: AppColors.text(context)),
+            ),
+            const SizedBox(height: 24),
+            Text('과목',
+                style: AppTypography.labelLarge
+                    .copyWith(color: AppColors.textSub(context))),
+            const SizedBox(height: 8),
+            Container(
               decoration: BoxDecoration(
-                color: AppColors.divider,
-                borderRadius: BorderRadius.circular(2),
+                color: AppColors.bg(context),
+                borderRadius:
+                    BorderRadius.circular(AppSpacing.inputRadius),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _subject,
+                  isExpanded: true,
+                  style: AppTypography.bodyMedium
+                      .copyWith(color: AppColors.text(context)),
+                  dropdownColor: AppColors.card(context),
+                  items: subjects
+                      .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                      .toList(),
+                  onChanged: (v) => setState(() => _subject = v!),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            widget.editing != null ? '계획 수정' : '계획 추가',
-            style: AppTypography.headlineSmall,
-          ),
-          const SizedBox(height: 24),
-          Text('과목', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary)),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: _subject,
-                isExpanded: true,
-                style: AppTypography.bodyMedium.copyWith(color: AppColors.textPrimary),
-                dropdownColor: AppColors.surface,
-                items: widget.subjects
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (v) => setState(() => _subject = v!),
+            const SizedBox(height: 16),
+            Text('내용',
+                style: AppTypography.labelLarge
+                    .copyWith(color: AppColors.textSub(context))),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.bg(context),
+                borderRadius:
+                    BorderRadius.circular(AppSpacing.inputRadius),
+              ),
+              child: TextField(
+                controller: _detailCtrl,
+                style: AppTypography.bodyMedium
+                    .copyWith(color: AppColors.text(context)),
+                decoration: InputDecoration(
+                  hintText: '학습 내용을 입력하세요',
+                  hintStyle: AppTypography.bodyMedium
+                      .copyWith(color: AppColors.textTertiary),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 14),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Text('내용', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary)),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-            ),
-            child: TextField(
-              controller: _detailCtrl,
-              style: AppTypography.bodyMedium.copyWith(color: AppColors.textPrimary),
-              decoration: InputDecoration(
-                hintText: '학습 내용을 입력하세요',
-                hintStyle: AppTypography.bodyMedium.copyWith(color: AppColors.textTertiary),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text('목표 시간', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary)),
-          const SizedBox(height: 8),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
+            const SizedBox(height: 16),
+            Row(
               children: [
-                GestureDetector(
-                  onTap: () {
-                    if (_targetHours > 1) setState(() => _targetHours--);
-                  },
-                  child: Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.cardBorder),
-                    ),
-                    child: const Icon(Icons.remove_rounded, size: 18, color: AppColors.textSecondary),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    '$_targetHours시간',
-                    textAlign: TextAlign.center,
-                    style: AppTypography.titleLarge.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => setState(() => _targetHours++),
-                  child: Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.cardBorder),
-                    ),
-                    child: const Icon(Icons.add_rounded, size: 18, color: AppColors.textSecondary),
-                  ),
-                ),
+                Text('목표 시간',
+                    style: AppTypography.labelLarge
+                        .copyWith(color: AppColors.textSub(context))),
+                const Spacer(),
+                Text('30분 단위',
+                    style: AppTypography.labelSmall
+                        .copyWith(color: AppColors.textTertiary)),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
-          Text('우선순위', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: ['높음', '보통', '낮음'].map((priority) {
-              final isSelected = _priority == priority;
-              return GestureDetector(
-                onTap: () => setState(() => _priority = priority),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.tintPurple : AppColors.background,
-                    borderRadius: BorderRadius.circular(AppSpacing.chipRadius),
-                    border: Border.all(
-                      color: isSelected ? AppColors.primary : AppColors.cardBorder,
-                      width: isSelected ? 1.5 : 1,
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.bg(context),
+                borderRadius:
+                    BorderRadius.circular(AppSpacing.inputRadius),
+              ),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 10),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      if (_targetMinutes > _stepMinutes) {
+                        setState(() => _targetMinutes -= _stepMinutes);
+                      }
+                    },
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: AppColors.card(context),
+                        borderRadius: BorderRadius.circular(10),
+                        border:
+                            Border.all(color: AppColors.borderColor(context)),
+                      ),
+                      child: Icon(Icons.remove_rounded,
+                          size: 18, color: AppColors.textSub(context)),
                     ),
                   ),
-                  child: Text(
-                    priority,
-                    style: AppTypography.labelLarge.copyWith(
-                      color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  Expanded(
+                    child: Text(
+                      _formatMinutes(_targetMinutes),
+                      textAlign: TextAlign.center,
+                      style: AppTypography.titleLarge.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.text(context)),
                     ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 28),
-          StudyonButton(
-            label: widget.editing != null ? '수정하기' : '저장',
-            onPressed: _save,
-            variant: StudyonButtonVariant.primary,
-          ),
-        ],
+                  GestureDetector(
+                    onTap: () {
+                      if (_targetMinutes < _maxMinutes) {
+                        setState(() => _targetMinutes += _stepMinutes);
+                      }
+                    },
+                    child: Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: AppColors.card(context),
+                        borderRadius: BorderRadius.circular(10),
+                        border:
+                            Border.all(color: AppColors.borderColor(context)),
+                      ),
+                      child: Icon(Icons.add_rounded,
+                          size: 18, color: AppColors.textSub(context)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 44,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: 8,
+                separatorBuilder: (_, __) => const SizedBox(width: 6),
+                itemBuilder: (_, i) {
+                  final mins = (i + 1) * _stepMinutes;
+                  final selected = mins == _targetMinutes;
+                  return GestureDetector(
+                    onTap: () => setState(() => _targetMinutes = mins),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppColors.tintPurple
+                            : AppColors.bg(context),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: selected
+                              ? AppColors.primary
+                              : Colors.transparent,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          _formatMinutes(mins),
+                          style: AppTypography.labelSmall.copyWith(
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.textSub(context),
+                            fontWeight: selected
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Text('우선순위',
+                    style: AppTypography.labelLarge
+                        .copyWith(color: AppColors.textSub(context))),
+                const Spacer(),
+                Text('별이 많을수록 우선',
+                    style: AppTypography.labelSmall
+                        .copyWith(color: AppColors.textTertiary)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.bg(context),
+                borderRadius:
+                    BorderRadius.circular(AppSpacing.inputRadius),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(5, (i) {
+                  final stars = i + 1;
+                  final filled = stars <= _priorityStars;
+                  return GestureDetector(
+                    onTap: () => setState(() => _priorityStars = stars),
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Icon(
+                        filled
+                            ? Icons.star_rounded
+                            : Icons.star_outline_rounded,
+                        size: 32,
+                        color: filled
+                            ? (_priorityStars >= 4
+                                ? AppColors.hot
+                                : (_priorityStars == 3
+                                    ? AppColors.warm
+                                    : AppColors.accent))
+                            : AppColors.textTertiary,
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+            const SizedBox(height: 28),
+            StudyonButton(
+              label: widget.editing != null ? '수정하기' : '저장',
+              onPressed: _save,
+              variant: StudyonButtonVariant.primary,
+            ),
+          ],
+        ),
       ),
     );
   }

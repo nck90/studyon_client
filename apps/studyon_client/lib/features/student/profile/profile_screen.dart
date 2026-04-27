@@ -14,8 +14,13 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  bool _notificationsEnabled = true;
   bool _darkModeEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _darkModeEnabled = ref.read(studentProvider).isDarkMode;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -188,6 +193,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildStudentCard(BuildContext context, {required bool isIPad}) {
+    final student = ref.watch(studentProvider);
+    final gradeClass = [
+      if (student.grade.isNotEmpty) student.grade,
+      if (student.className.isNotEmpty) student.className,
+    ].join(' · ');
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card(context),
@@ -240,7 +251,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '이서준',
+                        student.name,
                         style: const TextStyle(
                           fontFamily: 'Pretendard',
                           fontSize: 22,
@@ -250,7 +261,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '학번 2401 · 고3 · A반',
+                        gradeClass.isEmpty
+                            ? '학번 ${student.studentNo}'
+                            : '학번 ${student.studentNo} · $gradeClass',
                         style: TextStyle(
                           fontFamily: 'Pretendard',
                           fontSize: 13,
@@ -260,13 +273,49 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '좌석 A-12',
+                        student.seatNo.isEmpty
+                            ? '좌석 미배정'
+                            : '좌석 ${student.seatNo}',
                         style: TextStyle(
                           fontFamily: 'Pretendard',
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppColors.primary,
                         ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.tintPurple,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              'Lv.${student.level} ${student.levelName}',
+                              style: const TextStyle(
+                                fontFamily: 'Pretendard',
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${student.totalPoints}P',
+                            style: const TextStyle(
+                              fontFamily: 'Pretendard',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -300,12 +349,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildStatsSummary() {
+    final student = ref.watch(studentProvider);
+    final monthlyHours = (student.monthlyStudyMinutes / 60).toStringAsFixed(1);
+    final pointsLabel = '${student.totalPoints}P';
+
     return Row(
       children: [
         Expanded(
           child: _SummaryStatCard(
-            label: '총 학습시간',
-            value: '342h',
+            label: '이번 달',
+            value: '${monthlyHours}h',
             icon: Icons.timer_outlined,
             color: AppColors.primary,
             bgColor: AppColors.tintPurple,
@@ -314,21 +367,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         const SizedBox(width: 10),
         Expanded(
           child: _SummaryStatCard(
-            label: '출석률',
-            value: '95%',
-            icon: Icons.check_circle_outline_rounded,
+            label: '연속일',
+            value: '${student.streakDays}일',
+            icon: Icons.local_fire_department_rounded,
             color: AppColors.accent,
             bgColor: AppColors.tintMint,
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: _SummaryStatCard(
-            label: '순위',
-            value: '3위',
-            icon: Icons.leaderboard_rounded,
-            color: AppColors.warm,
-            bgColor: AppColors.tintYellow,
+          child: PressableScale(
+            onTap: () => context.push('/student/points'),
+            child: _SummaryStatCard(
+              label: '포인트',
+              value: pointsLabel,
+              icon: Icons.stars_rounded,
+              color: AppColors.warm,
+              bgColor: AppColors.tintYellow,
+            ),
           ),
         ),
       ],
@@ -336,6 +392,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildSettingsSection(BuildContext context) {
+    final student = ref.watch(studentProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -363,9 +420,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 iconBg: AppColors.tintPurple,
                 label: '알림 설정',
                 trailing: Switch.adaptive(
-                  value: _notificationsEnabled,
-                  onChanged: (v) {
-                    setState(() => _notificationsEnabled = v);
+                  value: student.notificationEnabled,
+                  onChanged: (v) async {
+                    await ref.read(studentProvider.notifier).setNotificationEnabled(v);
+                    if (!context.mounted) return;
                     showStudyonSnackbar(
                       context,
                       v ? '알림 켜짐' : '알림 꺼짐',
@@ -374,9 +432,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   activeThumbColor: Colors.white,
                   activeTrackColor: AppColors.primary,
                 ),
-                onTap: () {
-                  final newVal = !_notificationsEnabled;
-                  setState(() => _notificationsEnabled = newVal);
+                onTap: () async {
+                  final newVal = !student.notificationEnabled;
+                  await ref.read(studentProvider.notifier).setNotificationEnabled(newVal);
+                  if (!context.mounted) return;
                   showStudyonSnackbar(
                     context,
                     newVal ? '알림 켜짐' : '알림 꺼짐',
@@ -443,7 +502,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               iconBg: AppColors.tintCoral,
               label: '로그아웃',
               labelColor: AppColors.hot,
-              onTap: () => context.go('/login'),
+              onTap: () async {
+                await ref.read(studentProvider.notifier).logout();
+                if (context.mounted) context.go('/login');
+              },
               showChevron: false,
             ),
           ),
@@ -504,17 +566,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
-  static const _badges = [
-    (emoji: '🔥', label: '7일 연속', active: true),
-    (emoji: '💯', label: '첫 100시간', active: true),
-    (emoji: '🏆', label: 'TOP 3', active: true),
-    (emoji: '🎯', label: '목표 달성왕', active: true),
-    (emoji: '🌅', label: '새벽형', active: false),
-    (emoji: '🏃', label: '마라톤러', active: false),
-  ];
+  bool _hasBadge(List<String> badges, String target) {
+    final normalized = badges.map((badge) => badge.replaceAll(' ', '')).toSet();
+    return normalized.contains(target.replaceAll(' ', ''));
+  }
 
   Widget _buildBadgeCollection() {
-    final activeCount = _badges.where((b) => b.active).length;
+    final badges = ref.watch(studentProvider).badges;
+    final badgeItems = [
+      (emoji: '🔥', label: '7일 연속', active: _hasBadge(badges, '7일연속')),
+      (emoji: '💯', label: '첫 100시간', active: _hasBadge(badges, '첫100시간')),
+      (emoji: '🏆', label: 'TOP 3', active: _hasBadge(badges, 'TOP3')),
+      (emoji: '🎯', label: '목표 달성왕', active: _hasBadge(badges, '목표달성왕')),
+      (emoji: '🌅', label: '새벽형', active: _hasBadge(badges, '새벽형')),
+      (emoji: '🏃', label: '마라톤러', active: _hasBadge(badges, '마라톤러')),
+    ];
+    final activeCount = badgeItems.where((b) => b.active).length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -531,7 +598,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             const Spacer(),
             Text(
-              '$activeCount/${_badges.length}',
+              '$activeCount/${badgeItems.length}',
               style: AppTypography.labelSmall.copyWith(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w700,
@@ -547,7 +614,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
           childAspectRatio: 0.9,
-          children: _badges.map((badge) {
+          children: badgeItems.map((badge) {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -574,7 +641,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 Text(
                   badge.label,
                   style: AppTypography.labelSmall.copyWith(
-                    color: badge.active ? AppColors.textPrimary : AppColors.textTertiary,
+                    color: badge.active ? AppColors.text(context) : AppColors.textTertiary,
                     fontWeight: badge.active ? FontWeight.w700 : FontWeight.w500,
                     fontSize: 11,
                   ),
@@ -652,6 +719,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildMonthlyAchievement() {
+    final student = ref.watch(studentProvider);
+    final records = student.recentRecords;
+    final topSubject = records.isEmpty
+        ? '기록 없음'
+        : (records.toList()
+              ..sort((a, b) => b.studyMinutes.compareTo(a.studyMinutes)))
+            .first
+            .subject;
+    final monthlyHours = (student.monthlyStudyMinutes / 60).toStringAsFixed(1);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -666,7 +743,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               Text('이번 달 성과', style: AppTypography.headlineSmall),
               Text(
-                '4월',
+                '${DateTime.now().month}월',
                 style: AppTypography.labelSmall.copyWith(
                   color: AppColors.textTertiary,
                   fontWeight: FontWeight.w600,
@@ -681,8 +758,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             iconColor: AppColors.primary,
             iconBg: AppColors.tintPurple,
             title: '총 공부 시간',
-            value: '68시간',
-            subtitle: '지난 달보다 +12시간',
+            value: '$monthlyHours시간',
+            subtitle: '이번 달 누적 학습 시간',
             subtitleColor: AppColors.accent,
           ),
           const SizedBox(height: 16),
@@ -690,14 +767,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           const SizedBox(height: 16),
           // Attendance rate with mini calendar dots
           _AchievementRow(
-            icon: Icons.calendar_today_rounded,
+            icon: Icons.event_available_rounded,
             iconColor: AppColors.accent,
             iconBg: AppColors.tintMint,
-            title: '출석률',
-            value: '95%',
-            subtitle: '12일 출석 / 14일',
+            title: '오늘 상태',
+            value: student.isCheckedIn ? '입실 중' : '미입실',
+            subtitle: student.seatNo.isEmpty ? '좌석 미배정' : '좌석 ${student.seatNo}',
             subtitleColor: AppColors.textSecondary,
-            trailing: _MiniAttendanceDots(),
+            trailing: _MiniAttendanceDots(active: student.isCheckedIn),
           ),
           const SizedBox(height: 16),
           const Divider(height: 1, color: AppColors.divider),
@@ -707,9 +784,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             icon: Icons.workspace_premium_rounded,
             iconColor: AppColors.rankGold,
             iconBg: AppColors.tintYellow,
-            title: '최고 학습일',
-            value: '4월 13일',
-            subtitle: '3시간 30분',
+            title: '오늘 공부',
+            value: student.todayStudyFormatted,
+            subtitle: '최근 공부 세션 기준',
             subtitleColor: AppColors.textSecondary,
           ),
           const SizedBox(height: 16),
@@ -720,9 +797,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             icon: Icons.book_outlined,
             iconColor: AppColors.hot,
             iconBg: AppColors.tintCoral,
-            title: '가장 많이 공부한 과목',
-            value: '수학',
-            subtitle: '이번 달 총 24시간',
+            title: '레벨 · 포인트',
+            value: 'Lv.${student.level} ${student.levelName}',
+            subtitle: '$topSubject · ${student.totalPoints}P',
             subtitleColor: AppColors.textSecondary,
           ),
         ],
@@ -731,6 +808,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildStudyPattern() {
+    final student = ref.watch(studentProvider);
+    final recent = student.recentRecords.take(7).toList();
+    final averageMinutes = recent.isEmpty
+        ? 0
+        : recent.fold<int>(0, (sum, item) => sum + item.studyMinutes) ~/
+            recent.length;
+    final bestSubject = recent.isEmpty
+        ? '기록 없음'
+        : (recent.toList()
+              ..sort((a, b) => b.studyMinutes.compareTo(a.studyMinutes)))
+            .first
+            .subject;
+    final intensity = student.goalProgress >= 0.8
+        ? '${(student.goalProgress * 100).round()}%'
+        : '${(student.goalProgress * 100).round()}%';
+    final hourlyIntensities = _normalizeHourlyMinutes(student.hourlyStudyMinutes);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -752,30 +846,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _PatternCard(
             icon: Icons.access_time_rounded,
             iconColor: AppColors.primary,
-            text: '주 학습 시간대 19:00 - 22:00',
-            highlight: '19:00 - 22:00',
+            text: '최근 평균 공부 시간 $averageMinutes분',
+            highlight: '$averageMinutes분',
             highlightColor: AppColors.primary,
           ),
           const SizedBox(height: 12),
           _PatternCard(
-            icon: Icons.calendar_view_week_rounded,
+            icon: Icons.menu_book_rounded,
             iconColor: AppColors.accent,
-            text: '주말 평균 공부 시간이 더 많음',
-            highlight: '주말',
+            text: '가장 많이 공부한 과목 $bestSubject',
+            highlight: bestSubject,
             highlightColor: AppColors.accent,
           ),
           const SizedBox(height: 12),
           _PatternCard(
             icon: Icons.trending_up_rounded,
             iconColor: AppColors.rankGold,
-            text: '저녁 집중도 92%',
-            highlight: '92%',
+            text: '오늘 목표 진행률 $intensity',
+            highlight: intensity,
             highlightColor: AppColors.rankGold,
           ),
           const SizedBox(height: 20),
           // Hourly heat row
           Text(
-            '시간대별 공부 빈도',
+            '오늘 공부 시간대',
             style: AppTypography.labelSmall.copyWith(
               color: AppColors.textTertiary,
               fontWeight: FontWeight.w600,
@@ -784,10 +878,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
           const SizedBox(height: 10),
-          _HourlyHeatRow(),
+          _HourlyHeatRow(intensities: hourlyIntensities),
         ],
       ),
     );
+  }
+
+  List<int> _normalizeHourlyMinutes(List<int> minutes) {
+    final maxMinutes = minutes.fold<int>(0, (best, item) => item > best ? item : best);
+    if (maxMinutes == 0) return List<int>.filled(minutes.length, 0);
+    return minutes
+        .map((item) => item == 0 ? 0 : ((item / maxMinutes) * 4).ceil().clamp(1, 4))
+        .toList();
   }
 }
 
@@ -826,7 +928,7 @@ class _AchievementRow extends StatelessWidget {
               Text(
                 value,
                 style: AppTypography.titleLarge.copyWith(
-                  color: AppColors.textPrimary,
+                  color: AppColors.text(context),
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -848,28 +950,27 @@ class _AchievementRow extends StatelessWidget {
 }
 
 class _MiniAttendanceDots extends StatelessWidget {
+  const _MiniAttendanceDots({required this.active});
+
+  final bool active;
+
   @override
   Widget build(BuildContext context) {
-    // Show last 14 days as dots
-    final attended = {0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13};
     return Wrap(
       spacing: 4,
       runSpacing: 4,
       children: List.generate(14, (i) {
-        final isAttended = attended.contains(i);
-        final isToday = i == 13;
+        final isActiveDot = active && i >= 9;
         return Container(
           width: 8,
           height: 8,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isToday
-                ? AppColors.primary
-                : isAttended
-                    ? AppColors.primary.withValues(alpha: 0.5)
-                    : AppColors.background,
+            color: isActiveDot
+                ? AppColors.primary.withValues(alpha: 0.8)
+                : AppColors.background,
             border: Border.all(
-              color: isAttended || isToday ? Colors.transparent : AppColors.cardBorder,
+              color: isActiveDot ? Colors.transparent : AppColors.cardBorder,
             ),
           ),
         );
@@ -908,7 +1009,7 @@ class _PatternCard extends StatelessWidget {
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                style: AppTypography.bodySmall.copyWith(color: AppColors.textSub(context)),
                 children: [
                   if (parts.isNotEmpty) TextSpan(text: parts[0]),
                   TextSpan(
@@ -930,8 +1031,9 @@ class _PatternCard extends StatelessWidget {
 }
 
 class _HourlyHeatRow extends StatelessWidget {
-  // Intensity 0-4 for hours 6-23
-  static const _intensities = [0, 0, 1, 1, 2, 1, 2, 3, 4, 4, 3, 2, 0, 1, 3, 4, 4, 3];
+  const _HourlyHeatRow({required this.intensities});
+
+  final List<int> intensities;
   static const _labels = ['6', '8', '10', '12', '14', '16', '18', '20', '22'];
 
   @override
@@ -940,8 +1042,8 @@ class _HourlyHeatRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          children: List.generate(_intensities.length, (i) {
-            final intensity = _intensities[i];
+          children: List.generate(intensities.length, (i) {
+            final intensity = intensities[i];
             return Expanded(
               child: Container(
                 height: 20,
@@ -1010,7 +1112,7 @@ class _SummaryStatCard extends StatelessWidget {
           Text(
             label,
             style: AppTypography.labelSmall.copyWith(
-              color: AppColors.textSecondary,
+              color: AppColors.textSub(context),
               fontSize: 10,
             ),
             textAlign: TextAlign.center,
@@ -1058,7 +1160,7 @@ class _SettingsRow extends StatelessWidget {
                 child: Text(
                   label,
                   style: AppTypography.titleLarge.copyWith(
-                    color: labelColor ?? AppColors.textPrimary,
+                    color: labelColor ?? AppColors.text(context),
                   ),
                 ),
               ),

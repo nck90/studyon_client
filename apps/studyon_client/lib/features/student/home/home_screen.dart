@@ -25,7 +25,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     return Scaffold(
       backgroundColor: AppColors.bg(context),
       body: RefreshIndicator(
-        onRefresh: () async => Future.delayed(const Duration(milliseconds: 600)),
+        onRefresh: () => ref.read(studentProvider.notifier).hydrate(),
         color: AppColors.primary,
         child: ListView(
           padding: EdgeInsets.zero,
@@ -58,21 +58,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             Padding(
               padding: EdgeInsets.fromLTRB(pad, 20, pad, 0),
               child: isIPad
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(flex: 4, child: _GoalCard(student: student)),
-                        const SizedBox(width: 12),
-                        Expanded(flex: 4, child: _WeeklyChart()),
-                        const SizedBox(width: 12),
-                        Expanded(flex: 3, child: _RoomStatusCard()),
-                      ],
+                  ? SizedBox(
+                      height: 160,
+                      child: Row(
+                        children: [
+                          Expanded(flex: 4, child: _GoalCard(student: student)),
+                          const SizedBox(width: 12),
+                          Expanded(flex: 4, child: _WeeklyChart(student: student)),
+                          const SizedBox(width: 12),
+                          Expanded(flex: 3, child: _RoomStatusCard()),
+                        ],
+                      ),
                     )
                   : Column(
                       children: [
                         _GoalCard(student: student),
                         const SizedBox(height: 12),
-                        _WeeklyChart(),
+                        _WeeklyChart(student: student),
                         const SizedBox(height: 12),
                         _RoomStatusCard(),
                       ],
@@ -82,14 +84,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             // ── Plans + Recent ──
             Padding(
               padding: EdgeInsets.fromLTRB(pad, 24, pad, 0),
+              child: _RecommendationCard(student: student),
+            ),
+
+            Padding(
+              padding: EdgeInsets.fromLTRB(pad, 24, pad, 0),
               child: isIPad
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: _TodayPlans(student: student, onTap: () => context.push('/student/plan'))),
-                        const SizedBox(width: 12),
-                        Expanded(child: _RecentActivity(student: student)),
-                      ],
+                  ? SizedBox(
+                      height: 160,
+                      child: Row(
+                        children: [
+                          Expanded(child: _TodayPlans(student: student, onTap: () => context.push('/student/plan'))),
+                          const SizedBox(width: 12),
+                          Expanded(child: _RecentActivity(student: student)),
+                        ],
+                      ),
                     )
                   : Column(
                       children: [
@@ -102,6 +111,239 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             const SizedBox(height: 100),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RecommendationCard extends ConsumerStatefulWidget {
+  const _RecommendationCard({required this.student});
+
+  final StudentState student;
+
+  @override
+  ConsumerState<_RecommendationCard> createState() => _RecommendationCardState();
+}
+
+class _RecommendationCardState extends ConsumerState<_RecommendationCard> {
+  bool _isApplying = false;
+
+  String _riskLabel(String riskLevel) {
+    switch (riskLevel) {
+      case 'HIGH':
+        return '집중 점검';
+      case 'MEDIUM':
+        return '리듬 보정';
+      default:
+        return '안정적';
+    }
+  }
+
+  Color _riskColor(String riskLevel) {
+    switch (riskLevel) {
+      case 'HIGH':
+        return AppColors.hot;
+      case 'MEDIUM':
+        return AppColors.warm;
+      default:
+        return AppColors.accent;
+    }
+  }
+
+  String _formatMinutes(int minutes) {
+    final hours = minutes ~/ 60;
+    final remain = minutes % 60;
+    if (hours == 0) return '$remain분';
+    if (remain == 0) return '$hours시간';
+    return '$hours시간 $remain분';
+  }
+
+  Future<void> _applyRecommendation() async {
+    setState(() => _isApplying = true);
+    try {
+      await ref.read(studentProvider.notifier).applyRecommendation();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('추천 계획을 오늘 일정에 추가했어요'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.accent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('추천 계획을 불러오지 못했어요'),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.hot,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isApplying = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final recommendation = widget.student.recommendation;
+    final riskColor = _riskColor(recommendation.riskLevel);
+    // Filter to math only for math academy
+    final mathFocusSubjects = recommendation.focusSubjects.where((s) => s == '수학').toList();
+    final mathPlanTemplate = recommendation.planTemplate.where((item) => item.subject == '수학').toList();
+    final existingKeys = widget.student.plans
+        .map((plan) => '${plan.subject}|${plan.detail}')
+        .toSet();
+    final missingTemplates = mathPlanTemplate.where((item) {
+      return !existingKeys.contains('${item.subject}|${item.detail}');
+    }).toList();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.card(context),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome_rounded, size: 18, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text('오늘의 추천', style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w700)),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: riskColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  _riskLabel(recommendation.riskLevel),
+                  style: AppTypography.labelSmall.copyWith(
+                    color: riskColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            '권장 공부 시간 ${_formatMinutes(recommendation.recommendedTargetMinutes)}',
+            style: AppTypography.headlineSmall.copyWith(color: AppColors.textPrimary),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '집중 과목 수학',
+            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+          ),
+          if (mathFocusSubjects.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: mathFocusSubjects.map((subject) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    subject,
+                    style: AppTypography.labelLarge.copyWith(
+                      color: AppColors.subjectColor(subject),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+          if (mathPlanTemplate.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            ...mathPlanTemplate.take(3).map((item) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      margin: const EdgeInsets.only(top: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.subjectColor(item.subject),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.detail,
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${item.subject} · ${_formatMinutes(item.targetMinutes)}',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: StudyonButton(
+                  label: missingTemplates.isEmpty ? '추천 반영 완료' : '추천 계획 가져오기',
+                  onPressed: missingTemplates.isEmpty || _isApplying
+                      ? null
+                      : _applyRecommendation,
+                  variant: StudyonButtonVariant.primary,
+                  icon: Icons.file_download_done_rounded,
+                ),
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: () => context.push('/student/plan'),
+                child: Container(
+                  height: 48,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '직접 편집',
+                    style: AppTypography.labelLarge.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -148,6 +390,10 @@ class _HeroBanner extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context) {
+    final seatLabel = student.seatNo.isEmpty ? '좌석 미배정' : student.seatNo;
+    final displayName = student.name.isEmpty ? '학생' : '${student.name}님';
+    final rankLabel = student.todayRank > 0 ? '#${student.todayRank} 순위' : '순위 집계 중';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -155,7 +401,7 @@ class _HeroBanner extends StatelessWidget {
         // Top: seat + bell
         Row(
           children: [
-            Text(student.seatNo, style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.6))),
+            Text(seatLabel, style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.6))),
             const Spacer(),
             Semantics(
               label: '알림',
@@ -172,7 +418,7 @@ class _HeroBanner extends StatelessWidget {
         // Greeting + Name
         Text(_greeting(), style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, color: Colors.white.withValues(alpha: 0.6))),
         const SizedBox(height: 2),
-        Text('${student.name}님', style: TextStyle(fontFamily: 'Pretendard', fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.85))),
+        Text(displayName, style: TextStyle(fontFamily: 'Pretendard', fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white.withValues(alpha: 0.85))),
         const SizedBox(height: 8),
 
         // Big time
@@ -188,33 +434,39 @@ class _HeroBanner extends StatelessWidget {
             const SizedBox(width: 4),
             Text('${student.streakDays}일 연속', style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85))),
             const SizedBox(width: 20),
-            Text('#${student.todayRank} 순위', style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85), fontFeatures: const [FontFeature.tabularFigures()])),
+            Text(rankLabel, style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85), fontFeatures: const [FontFeature.tabularFigures()])),
           ],
         ),
         const SizedBox(height: 16),
 
         // CTA
         if (student.isCheckedIn)
-          Semantics(
-            label: student.todayStudySeconds > 0 ? '이어서 공부' : '공부 시작',
-            button: true,
-            child: GestureDetector(
-              onTap: () => context.push('/student/study-session'),
-              child: Container(
-                height: 44,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.play_arrow_rounded, size: 18, color: AppColors.primary),
-                    const SizedBox(width: 6),
-                    Text(student.todayStudySeconds > 0 ? '이어서 공부' : '공부 시작',
-                      style: const TextStyle(fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
-                  ],
+          Builder(
+            builder: (context) {
+              final shouldResumeLabel =
+                  student.isStudying || student.todayStudySeconds > 0;
+              return Semantics(
+                label: shouldResumeLabel ? '이어서 공부' : '공부 시작',
+                button: true,
+                child: GestureDetector(
+                  onTap: () => context.push('/student/study-session'),
+                  child: Container(
+                    height: 44,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.play_arrow_rounded, size: 18, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Text(shouldResumeLabel ? '이어서 공부' : '공부 시작',
+                          style: const TextStyle(fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
       ],
     );
@@ -290,7 +542,7 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subject = student.goalSubject.isNotEmpty ? student.goalSubject : '수학';
+    final subject = student.goalSubject.isNotEmpty ? student.goalSubject : '계획 미설정';
     final detail = student.goalDetail.isNotEmpty ? student.goalDetail : '목표를 설정해주세요';
     final progress = student.goalProgress;
 
@@ -329,18 +581,46 @@ class _GoalCard extends StatelessWidget {
 // Weekly Chart
 // ─────────────────────────────────────────────────
 class _WeeklyChart extends StatefulWidget {
-  const _WeeklyChart();
+  const _WeeklyChart({required this.student});
+  final StudentState student;
+
   @override
   State<_WeeklyChart> createState() => _WeeklyChartState();
 }
 
 class _WeeklyChartState extends State<_WeeklyChart> {
   String? _selectedDay;
-  static const _days = [('월', 3.0), ('화', 5.0), ('수', 2.5), ('목', 6.0), ('금', 4.5), ('토', 7.0), ('일', 2.2)];
+
+  List<(String, double)> _weeklyHours() {
+    final now = DateTime.now();
+    final start = now.subtract(Duration(days: now.weekday - 1));
+    final labels = const ['월', '화', '수', '목', '금', '토', '일'];
+    final dailyMinutes = <int, int>{};
+
+    for (final record in widget.student.recentRecords) {
+      final match = RegExp(r'(\d+)월 (\d+)일').firstMatch(record.date);
+      if (match == null) continue;
+      final month = int.tryParse(match.group(1)!);
+      final day = int.tryParse(match.group(2)!);
+      if (month == null || day == null) continue;
+      final date = DateTime(now.year, month, day);
+      final diff = date.difference(DateTime(start.year, start.month, start.day)).inDays;
+      if (diff < 0 || diff > 6) continue;
+      dailyMinutes.update(diff, (value) => value + record.studyMinutes, ifAbsent: () => record.studyMinutes);
+    }
+
+    return List.generate(7, (index) {
+      final hours = (dailyMinutes[index] ?? 0) / 60;
+      return (labels[index], hours);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    const maxH = 7.0;
+    final days = _weeklyHours();
+    final maxH = days.fold<double>(1.0, (maxValue, item) => item.$2 > maxValue ? item.$2 : maxValue);
+    final totalHours = days.fold<double>(0, (sum, item) => sum + item.$2);
+    final todayLabel = const ['월', '화', '수', '목', '금', '토', '일'][DateTime.now().weekday - 1];
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: AppColors.card(context), borderRadius: BorderRadius.circular(16)),
@@ -351,7 +631,7 @@ class _WeeklyChartState extends State<_WeeklyChart> {
             children: [
               const Text('이번 주', style: TextStyle(fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.3)),
               const Spacer(),
-              Text('30.2h', style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary, fontFeatures: const [FontFeature.tabularFigures()])),
+              Text('${totalHours.toStringAsFixed(1)}h', style: const TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primary, fontFeatures: [FontFeature.tabularFigures()])),
             ],
           ),
           const SizedBox(height: 16),
@@ -359,9 +639,9 @@ class _WeeklyChartState extends State<_WeeklyChart> {
             height: 80,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
-              children: _days.map((d) {
+              children: days.map((d) {
                 final (label, hours) = d;
-                final isToday = label == '토';
+                final isToday = label == todayLabel;
                 final isSel = _selectedDay == label;
                 final dimmed = _selectedDay != null && !isSel;
                 final ratio = hours / maxH;
@@ -414,28 +694,46 @@ class _WeeklyChartState extends State<_WeeklyChart> {
 // ─────────────────────────────────────────────────
 // Room Status
 // ─────────────────────────────────────────────────
-class _RoomStatusCard extends StatelessWidget {
+class _RoomStatusCard extends ConsumerWidget {
   const _RoomStatusCard();
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: AppColors.card(context), borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('자습실', style: TextStyle(fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.3)),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+      child: FutureBuilder<List<Map<String, dynamic>>>(
+        future: ref.read(studentRepositoryProvider).getSeatMap(),
+        builder: (context, snapshot) {
+          final seats = snapshot.data ?? const <Map<String, dynamic>>[];
+          final studying = seats.where((seat) => seat['uiStatus'] == 'studying').length;
+          final onBreak = seats.where((seat) => seat['uiStatus'] == 'onBreak').length;
+          final empty = seats.where((seat) => seat['uiStatus'] == 'empty').length;
+          final total = seats.length;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('18', style: TextStyle(fontFamily: 'Pretendard', fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.textPrimary, fontFeatures: [FontFeature.tabularFigures()])),
-              Text('/22', style: TextStyle(fontFamily: 'Pretendard', fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.textTertiary, fontFeatures: const [FontFeature.tabularFigures()])),
+              const Text('학원', style: TextStyle(fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textTertiary, letterSpacing: 0.3)),
+              const SizedBox(height: 12),
+              if (snapshot.connectionState == ConnectionState.waiting)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('$studying', style: const TextStyle(fontFamily: 'Pretendard', fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.textPrimary, fontFeatures: [FontFeature.tabularFigures()])),
+                    Text('/$total', style: const TextStyle(fontFamily: 'Pretendard', fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.textTertiary, fontFeatures: [FontFeature.tabularFigures()])),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text('공부 $studying · 휴식 $onBreak · 빈자리 $empty', style: const TextStyle(fontFamily: 'Pretendard', fontSize: 12, color: AppColors.textTertiary)),
+              ],
             ],
-          ),
-          const SizedBox(height: 8),
-          const Text('공부 14 · 휴식 2 · 빈자리 4', style: TextStyle(fontFamily: 'Pretendard', fontSize: 12, color: AppColors.textTertiary)),
-        ],
+          );
+        },
       ),
     );
   }
@@ -488,7 +786,7 @@ class _TodayPlans extends StatelessWidget {
                   Text(plan.subject, style: TextStyle(fontFamily: 'Pretendard', fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.subjectColor(plan.subject))),
                   const SizedBox(width: 8),
                   Expanded(child: Text(plan.detail, style: const TextStyle(fontFamily: 'Pretendard', fontSize: 13, color: AppColors.textSecondary), overflow: TextOverflow.ellipsis)),
-                  Text('${plan.targetHours}h', style: const TextStyle(fontFamily: 'Pretendard', fontSize: 12, color: AppColors.textTertiary, fontFeatures: [FontFeature.tabularFigures()])),
+                  Text(plan.targetLabel, style: const TextStyle(fontFamily: 'Pretendard', fontSize: 12, color: AppColors.textTertiary, fontFeatures: [FontFeature.tabularFigures()])),
                 ],
               ),
             )),
@@ -505,6 +803,12 @@ class _RecentActivity extends StatelessWidget {
   const _RecentActivity({required this.student});
   final StudentState student;
 
+  String _formatRecordDate(String raw) {
+    final match = RegExp(r'(\d+)월 (\d+)일').firstMatch(raw);
+    if (match == null) return raw;
+    return '${match.group(1)}/${match.group(2)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -518,11 +822,11 @@ class _RecentActivity extends StatelessWidget {
           if (student.recentRecords.isEmpty)
             Text('기록이 없어요', style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary))
           else
-            ...student.recentRecords.take(4).map((r) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+            ...student.recentRecords.take(3).map((r) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 children: [
-                  SizedBox(width: 44, child: Text(r.date.replaceAll('4월 ', '4/'), style: const TextStyle(fontFamily: 'Pretendard', fontSize: 12, color: AppColors.textTertiary))),
+                  SizedBox(width: 44, child: Text(_formatRecordDate(r.date), style: const TextStyle(fontFamily: 'Pretendard', fontSize: 12, color: AppColors.textTertiary))),
                   Text(r.subject, style: TextStyle(fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.subjectColor(r.subject))),
                   const Spacer(),
                   Text('${r.studyMinutes ~/ 60}h ${r.studyMinutes % 60}m', style: const TextStyle(fontFamily: 'Pretendard', fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontFeatures: [FontFeature.tabularFigures()])),

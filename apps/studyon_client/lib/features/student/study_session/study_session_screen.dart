@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,24 @@ import 'package:studyon_design_system/studyon_design_system.dart';
 import 'package:studyon_client/shared/providers/student_providers.dart';
 import 'package:studyon_models/studyon_models.dart';
 import 'study_log_sheet.dart';
+
+const List<String> _lifeQuotes = [
+  '오늘의 노력이 내일의 나를 만듭니다.',
+  '작은 한 걸음이 큰 변화를 만듭니다.',
+  '집중은 재능보다 강합니다.',
+  '꾸준함이 천재를 이깁니다.',
+  '지금 흘리는 땀은 미래의 자신이 고마워할 것입니다.',
+  '성공은 매일의 작은 노력이 쌓인 결과입니다.',
+  '오늘 못한 한 문제가 내일의 정답이 됩니다.',
+  '시간을 지배하는 자가 결과를 지배합니다.',
+  '쉬운 길은 익숙해지지만, 어려운 길은 강해집니다.',
+  '책상 앞 30분이 인생을 바꿉니다.',
+  '실력은 거짓말하지 않습니다.',
+  '오늘 한 페이지가 내일의 자신감입니다.',
+  '집중하는 그 순간이 가장 빠른 길입니다.',
+  '포기하지 않으면 결국 도착합니다.',
+  '어제보다 1분 더 집중하는 사람이 결국 이깁니다.',
+];
 
 class StudySessionScreen extends ConsumerStatefulWidget {
   const StudySessionScreen({super.key});
@@ -24,10 +43,11 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   bool _isStarted = false;
   bool _goalReached = false;
   bool _pomodoroNotified = false;
-  String? _selectedPlan;
+  String _selectedSubject = '수학';
   String? _selectedPlanId;
   String? _sessionId;
   bool _isSubmitting = false;
+  String _quote = '';
 
   DateTime? _startedAt;
   DateTime? _pausedAt;
@@ -39,6 +59,55 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _quote = _lifeQuotes[Random().nextInt(_lifeQuotes.length)];
+    _tryRestoreSession();
+  }
+
+  void _refreshQuote() {
+    setState(() {
+      _quote = _lifeQuotes[Random().nextInt(_lifeQuotes.length)];
+    });
+  }
+
+  Future<void> _tryRestoreSession() async {
+    try {
+      final session = await ref.read(studentRepositoryProvider).getActiveSession();
+      if (session == null || !mounted) return;
+      final plans = ref.read(studentProvider).plans;
+      String restoredSubject = _selectedSubject;
+      if (session.linkedPlanId != null) {
+        final plan = plans.firstWhere(
+          (p) => p.id == session.linkedPlanId,
+          orElse: () => StudyPlanItem(
+            id: '',
+            subject: _selectedSubject,
+            detail: '',
+          ),
+        );
+        if (plan.subject.isNotEmpty) {
+          restoredSubject = plan.subject;
+          _selectedPlanId = plan.id.isEmpty ? null : plan.id;
+        }
+      }
+      setState(() {
+        _isStarted = true;
+        _selectedSubject = restoredSubject;
+      });
+      _syncFromSession(session);
+      if (session.status == 'ACTIVE') {
+        _startedAt = DateTime.now();
+        _startTimer();
+      } else if (session.status == 'PAUSED') {
+        setState(() {
+          _isPaused = true;
+          _pausedAt = DateTime.now();
+        });
+        _startBreakTimer();
+      }
+      ref.read(studentProvider.notifier).startStudying();
+    } catch (_) {
+      // No active session — normal state
+    }
   }
 
   @override
@@ -53,12 +122,60 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     return '$h:$m:$sec';
   }
 
-  void _start() {
+  Future<void> _pickPlanAndStart() async {
     final plans = ref.read(studentProvider).plans;
-    if (_selectedPlan == null && plans.isNotEmpty) {
-      _showPlanPicker();
-      return;
+    final selection = await showModalBottomSheet<_PlanPick>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _PlanPickerSheet(
+        plans: plans,
+        currentSubject: _selectedSubject,
+      ),
+    );
+    if (selection == null || !mounted) return;
+    setState(() {
+      _selectedSubject = selection.subject;
+      _selectedPlanId = selection.planId;
+    });
+    _start();
+  }
+
+  Future<void> _changeSubject() async {
+    final plans = ref.read(studentProvider).plans;
+    final selection = await showModalBottomSheet<_PlanPick>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _PlanPickerSheet(
+        plans: plans,
+        currentSubject: _selectedSubject,
+        currentPlanId: _selectedPlanId,
+      ),
+    );
+    if (selection == null || !mounted) return;
+    setState(() {
+      _selectedSubject = selection.subject;
+      _selectedPlanId = selection.planId;
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('과목을 ${selection.subject}(으)로 바꿨어요',
+              style: const TextStyle(
+                  fontFamily: 'Pretendard', fontWeight: FontWeight.w600)),
+          backgroundColor: AppColors.accent,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.all(16),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
+  }
+
+  void _start() {
     HapticFeedback.mediumImpact();
     setState(() {
       _isStarted = true;
@@ -98,8 +215,12 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
   void _syncFromSession(StudySession session) {
     setState(() {
       _sessionId = session.id;
-      _elapsed = session.studyMinutes * 60;
-      _breakElapsed = session.breakMinutes * 60;
+      _elapsed = session.studySeconds > 0
+          ? session.studySeconds
+          : session.studyMinutes * 60;
+      _breakElapsed = session.breakSeconds > 0
+          ? session.breakSeconds
+          : session.breakMinutes * 60;
       _accumulatedBeforePause = _elapsed;
       _breakAccumulated = _breakElapsed;
     });
@@ -147,14 +268,34 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     });
   }
 
+  void _startBreakTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (_pausedAt == null) return;
+      setState(() {
+        _breakElapsed =
+            _breakAccumulated + DateTime.now().difference(_pausedAt!).inSeconds;
+      });
+    });
+  }
+
   void _showExitDialog() {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.card(ctx),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('공부를 멈출까요?', style: TextStyle(fontFamily: 'Pretendard', fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-        content: const Text('지금 나가면 이번 기록은 저장되지 않아요.', style: TextStyle(fontFamily: 'Pretendard', fontSize: 14, color: AppColors.textSecondary)),
+        title: Text('공부를 멈출까요?',
+            style: TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text(ctx))),
+        content: Text('지금 나가면 이번 기록은 저장되지 않아요.',
+            style: TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 14,
+                color: AppColors.textSub(ctx))),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -178,155 +319,6 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     );
   }
 
-  void _showPlanPicker() {
-    final plans = ref.read(studentProvider).plans;
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      enableDrag: true,
-      showDragHandle: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.flag_rounded, size: 18, color: AppColors.primary),
-                  const SizedBox(width: 8),
-                  const Text(
-                    '오늘 어떤 과목을 공부할까요?',
-                    style: TextStyle(
-                      fontFamily: 'Pretendard',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              if (plans.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(
-                    child: Text(
-                      '등록된 계획이 없어요',
-                      style: TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 14,
-                        color: AppColors.textTertiary,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                ...plans.map((plan) => GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedPlan = plan.subject;
-                          _selectedPlanId = plan.id;
-                        });
-                        Navigator.of(ctx).pop();
-                        _start();
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        margin: const EdgeInsets.only(bottom: 10),
-                        decoration: BoxDecoration(
-                          color: AppColors.background,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.divider),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.25),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                plan.subject,
-                                style: const TextStyle(
-                                  fontFamily: 'Pretendard',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                plan.detail,
-                                style: const TextStyle(
-                                  fontFamily: 'Pretendard',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.textPrimary,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Text(
-                              '${plan.targetHours}h',
-                              style: const TextStyle(
-                                fontFamily: 'Pretendard',
-                                fontSize: 13,
-                                color: AppColors.textTertiary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(ctx).pop();
-                  HapticFeedback.mediumImpact();
-                  setState(() {
-                    _selectedPlanId = null;
-                    _isStarted = true;
-                    _startedAt = DateTime.now();
-                  });
-                  ref.read(studentProvider.notifier).startStudying();
-                  _startSessionOnServer();
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      '과목 없이 시작',
-                      style: TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _pause() async {
     if (_sessionId == null || _isSubmitting) return;
     HapticFeedback.lightImpact();
@@ -338,13 +330,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
       _startedAt = null;
       _pausedAt = DateTime.now();
       setState(() => _isPaused = true);
-      _timer?.cancel();
-      _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-        setState(() {
-          _breakElapsed =
-              _breakAccumulated + DateTime.now().difference(_pausedAt!).inSeconds;
-        });
-      });
+      _startBreakTimer();
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -391,12 +377,20 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.card(ctx),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('공부를 종료할까요?', style: TextStyle(fontFamily: 'Pretendard', fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        title: Text('공부를 종료할까요?',
+            style: TextStyle(
+                fontFamily: 'Pretendard',
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.text(ctx))),
         content: Text(
           '${_fmt(_elapsed)} 동안 공부했어요.',
-          style: const TextStyle(fontFamily: 'Pretendard', fontSize: 14, color: AppColors.textSecondary),
+          style: TextStyle(
+              fontFamily: 'Pretendard',
+              fontSize: 14,
+              color: AppColors.textSub(ctx)),
         ),
         actions: [
           TextButton(
@@ -414,7 +408,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
 
     final draft = await StudyLogSheet.show(
       context,
-      initialSubject: _selectedPlan,
+      initialSubject: _selectedSubject,
     );
     if (!mounted) return;
 
@@ -423,30 +417,46 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
       _timer?.cancel();
       StudySession? session;
       if (_sessionId != null) {
-        session = await ref.read(studentRepositoryProvider).endSession(_sessionId!);
-        _syncFromSession(session);
+        try {
+          session = await ref.read(studentRepositoryProvider).endSession(_sessionId!);
+          _syncFromSession(session);
+        } catch (_) {
+          // session may already be ended; continue with log creation
+        }
       }
 
-      final subjectName =
-          draft?.subject ?? _selectedPlan ?? ref.read(studentProvider).goalSubject;
+      final subjectName = (draft?.subject.trim().isNotEmpty ?? false)
+          ? draft!.subject
+          : (_selectedSubject.trim().isNotEmpty
+              ? _selectedSubject
+              : ref.read(studentProvider).goalSubject);
 
       await ref.read(studentRepositoryProvider).createStudyLog(
             subjectName: subjectName.isEmpty ? '공부' : subjectName,
             planId: _selectedPlanId,
             studySessionId: session?.id ?? _sessionId,
+            studyMinutes: session?.studyMinutes ?? (_elapsed ~/ 60),
+            studySeconds: session?.studySeconds ?? _elapsed,
+            pagesCompleted: draft?.pageCount ?? 0,
+            problemsSolved: draft?.problemCount ?? 0,
             memo: draft?.memo,
             progressPercent: (_elapsed / _goalSeconds).clamp(0.0, 1.0),
             isCompleted: draft?.goalCompleted ?? (_elapsed >= _goalSeconds),
           );
 
+      // Multi-pass hydrate so today/recent records refresh reliably
       await ref.read(studentProvider.notifier).hydrate();
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      await ref.read(studentProvider.notifier).hydrate();
+
       ref.read(studentProvider.notifier).stopStudying();
+      _sessionId = null;
       if (mounted) context.go('/student/summary');
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('공부 종료 저장에 실패했어요'),
+            content: const Text('공부 종료 저장에 실패했어요. 다시 시도해 주세요'),
             backgroundColor: AppColors.hot,
             behavior: SnackBarBehavior.floating,
           ),
@@ -467,10 +477,44 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
 
   @override
   Widget build(BuildContext context) {
-    final student = ref.watch(studentProvider);
+    ref.watch(studentProvider);
     final isIPad = MediaQuery.of(context).size.shortestSide >= 600;
     final progress = (_elapsed / _goalSeconds).clamp(0.0, 1.0);
-    final subject = _selectedPlan ?? (student.goalSubject.isNotEmpty ? student.goalSubject : '공부');
+    final isDark = AppColors.isDark(context);
+
+    final bgGradient = isDark
+        ? const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1A1A2E), Color(0xFF12122A)],
+          )
+        : const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF7F8FB), Color(0xFFF2F3F5)],
+          );
+
+    final cardGradient = isDark
+        ? const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1F2238), Color(0xFF14172B)],
+          )
+        : const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFFFFFFF), Color(0xFFF6F7FA)],
+          );
+
+    final cardBorder =
+        isDark ? const Color(0xFF2A2D44) : const Color(0xFFE8EBF2);
+    final pillBg = isDark
+        ? Colors.white.withValues(alpha: 0.06)
+        : Colors.white.withValues(alpha: 0.78);
+    final pillBorder =
+        isDark ? Colors.white.withValues(alpha: 0.12) : const Color(0xE8E9EDF4);
+    final mutedText = isDark ? AppColors.darkTextSub : AppColors.textSecondary;
+    final headlineText = isDark ? AppColors.darkText : AppColors.textPrimary;
 
     return PopScope(
       canPop: !_isStarted,
@@ -481,13 +525,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
         body: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFFF7F8FB), Color(0xFFF2F3F5)],
-            ),
-          ),
+          decoration: BoxDecoration(gradient: bgGradient),
           child: SafeArea(
             child: Column(
               children: [
@@ -501,11 +539,15 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.78),
+                            color: pillBg,
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: const Color(0xE8E9EDF4)),
+                            border: Border.all(color: pillBorder),
                           ),
-                          child: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF555B65)),
+                          child: Icon(Icons.close_rounded,
+                              size: 20,
+                              color: isDark
+                                  ? AppColors.darkText
+                                  : const Color(0xFF555B65)),
                         ),
                       ),
                       const Spacer(),
@@ -516,11 +558,11 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.76),
+                              color: pillBg,
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
                                 color: !_isStarted
-                                    ? const Color(0xE8E9EDF4)
+                                    ? pillBorder
                                     : (_isPaused ? AppColors.warm.withValues(alpha: 0.30) : AppColors.accent.withValues(alpha: 0.22)),
                               ),
                             ),
@@ -542,7 +584,9 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                                     fontFamily: 'Pretendard',
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
-                                    color: !_isStarted ? AppColors.textTertiary : (_isPaused ? AppColors.hot : AppColors.accent),
+                                    color: !_isStarted
+                                        ? AppColors.textTertiary
+                                        : (_isPaused ? AppColors.hot : AppColors.accent),
                                   ),
                                 ),
                               ],
@@ -551,24 +595,82 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                         ),
                       ),
                       const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.76),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: const Color(0xE8E9EDF4)),
-                        ),
-                        child: Text(
-                          subject,
-                          style: const TextStyle(
-                            fontFamily: 'Pretendard',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
+                      Semantics(
+                        label: '과목 변경',
+                        button: true,
+                        child: GestureDetector(
+                          onTap: _changeSubject,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: pillBg,
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: pillBorder),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _selectedSubject,
+                                  style: TextStyle(
+                                    fontFamily: 'Pretendard',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: mutedText,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Icon(Icons.expand_more_rounded,
+                                    size: 16, color: mutedText),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ],
+                  ),
+                ),
+                // Random life quote (refresh on tap)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                      isIPad ? 32.0 : 20.0, 14, isIPad ? 32.0 : 20.0, 0),
+                  child: GestureDetector(
+                    onTap: _refreshQuote,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: pillBg,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: pillBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.format_quote_rounded,
+                              size: 18,
+                              color: isDark
+                                  ? AppColors.primaryLight
+                                  : AppColors.primary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _quote,
+                              style: TextStyle(
+                                fontFamily: 'Pretendard',
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                                color: mutedText,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                          Icon(Icons.refresh_rounded,
+                              size: 16, color: AppColors.textTertiary),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 Expanded(
@@ -578,18 +680,16 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                       margin: EdgeInsets.symmetric(horizontal: isIPad ? 32 : 20),
                       padding: EdgeInsets.fromLTRB(isIPad ? 48 : 24, 30, isIPad ? 48 : 24, 28),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFFFFFFF), Color(0xFFF6F7FA)],
-                        ),
+                        gradient: cardGradient,
                         borderRadius: BorderRadius.circular(36),
-                        border: Border.all(color: const Color(0xFFE8EBF2)),
-                        boxShadow: const [
+                        border: Border.all(color: cardBorder),
+                        boxShadow: [
                           BoxShadow(
-                            color: Color(0x0B1A1D29),
+                            color: isDark
+                                ? const Color(0x33000000)
+                                : const Color(0x0B1A1D29),
                             blurRadius: 28,
-                            offset: Offset(0, 12),
+                            offset: const Offset(0, 12),
                           ),
                         ],
                       ),
@@ -599,33 +699,41 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                           Text(
                             !_isStarted ? '공부를 시작해요' : (_isPaused ? '잠깐 쉬고 있어요' : '집중 흐름을 유지하고 있어요'),
                             style: AppTypography.headlineSmall.copyWith(
-                              color: AppColors.textPrimary,
+                              color: headlineText,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '시선이 바로 꽂히는 타이머로 정리했어요.',
-                            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                            !_isStarted
+                                ? '시작하면 과목을 골라드릴게요'
+                                : '시선이 바로 꽂히는 타이머로 정리했어요.',
+                            style: AppTypography.bodySmall
+                                .copyWith(color: mutedText),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 28),
-                          _AppleStyleTimer(value: _fmt(_elapsed), isIPad: isIPad),
+                          _AppleStyleTimer(
+                              value: _fmt(_elapsed), isIPad: isIPad, isDark: isDark),
                           const SizedBox(height: 24),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.88),
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.08)
+                                  : Colors.white.withValues(alpha: 0.88),
                               borderRadius: BorderRadius.circular(999),
-                              border: Border.all(color: const Color(0xFFE8EBF2)),
+                              border: Border.all(color: cardBorder),
                             ),
                             child: Text(
                               '${(progress * 100).toInt()}% 진행 중 · 목표 3시간',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Pretendard',
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
+                                color: isDark
+                                    ? AppColors.primaryLight
+                                    : AppColors.primary,
                               ),
                             ),
                           ),
@@ -638,7 +746,8 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                               final s = (remaining % 60).toString().padLeft(2, '0');
                               return '남은 시간 $h:$m:$s';
                             }(),
-                            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                            style: AppTypography.bodySmall
+                                .copyWith(color: mutedText),
                           ),
                           const SizedBox(height: 20),
                           ClipRRect(
@@ -646,42 +755,12 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                             child: LinearProgressIndicator(
                               value: progress,
                               minHeight: 12,
-                              backgroundColor: const Color(0xFFE9ECF4),
+                              backgroundColor: isDark
+                                  ? const Color(0xFF252849)
+                                  : const Color(0xFFE9ECF4),
                               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
                             ),
                           ),
-                          if (!_isStarted) ...[
-                            const SizedBox(height: 22),
-                            GestureDetector(
-                              onTap: _showPlanPicker,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF5F6FA),
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(color: const Color(0xFFE8EBF2)),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.flag_rounded, size: 16, color: AppColors.primary),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      _selectedPlan ?? '과목 선택',
-                                      style: TextStyle(
-                                        fontFamily: 'Pretendard',
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: _selectedPlan != null ? AppColors.textPrimary : AppColors.textSecondary,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textTertiary),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                     ),
@@ -696,11 +775,24 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                         Row(
                           children: [
                             Expanded(
-                              child: _MiniStat(label: '공부', value: _fmt(_elapsed).substring(0, 5), color: AppColors.primary),
+                              child: _MiniStat(
+                                  label: '공부',
+                                  value: _fmt(_elapsed).substring(0, 5),
+                                  color: AppColors.primary,
+                                  textColor: mutedText),
                             ),
-                            Container(width: 1, height: 32, color: AppColors.divider),
+                            Container(
+                                width: 1,
+                                height: 32,
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : AppColors.divider),
                             Expanded(
-                              child: _MiniStat(label: '휴식', value: _fmt(_breakElapsed).substring(0, 5), color: AppColors.warm),
+                              child: _MiniStat(
+                                  label: '휴식',
+                                  value: _fmt(_breakElapsed).substring(0, 5),
+                                  color: AppColors.warm,
+                                  textColor: mutedText),
                             ),
                           ],
                         ),
@@ -710,7 +802,9 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                           child: LinearProgressIndicator(
                             value: progress,
                             minHeight: 4,
-                            backgroundColor: AppColors.primarySurface,
+                            backgroundColor: isDark
+                                ? const Color(0xFF252849)
+                                : AppColors.primarySurface,
                             valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
                           ),
                         ),
@@ -723,7 +817,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                               label: '시작',
                               icon: Icons.play_arrow_rounded,
                               color: AppColors.accent,
-                              onTap: _start,
+                              onTap: _pickPlanAndStart,
                             ),
                           )
                         else
@@ -736,9 +830,15 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
                                   child: _ActionBtn(
                                     label: _isPaused ? '재개' : '휴식',
                                     icon: _isPaused ? Icons.play_arrow_rounded : Icons.pause_rounded,
-                                    color: Colors.white,
-                                    borderColor: AppColors.divider,
-                                    textColor: AppColors.textSecondary,
+                                    color: isDark
+                                        ? const Color(0xFF252849)
+                                        : Colors.white,
+                                    borderColor: isDark
+                                        ? Colors.white.withValues(alpha: 0.08)
+                                        : AppColors.divider,
+                                    textColor: isDark
+                                        ? AppColors.darkText
+                                        : AppColors.textSecondary,
                                     onTap: () {
                                       if (_isSubmitting) return;
                                       if (_isPaused) {
@@ -783,16 +883,21 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen>
 }
 
 class _MiniStat extends StatelessWidget {
-  const _MiniStat({required this.label, required this.value, required this.color});
+  const _MiniStat({
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.textColor,
+  });
   final String label;
   final String value;
   final Color color;
+  final Color textColor;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Thin colored top line accent
         Container(
           height: 2,
           width: 32,
@@ -808,7 +913,7 @@ class _MiniStat extends StatelessWidget {
         )),
         const SizedBox(height: 2),
         Text(label, style: TextStyle(
-          fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textSecondary,
+          fontFamily: 'Pretendard', fontSize: 12, fontWeight: FontWeight.w500, color: textColor,
         )),
       ],
     );
@@ -861,10 +966,12 @@ class _ActionBtn extends StatelessWidget {
 }
 
 class _AppleStyleTimer extends StatelessWidget {
-  const _AppleStyleTimer({required this.value, required this.isIPad});
+  const _AppleStyleTimer(
+      {required this.value, required this.isIPad, required this.isDark});
 
   final String value;
   final bool isIPad;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
@@ -884,12 +991,14 @@ class _AppleStyleTimer extends StatelessWidget {
                         fontFamily: 'Pretendard',
                         fontSize: isIPad ? 72 : 58,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF2A2D33),
+                        color: isDark
+                            ? AppColors.darkText
+                            : const Color(0xFF2A2D33),
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
                   )
-                : _AppleDigitCard(digit: ch, isIPad: isIPad),
+                : _AppleDigitCard(digit: ch, isIPad: isIPad, isDark: isDark),
         ],
       ),
     );
@@ -897,10 +1006,12 @@ class _AppleStyleTimer extends StatelessWidget {
 }
 
 class _AppleDigitCard extends StatelessWidget {
-  const _AppleDigitCard({required this.digit, required this.isIPad});
+  const _AppleDigitCard(
+      {required this.digit, required this.isIPad, required this.isDark});
 
   final String digit;
   final bool isIPad;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
@@ -909,14 +1020,18 @@ class _AppleDigitCard extends StatelessWidget {
       height: isIPad ? 132 : 102,
       margin: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FC),
+        color: isDark ? const Color(0xFF1F2238) : const Color(0xFFF8F9FC),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE7EAF1)),
-        boxShadow: const [
+        border: Border.all(
+          color: isDark ? const Color(0xFF2A2D44) : const Color(0xFFE7EAF1),
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A0F172A),
+            color: isDark
+                ? const Color(0x33000000)
+                : const Color(0x0A0F172A),
             blurRadius: 12,
-            offset: Offset(0, 6),
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -928,10 +1043,12 @@ class _AppleDigitCard extends StatelessWidget {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0xFFFFFFFF), Color(0xFFF6F8FC)],
+                        colors: isDark
+                            ? const [Color(0xFF24284A), Color(0xFF1A1D38)]
+                            : const [Color(0xFFFFFFFF), Color(0xFFF6F8FC)],
                       ),
                       borderRadius: BorderRadius.vertical(
                         top: Radius.circular(isIPad ? 20 : 18),
@@ -942,10 +1059,12 @@ class _AppleDigitCard extends StatelessWidget {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Color(0xFFF0F3F8), Color(0xFFE8ECF3)],
+                        colors: isDark
+                            ? const [Color(0xFF1A1D38), Color(0xFF12152C)]
+                            : const [Color(0xFFF0F3F8), Color(0xFFE8ECF3)],
                       ),
                       borderRadius: BorderRadius.vertical(
                         bottom: Radius.circular(isIPad ? 20 : 18),
@@ -960,7 +1079,11 @@ class _AppleDigitCard extends StatelessWidget {
             left: 0,
             right: 0,
             top: isIPad ? 65 : 50,
-            child: Container(height: 1, color: const Color(0xFFDDE1EA)),
+            child: Container(
+                height: 1,
+                color: isDark
+                    ? const Color(0xFF2A2D44)
+                    : const Color(0xFFDDE1EA)),
           ),
           Positioned(
             left: 14,
@@ -974,7 +1097,7 @@ class _AppleDigitCard extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.white.withValues(alpha: 0.85),
+                    Colors.white.withValues(alpha: isDark ? 0.06 : 0.85),
                     Colors.white.withValues(alpha: 0.0),
                   ],
                 ),
@@ -1000,7 +1123,9 @@ class _AppleDigitCard extends StatelessWidget {
                   fontFamily: 'Pretendard',
                   fontSize: isIPad ? 70 : 54,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF171A20),
+                  color: isDark
+                      ? AppColors.darkText
+                      : const Color(0xFF171A20),
                   height: 1,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
@@ -1008,6 +1133,231 @@ class _AppleDigitCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PlanPick {
+  const _PlanPick({required this.subject, this.planId});
+  final String subject;
+  final String? planId;
+}
+
+class _PlanPickerSheet extends StatefulWidget {
+  const _PlanPickerSheet({
+    required this.plans,
+    required this.currentSubject,
+    this.currentPlanId,
+  });
+
+  final List<StudyPlanItem> plans;
+  final String currentSubject;
+  final String? currentPlanId;
+
+  @override
+  State<_PlanPickerSheet> createState() => _PlanPickerSheetState();
+}
+
+class _PlanPickerSheetState extends State<_PlanPickerSheet> {
+  late String _subject;
+  String? _planId;
+  bool _customMode = false;
+  final TextEditingController _customCtrl = TextEditingController();
+
+  static const _fallbackSubjects = ['수학', '영어', '국어', '과학', '사회', '기타'];
+
+  @override
+  void initState() {
+    super.initState();
+    _subject = widget.currentSubject;
+    _planId = widget.currentPlanId;
+    if (_subject.isEmpty) _subject = _fallbackSubjects.first;
+  }
+
+  @override
+  void dispose() {
+    _customCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final plans = widget.plans
+        .where((p) => p.progress < 1.0)
+        .toList(); // hide already-completed plans
+    final subjectsFromPlans = {for (final p in plans) p.subject};
+    final subjects = <String>{
+      ..._fallbackSubjects,
+      ...subjectsFromPlans,
+      if (_subject.isNotEmpty) _subject,
+    }.toList();
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottomInset),
+      decoration: BoxDecoration(
+        color: AppColors.card(context),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.borderColor(context),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text('어떤 과목으로 시작할까요?',
+                style: AppTypography.headlineSmall
+                    .copyWith(color: AppColors.text(context))),
+            const SizedBox(height: 6),
+            Text('계획에 등록된 항목을 고르거나 과목을 선택해 주세요',
+                style: AppTypography.bodySmall
+                    .copyWith(color: AppColors.textTertiary)),
+            const SizedBox(height: 18),
+            if (plans.isNotEmpty) ...[
+              Text('오늘의 계획',
+                  style: AppTypography.labelLarge
+                      .copyWith(color: AppColors.textSub(context))),
+              const SizedBox(height: 8),
+              ...plans.map((p) {
+                final selected = _planId == p.id;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: GestureDetector(
+                    onTap: () => setState(() {
+                      _planId = p.id;
+                      _subject = p.subject;
+                      _customMode = false;
+                    }),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppColors.tintPurple
+                            : AppColors.bg(context),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: selected
+                              ? AppColors.primary
+                              : Colors.transparent,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.subjectTint(p.subject),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              p.subject,
+                              style: AppTypography.labelSmall.copyWith(
+                                color: AppColors.subjectColor(p.subject),
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              p.detail,
+                              style: AppTypography.bodyMedium.copyWith(
+                                color: AppColors.text(context),
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            p.targetLabel,
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.textSub(context),
+                            ),
+                          ),
+                          if (selected) ...[
+                            const SizedBox(width: 8),
+                            const Icon(Icons.check_circle_rounded,
+                                size: 18, color: AppColors.primary),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }),
+              const SizedBox(height: 12),
+            ],
+            Text('계획 없이 과목만 선택',
+                style: AppTypography.labelLarge
+                    .copyWith(color: AppColors.textSub(context))),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: subjects.map((s) {
+                final selected = _planId == null && _subject == s && !_customMode;
+                return GestureDetector(
+                  onTap: () => setState(() {
+                    _subject = s;
+                    _planId = null;
+                    _customMode = false;
+                  }),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? AppColors.subjectTint(s)
+                          : AppColors.bg(context),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: selected
+                            ? AppColors.subjectColor(s)
+                            : Colors.transparent,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      s,
+                      style: AppTypography.labelLarge.copyWith(
+                        color: selected
+                            ? AppColors.subjectColor(s)
+                            : AppColors.textSub(context),
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20),
+            StudyonButton(
+              label: '이 과목으로 시작',
+              onPressed: () {
+                Navigator.of(context).pop(
+                  _PlanPick(subject: _subject, planId: _planId),
+                );
+              },
+              variant: StudyonButtonVariant.primary,
+            ),
+          ],
+        ),
       ),
     );
   }

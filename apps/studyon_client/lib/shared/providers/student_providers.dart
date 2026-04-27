@@ -17,24 +17,37 @@ class StudyPlanItem {
   final String id;
   final String subject;
   final String detail;
-  final int targetHours;
-  final String priority;
+  final int targetMinutes;
+  final int priorityStars;
   final double progress;
+  final String planDate;
 
   const StudyPlanItem({
     required this.id,
     required this.subject,
     required this.detail,
-    this.targetHours = 3,
-    this.priority = '보통',
+    this.targetMinutes = 60,
+    this.priorityStars = 3,
     this.progress = 0.0,
+    this.planDate = '',
   });
+
+  int get targetHours => (targetMinutes / 60).ceil();
+
+  String get targetLabel {
+    final h = targetMinutes ~/ 60;
+    final m = targetMinutes % 60;
+    if (h == 0) return '${m}분';
+    if (m == 0) return '${h}시간';
+    return '${h}시간 ${m}분';
+  }
 }
 
 class StudyRecord {
   final String date;
   final String subject;
   final int studyMinutes;
+  final int studySeconds;
   final bool goalAchieved;
   final String goalDetail;
 
@@ -42,6 +55,7 @@ class StudyRecord {
     required this.date,
     required this.subject,
     required this.studyMinutes,
+    required this.studySeconds,
     required this.goalAchieved,
     required this.goalDetail,
   });
@@ -65,6 +79,32 @@ class NotificationItem {
   });
 }
 
+class RecommendedPlanItem {
+  final String subject;
+  final String detail;
+  final int targetMinutes;
+
+  const RecommendedPlanItem({
+    required this.subject,
+    required this.detail,
+    required this.targetMinutes,
+  });
+}
+
+class StudentRecommendation {
+  final int recommendedTargetMinutes;
+  final List<String> focusSubjects;
+  final List<RecommendedPlanItem> planTemplate;
+  final String riskLevel;
+
+  const StudentRecommendation({
+    this.recommendedTargetMinutes = 0,
+    this.focusSubjects = const [],
+    this.planTemplate = const [],
+    this.riskLevel = 'LOW',
+  });
+}
+
 // ── Student Session State ──
 
 class StudentState {
@@ -77,8 +117,21 @@ class StudentState {
   final DateTime? checkInTime;
   final int todayStudySeconds;
   final int todayBreakSeconds;
+  final int todayTargetMinutes;
+  final int todayAttendanceMinutes;
+  final double dailyAchievedRate;
   final int weeklyStudyMinutes;
+  final int weeklyStudySeconds;
+  final int weeklyTargetMinutes;
+  final double weeklyAchievedRate;
+  final int weeklyPagesCompleted;
+  final int weeklyProblemsSolved;
   final int monthlyStudyMinutes;
+  final int monthlyStudySeconds;
+  final int monthlyTargetMinutes;
+  final double monthlyAchievedRate;
+  final int monthlyPagesCompleted;
+  final int monthlyProblemsSolved;
   final int streakDays;
   final int todayRank;
   final double goalProgress;
@@ -90,34 +143,57 @@ class StudentState {
   final int level; // 1=초보, 2=집중러, 3=숙련자, 4=마스터
   final int totalPoints;
   final List<String> badges;
+  final bool notificationEnabled;
   final List<NotificationItem> notifications;
+  final List<int> hourlyStudyMinutes;
+  final Map<String, int> dailySubjectSeconds;
+  final StudentRecommendation recommendation;
   final bool isDarkMode;
   final bool isStudying;
 
   const StudentState({
-    this.name = '김민수',
-    this.studentNo = '2401',
-    this.grade = '고3',
-    this.className = 'A반',
-    this.seatNo = 'A-12',
+    this.name = '',
+    this.studentNo = '',
+    this.grade = '',
+    this.className = '',
+    this.seatNo = '',
     this.isCheckedIn = false,
     this.checkInTime,
     this.todayStudySeconds = 0,
     this.todayBreakSeconds = 0,
-    this.weeklyStudyMinutes = 1020,
-    this.monthlyStudyMinutes = 4080,
-    this.streakDays = 7,
-    this.todayRank = 3,
+    this.todayTargetMinutes = 0,
+    this.todayAttendanceMinutes = 0,
+    this.dailyAchievedRate = 0,
+    this.weeklyStudyMinutes = 0,
+    this.weeklyStudySeconds = 0,
+    this.weeklyTargetMinutes = 0,
+    this.weeklyAchievedRate = 0,
+    this.weeklyPagesCompleted = 0,
+    this.weeklyProblemsSolved = 0,
+    this.monthlyStudyMinutes = 0,
+    this.monthlyStudySeconds = 0,
+    this.monthlyTargetMinutes = 0,
+    this.monthlyAchievedRate = 0,
+    this.monthlyPagesCompleted = 0,
+    this.monthlyProblemsSolved = 0,
+    this.streakDays = 0,
+    this.todayRank = 0,
     this.goalProgress = 0.0,
     this.goalSubject = '',
     this.goalDetail = '',
-    this.goalHours = 3,
+    this.goalHours = 0,
     this.plans = const [],
     this.recentRecords = const [],
-    this.level = 2,
-    this.totalPoints = 1250,
+    this.level = 1,
+    this.totalPoints = 0,
     this.badges = const [],
+    this.notificationEnabled = true,
     this.notifications = const [],
+    this.hourlyStudyMinutes = const [
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ],
+    this.dailySubjectSeconds = const {},
+    this.recommendation = const StudentRecommendation(),
     this.isDarkMode = false,
     this.isStudying = false,
   });
@@ -133,8 +209,21 @@ class StudentState {
     bool clearCheckInTime = false,
     int? todayStudySeconds,
     int? todayBreakSeconds,
+    int? todayTargetMinutes,
+    int? todayAttendanceMinutes,
+    double? dailyAchievedRate,
     int? weeklyStudyMinutes,
+    int? weeklyStudySeconds,
+    int? weeklyTargetMinutes,
+    double? weeklyAchievedRate,
+    int? weeklyPagesCompleted,
+    int? weeklyProblemsSolved,
     int? monthlyStudyMinutes,
+    int? monthlyStudySeconds,
+    int? monthlyTargetMinutes,
+    double? monthlyAchievedRate,
+    int? monthlyPagesCompleted,
+    int? monthlyProblemsSolved,
     int? streakDays,
     int? todayRank,
     double? goalProgress,
@@ -146,7 +235,11 @@ class StudentState {
     int? level,
     int? totalPoints,
     List<String>? badges,
+    bool? notificationEnabled,
     List<NotificationItem>? notifications,
+    List<int>? hourlyStudyMinutes,
+    Map<String, int>? dailySubjectSeconds,
+    StudentRecommendation? recommendation,
     bool? isDarkMode,
     bool? isStudying,
   }) {
@@ -160,8 +253,26 @@ class StudentState {
       checkInTime: clearCheckInTime ? null : (checkInTime ?? this.checkInTime),
       todayStudySeconds: todayStudySeconds ?? this.todayStudySeconds,
       todayBreakSeconds: todayBreakSeconds ?? this.todayBreakSeconds,
+      todayTargetMinutes: todayTargetMinutes ?? this.todayTargetMinutes,
+      todayAttendanceMinutes:
+          todayAttendanceMinutes ?? this.todayAttendanceMinutes,
+      dailyAchievedRate: dailyAchievedRate ?? this.dailyAchievedRate,
       weeklyStudyMinutes: weeklyStudyMinutes ?? this.weeklyStudyMinutes,
+      weeklyStudySeconds: weeklyStudySeconds ?? this.weeklyStudySeconds,
+      weeklyTargetMinutes: weeklyTargetMinutes ?? this.weeklyTargetMinutes,
+      weeklyAchievedRate: weeklyAchievedRate ?? this.weeklyAchievedRate,
+      weeklyPagesCompleted:
+          weeklyPagesCompleted ?? this.weeklyPagesCompleted,
+      weeklyProblemsSolved:
+          weeklyProblemsSolved ?? this.weeklyProblemsSolved,
       monthlyStudyMinutes: monthlyStudyMinutes ?? this.monthlyStudyMinutes,
+      monthlyStudySeconds: monthlyStudySeconds ?? this.monthlyStudySeconds,
+      monthlyTargetMinutes: monthlyTargetMinutes ?? this.monthlyTargetMinutes,
+      monthlyAchievedRate: monthlyAchievedRate ?? this.monthlyAchievedRate,
+      monthlyPagesCompleted:
+          monthlyPagesCompleted ?? this.monthlyPagesCompleted,
+      monthlyProblemsSolved:
+          monthlyProblemsSolved ?? this.monthlyProblemsSolved,
       streakDays: streakDays ?? this.streakDays,
       todayRank: todayRank ?? this.todayRank,
       goalProgress: goalProgress ?? this.goalProgress,
@@ -173,7 +284,11 @@ class StudentState {
       level: level ?? this.level,
       totalPoints: totalPoints ?? this.totalPoints,
       badges: badges ?? this.badges,
+      notificationEnabled: notificationEnabled ?? this.notificationEnabled,
       notifications: notifications ?? this.notifications,
+      hourlyStudyMinutes: hourlyStudyMinutes ?? this.hourlyStudyMinutes,
+      dailySubjectSeconds: dailySubjectSeconds ?? this.dailySubjectSeconds,
+      recommendation: recommendation ?? this.recommendation,
       isDarkMode: isDarkMode ?? this.isDarkMode,
       isStudying: isStudying ?? this.isStudying,
     );
@@ -209,129 +324,43 @@ class StudentNotifier extends StateNotifier<StudentState> {
 
   final StudentRepository _repository;
 
-  static final _initialState = StudentState(
-    goalSubject: '수학',
-    goalDetail: '수1 3단원 문제풀이',
-    goalHours: 3,
-    goalProgress: 0.74,
-    plans: const [
-      StudyPlanItem(
-        id: '1',
-        subject: '수학',
-        detail: '수1 3단원 문제풀이',
-        targetHours: 3,
-        priority: '높음',
-        progress: 0.74,
-      ),
-      StudyPlanItem(
-        id: '2',
-        subject: '영어',
-        detail: '단어 100개 암기',
-        targetHours: 1,
-        priority: '보통',
-        progress: 0.0,
-      ),
-    ],
-    recentRecords: const [
-      StudyRecord(
-        date: '4월 14일',
-        subject: '수학',
-        studyMinutes: 192,
-        goalAchieved: true,
-        goalDetail: '수1 3단원',
-      ),
-      StudyRecord(
-        date: '4월 13일',
-        subject: '영어',
-        studyMinutes: 210,
-        goalAchieved: true,
-        goalDetail: '단어 암기',
-      ),
-      StudyRecord(
-        date: '4월 12일',
-        subject: '과학',
-        studyMinutes: 168,
-        goalAchieved: false,
-        goalDetail: '화학 개념',
-      ),
-      StudyRecord(
-        date: '4월 11일',
-        subject: '국어',
-        studyMinutes: 110,
-        goalAchieved: false,
-        goalDetail: '지문 분석',
-      ),
-      StudyRecord(
-        date: '4월 10일',
-        subject: '수학',
-        studyMinutes: 195,
-        goalAchieved: true,
-        goalDetail: '기출 분석',
-      ),
-    ],
-    badges: const ['7일연속', '첫100시간', 'TOP3'],
-    notifications: const [
-      NotificationItem(
-        id: '1',
-        title: '자습실 마감 안내',
-        body: '오늘 자습실 21:30에 마감됩니다',
-        type: 'announcement',
-        timeAgo: '30분 전',
-      ),
-      NotificationItem(
-        id: '2',
-        title: '좌석 재배정',
-        body: '내일 좌석 재배정이 있습니다',
-        type: 'schedule',
-        timeAgo: '2시간 전',
-      ),
-      NotificationItem(
-        id: '3',
-        title: '랭킹 축하',
-        body: '이번 주 랭킹 3위를 달성했어요',
-        type: 'ranking',
-        timeAgo: '5시간 전',
-        isRead: true,
-      ),
-      NotificationItem(
-        id: '4',
-        title: '휴식 초과',
-        body: '휴식 시간이 15분 초과되었어요',
-        type: 'warning',
-        timeAgo: '어제',
-        isRead: true,
-      ),
-    ],
-  );
+  static const _initialState = StudentState();
 
   Future<void> hydrate() async {
-    final next = await _repository.fetchState(isDarkMode: state.isDarkMode);
-    state = next;
+    try {
+      final next = await _repository.fetchState(isDarkMode: state.isDarkMode);
+      state = next;
+    } catch (_) {
+      // Keep current state if hydration fails (e.g. new user with no data)
+    }
   }
 
-  Future<void> login(String studentNo, String name) async {
-    await _repository.login(studentNo, name);
+  Future<void> login(String loginId, String password) async {
+    await _repository.login(loginId, password);
     await hydrate();
   }
 
   Future<void> signup({
+    required String loginId,
+    required String password,
     required String studentNo,
     required String name,
     String? phone,
   }) async {
-    await _repository.signup(studentNo: studentNo, name: name, phone: phone);
+    await _repository.signup(
+      loginId: loginId,
+      password: password,
+      studentNo: studentNo,
+      name: name,
+      phone: phone,
+    );
     await hydrate();
   }
 
   Future<void> logout() async {
+    final isDarkMode = state.isDarkMode;
     await _repository.logout();
-    state = state.copyWith(
-      isCheckedIn: false,
-      clearCheckInTime: true,
-      todayStudySeconds: 0,
-      todayBreakSeconds: 0,
-      isStudying: false,
-    );
+    state = StudentState(isDarkMode: isDarkMode);
   }
 
   Future<void> checkIn({String? seatId}) async {
@@ -366,12 +395,13 @@ class StudentNotifier extends StateNotifier<StudentState> {
     state = state.copyWith(goalProgress: progress.clamp(0.0, 1.0));
   }
 
-  Future<void> addPlan(StudyPlanItem plan) async {
+  Future<void> addPlan(StudyPlanItem plan, {String? planDate}) async {
     await _repository.addPlan(
       subject: plan.subject,
       detail: plan.detail,
-      targetHours: plan.targetHours,
-      priority: plan.priority,
+      targetMinutes: plan.targetMinutes,
+      priorityStars: plan.priorityStars,
+      planDate: planDate ?? plan.planDate,
     );
     await hydrate();
   }
@@ -381,8 +411,8 @@ class StudentNotifier extends StateNotifier<StudentState> {
       planId: plan.id,
       subject: plan.subject,
       detail: plan.detail,
-      targetHours: plan.targetHours,
-      priority: plan.priority,
+      targetMinutes: plan.targetMinutes,
+      priorityStars: plan.priorityStars,
     );
     await hydrate();
   }
@@ -397,6 +427,28 @@ class StudentNotifier extends StateNotifier<StudentState> {
     await hydrate();
   }
 
+  Future<void> applyRecommendation() async {
+    final templates = state.recommendation.planTemplate;
+    if (templates.isEmpty) return;
+
+    final existingKeys = state.plans
+        .map((plan) => '${plan.subject}|${plan.detail}')
+        .toSet();
+
+    for (final item in templates) {
+      final key = '${item.subject}|${item.detail}';
+      if (existingKeys.contains(key)) continue;
+      await _repository.addPlan(
+        subject: item.subject,
+        detail: item.detail,
+        targetMinutes: item.targetMinutes,
+      );
+      existingKeys.add(key);
+    }
+
+    await hydrate();
+  }
+
   void addSessionRecord(String subject, int studyMinutes, bool goalAchieved) {
     final now = DateTime.now();
     final dateStr = '${now.month}월 ${now.day}일';
@@ -404,6 +456,7 @@ class StudentNotifier extends StateNotifier<StudentState> {
       date: dateStr,
       subject: subject.isEmpty ? '공부' : subject,
       studyMinutes: studyMinutes,
+      studySeconds: studyMinutes * 60,
       goalAchieved: goalAchieved,
       goalDetail: state.goalDetail,
     );
@@ -447,6 +500,11 @@ class StudentNotifier extends StateNotifier<StudentState> {
           )
           .toList(),
     );
+  }
+
+  Future<void> setNotificationEnabled(bool value) async {
+    await _repository.updateNotificationPreference(value);
+    state = state.copyWith(notificationEnabled: value);
   }
 }
 
