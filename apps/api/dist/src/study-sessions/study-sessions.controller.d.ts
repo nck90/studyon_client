@@ -13,8 +13,8 @@ export declare class StudySessionsController {
                 status: import("@prisma/client").$Enums.StudyPlanStatus;
                 updatedAt: Date;
                 description: string | null;
-                studentId: string;
                 title: string;
+                studentId: string;
                 planDate: Date;
                 subjectName: string;
                 targetMinutes: number;
@@ -27,6 +27,7 @@ export declare class StudySessionsController {
                 startedAt: Date;
                 endedAt: Date | null;
                 breakMinutes: number;
+                breakSeconds: number;
                 studySessionId: string;
             }[];
         } & {
@@ -35,14 +36,21 @@ export declare class StudySessionsController {
             status: import("@prisma/client").$Enums.StudySessionStatus;
             updatedAt: Date;
             studentId: string;
-            startedAt: Date | null;
-            endedAt: Date | null;
             attendanceId: string | null;
             linkedPlanId: string | null;
             sessionDate: Date;
+            startedAt: Date | null;
+            endedAt: Date | null;
             studyMinutes: number;
+            studySeconds: number;
             breakMinutes: number;
+            breakSeconds: number;
             autoClosedReason: string | null;
+        } & {
+            studyMinutes: number;
+            studySeconds: number;
+            breakMinutes: number;
+            breakSeconds: number;
         }) | null;
         meta: {};
     }>;
@@ -55,28 +63,44 @@ export declare class StudySessionsController {
                 status: import("@prisma/client").$Enums.StudyPlanStatus;
                 updatedAt: Date;
                 description: string | null;
-                studentId: string;
                 title: string;
+                studentId: string;
                 planDate: Date;
                 subjectName: string;
                 targetMinutes: number;
                 priority: import("@prisma/client").$Enums.StudyPlanPriority;
                 completedAt: Date | null;
             } | null;
+            studyBreaks: {
+                id: string;
+                createdAt: Date;
+                startedAt: Date;
+                endedAt: Date | null;
+                breakMinutes: number;
+                breakSeconds: number;
+                studySessionId: string;
+            }[];
         } & {
             id: string;
             createdAt: Date;
             status: import("@prisma/client").$Enums.StudySessionStatus;
             updatedAt: Date;
             studentId: string;
-            startedAt: Date | null;
-            endedAt: Date | null;
             attendanceId: string | null;
             linkedPlanId: string | null;
             sessionDate: Date;
+            startedAt: Date | null;
+            endedAt: Date | null;
             studyMinutes: number;
+            studySeconds: number;
             breakMinutes: number;
+            breakSeconds: number;
             autoClosedReason: string | null;
+        } & {
+            studyMinutes: number;
+            studySeconds: number;
+            breakMinutes: number;
+            breakSeconds: number;
         })[];
         meta: {};
     }>;
@@ -89,85 +113,194 @@ export declare class StudySessionsController {
                 status: import("@prisma/client").$Enums.StudyPlanStatus;
                 updatedAt: Date;
                 description: string | null;
-                studentId: string;
                 title: string;
+                studentId: string;
                 planDate: Date;
                 subjectName: string;
                 targetMinutes: number;
                 priority: import("@prisma/client").$Enums.StudyPlanPriority;
                 completedAt: Date | null;
             } | null;
+            studyBreaks: {
+                id: string;
+                createdAt: Date;
+                startedAt: Date;
+                endedAt: Date | null;
+                breakMinutes: number;
+                breakSeconds: number;
+                studySessionId: string;
+            }[];
         } & {
             id: string;
             createdAt: Date;
             status: import("@prisma/client").$Enums.StudySessionStatus;
             updatedAt: Date;
             studentId: string;
-            startedAt: Date | null;
-            endedAt: Date | null;
             attendanceId: string | null;
             linkedPlanId: string | null;
             sessionDate: Date;
+            startedAt: Date | null;
+            endedAt: Date | null;
             studyMinutes: number;
+            studySeconds: number;
             breakMinutes: number;
+            breakSeconds: number;
             autoClosedReason: string | null;
+        } & {
+            studyMinutes: number;
+            studySeconds: number;
+            breakMinutes: number;
+            breakSeconds: number;
         };
         meta: {};
     }>;
     pause(user: JwtPayload, sessionId: string): Promise<{
         success: boolean;
         data: {
+            linkedPlan: {
+                id: string;
+                createdAt: Date;
+                status: import("@prisma/client").$Enums.StudyPlanStatus;
+                updatedAt: Date;
+                description: string | null;
+                title: string;
+                studentId: string;
+                planDate: Date;
+                subjectName: string;
+                targetMinutes: number;
+                priority: import("@prisma/client").$Enums.StudyPlanPriority;
+                completedAt: Date | null;
+            } | null;
+            studyBreaks: {
+                id: string;
+                createdAt: Date;
+                startedAt: Date;
+                endedAt: Date | null;
+                breakMinutes: number;
+                breakSeconds: number;
+                studySessionId: string;
+            }[];
+        } & {
             id: string;
             createdAt: Date;
             status: import("@prisma/client").$Enums.StudySessionStatus;
             updatedAt: Date;
             studentId: string;
-            startedAt: Date | null;
-            endedAt: Date | null;
             attendanceId: string | null;
             linkedPlanId: string | null;
             sessionDate: Date;
+            startedAt: Date | null;
+            endedAt: Date | null;
             studyMinutes: number;
+            studySeconds: number;
             breakMinutes: number;
+            breakSeconds: number;
             autoClosedReason: string | null;
+        } & {
+            studyMinutes: number;
+            studySeconds: number;
+            breakMinutes: number;
+            breakSeconds: number;
         };
         meta: {};
     }>;
     resume(user: JwtPayload, sessionId: string): Promise<{
         success: boolean;
         data: {
+            linkedPlan: {
+                id: string;
+                createdAt: Date;
+                status: import("@prisma/client").$Enums.StudyPlanStatus;
+                updatedAt: Date;
+                description: string | null;
+                title: string;
+                studentId: string;
+                planDate: Date;
+                subjectName: string;
+                targetMinutes: number;
+                priority: import("@prisma/client").$Enums.StudyPlanPriority;
+                completedAt: Date | null;
+            } | null;
+            studyBreaks: {
+                id: string;
+                createdAt: Date;
+                startedAt: Date;
+                endedAt: Date | null;
+                breakMinutes: number;
+                breakSeconds: number;
+                studySessionId: string;
+            }[];
+        } & {
             id: string;
             createdAt: Date;
             status: import("@prisma/client").$Enums.StudySessionStatus;
             updatedAt: Date;
             studentId: string;
-            startedAt: Date | null;
-            endedAt: Date | null;
             attendanceId: string | null;
             linkedPlanId: string | null;
             sessionDate: Date;
+            startedAt: Date | null;
+            endedAt: Date | null;
             studyMinutes: number;
+            studySeconds: number;
             breakMinutes: number;
+            breakSeconds: number;
             autoClosedReason: string | null;
+        } & {
+            studyMinutes: number;
+            studySeconds: number;
+            breakMinutes: number;
+            breakSeconds: number;
         };
         meta: {};
     }>;
     end(user: JwtPayload, sessionId: string): Promise<{
         success: boolean;
         data: {
+            linkedPlan: {
+                id: string;
+                createdAt: Date;
+                status: import("@prisma/client").$Enums.StudyPlanStatus;
+                updatedAt: Date;
+                description: string | null;
+                title: string;
+                studentId: string;
+                planDate: Date;
+                subjectName: string;
+                targetMinutes: number;
+                priority: import("@prisma/client").$Enums.StudyPlanPriority;
+                completedAt: Date | null;
+            } | null;
+            studyBreaks: {
+                id: string;
+                createdAt: Date;
+                startedAt: Date;
+                endedAt: Date | null;
+                breakMinutes: number;
+                breakSeconds: number;
+                studySessionId: string;
+            }[];
+        } & {
             id: string;
             createdAt: Date;
             status: import("@prisma/client").$Enums.StudySessionStatus;
             updatedAt: Date;
             studentId: string;
-            startedAt: Date | null;
-            endedAt: Date | null;
             attendanceId: string | null;
             linkedPlanId: string | null;
             sessionDate: Date;
+            startedAt: Date | null;
+            endedAt: Date | null;
             studyMinutes: number;
+            studySeconds: number;
             breakMinutes: number;
+            breakSeconds: number;
             autoClosedReason: string | null;
+        } & {
+            studyMinutes: number;
+            studySeconds: number;
+            breakMinutes: number;
+            breakSeconds: number;
         };
         meta: {};
     }>;

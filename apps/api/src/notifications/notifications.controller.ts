@@ -1,6 +1,10 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { UserRole } from '@prisma/client';
+import {
+  NotificationChannel,
+  NotificationType,
+  UserRole,
+} from '@prisma/client';
 import { JwtPayload } from '@/auth/types/jwt-payload.type';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
@@ -51,6 +55,22 @@ export class NotificationsController {
       body: body.body,
       targetScope: body.targetScope,
       scheduledAt: body.scheduledAt,
+    });
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
+  @Post('admin/notifications/direct')
+  direct(@Body() body: Record<string, unknown>) {
+    return this.notificationsService.sendDirectToUsers({
+      userIds: Array.isArray(body.userIds)
+        ? body.userIds.filter(
+            (item): item is string => typeof item === 'string',
+          )
+        : [],
+      notificationType: NotificationType.NOTICE,
+      channel: NotificationChannel.IN_APP,
+      title: typeof body.title === 'string' ? body.title : '',
+      body: typeof body.body === 'string' ? body.body : '',
     });
   }
 

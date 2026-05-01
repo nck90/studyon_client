@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -69,6 +70,16 @@ export class SeatsController {
   }
 
   @Roles(UserRole.ADMIN)
+  @Post('admin/seats')
+  createSeat(
+    @CurrentUser() user: JwtPayload,
+    @Body('seatNo') seatNo: string,
+    @Body('zone') zone?: string,
+  ) {
+    return this.seatsService.createSeat(seatNo, zone, user.sub);
+  }
+
+  @Roles(UserRole.ADMIN)
   @Patch('admin/seats/:seatId')
   updateSeat(
     @CurrentUser() user: JwtPayload,
@@ -104,6 +115,12 @@ export class SeatsController {
   @Post('admin/seats/:seatId/unlock')
   unlock(@CurrentUser() user: JwtPayload, @Param('seatId') seatId: string) {
     return this.seatsService.lock(seatId, false, user.sub);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Delete('admin/seats/:seatId')
+  deleteSeat(@CurrentUser() user: JwtPayload, @Param('seatId') seatId: string) {
+    return this.seatsService.deleteSeat(seatId, user.sub);
   }
 
   @Roles(UserRole.ADMIN)

@@ -7,21 +7,39 @@ export declare class StudyLogsController {
     constructor(studyLogsService: StudyLogsService);
     list(user: JwtPayload, date?: string, startDate?: string, endDate?: string): Promise<{
         success: boolean;
-        data: {
+        data: ({
+            studySession: {
+                id: string;
+                status: import("@prisma/client").$Enums.StudySessionStatus;
+                startedAt: Date | null;
+                endedAt: Date | null;
+                studyMinutes: number;
+                studySeconds: number;
+                breakMinutes: number;
+                breakSeconds: number;
+            } | null;
+            plan: {
+                id: string;
+                title: string;
+                targetMinutes: number;
+            } | null;
+        } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             memo: string | null;
             studentId: string;
-            subjectName: string;
+            studyMinutes: number;
+            studySeconds: number;
             studySessionId: string | null;
-            planId: string | null;
-            logDate: Date;
+            subjectName: string;
             pagesCompleted: number;
             problemsSolved: number;
+            planId: string | null;
+            logDate: Date;
             progressPercent: import("@prisma/client/runtime/library").Decimal;
             isCompleted: boolean;
-        }[];
+        })[];
         meta: {};
     }>;
     create(user: JwtPayload, dto: CreateStudyLogDto): Promise<{
@@ -32,12 +50,14 @@ export declare class StudyLogsController {
             updatedAt: Date;
             memo: string | null;
             studentId: string;
-            subjectName: string;
+            studyMinutes: number;
+            studySeconds: number;
             studySessionId: string | null;
-            planId: string | null;
-            logDate: Date;
+            subjectName: string;
             pagesCompleted: number;
             problemsSolved: number;
+            planId: string | null;
+            logDate: Date;
             progressPercent: import("@prisma/client/runtime/library").Decimal;
             isCompleted: boolean;
         };
@@ -51,12 +71,14 @@ export declare class StudyLogsController {
             updatedAt: Date;
             memo: string | null;
             studentId: string;
-            subjectName: string;
+            studyMinutes: number;
+            studySeconds: number;
             studySessionId: string | null;
-            planId: string | null;
-            logDate: Date;
+            subjectName: string;
             pagesCompleted: number;
             problemsSolved: number;
+            planId: string | null;
+            logDate: Date;
             progressPercent: import("@prisma/client/runtime/library").Decimal;
             isCompleted: boolean;
         };

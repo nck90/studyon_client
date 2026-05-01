@@ -57,7 +57,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
             const SizedBox(height: 20),
             GestureDetector(
-              onTap: () {
+              onTap: () async {
+                final title = titleCtrl.text.trim();
+                final body = bodyCtrl.text.trim();
+                if (title.isEmpty || body.isEmpty) return;
+                await ref.read(adminRepositoryProvider).sendNotification(
+                      title: title,
+                      body: body,
+                    );
+                ref.invalidate(adminNotificationsProvider);
+                if (!context.mounted) return;
                 Navigator.pop(ctx);
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: const Text('공지가 전송되었어요',

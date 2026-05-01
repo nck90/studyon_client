@@ -72,6 +72,27 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
   }
 
+  Future<void> loginAsAdmin(AdminLoginRequest request) async {
+    final response = await authApi.adminLogin(request);
+    await tokenStorage.saveTokens(
+      accessToken: response['accessToken'] as String,
+      refreshToken: response['refreshToken'] as String,
+      sessionId: response['sessionId'] as String,
+      role: (response['user'] as Map<String, dynamic>)['role'] as String? ??
+          'admin',
+    );
+    final user = response['user'] as Map<String, dynamic>? ?? const {};
+    state = AuthState(
+      status: AuthStatus.authenticated,
+      accessToken: response['accessToken'] as String,
+      user: UserSummary(
+        id: user['id'] as String? ?? '',
+        role: user['role'] as String? ?? 'ADMIN',
+        name: user['name'] as String? ?? '',
+      ),
+    );
+  }
+
   Future<void> logout() async {
     try {
       final sessionId = await tokenStorage.sessionId;

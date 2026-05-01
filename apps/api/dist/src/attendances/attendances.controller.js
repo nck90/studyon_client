@@ -39,8 +39,8 @@ let AttendancesController = class AttendancesController {
     checkOut(user, dto) {
         return this.attendancesService.checkOut(user.studentId, dto.forceCloseStudySession);
     }
-    listAdmin(date, classId, groupId, attendanceStatus) {
-        return this.attendancesService.listAdmin(date, classId, groupId, attendanceStatus);
+    listAdmin(date, startDate, endDate, classId, groupId, attendanceStatus) {
+        return this.attendancesService.listAdmin(date, startDate, endDate, classId, groupId, attendanceStatus);
     }
     getAdmin(attendanceId) {
         return this.attendancesService.getAdmin(attendanceId);
@@ -93,11 +93,13 @@ __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
     (0, common_1.Get)('admin/attendances'),
     __param(0, (0, common_1.Query)('date')),
-    __param(1, (0, common_1.Query)('classId')),
-    __param(2, (0, common_1.Query)('groupId')),
-    __param(3, (0, common_1.Query)('attendanceStatus')),
+    __param(1, (0, common_1.Query)('startDate')),
+    __param(2, (0, common_1.Query)('endDate')),
+    __param(3, (0, common_1.Query)('classId')),
+    __param(4, (0, common_1.Query)('groupId')),
+    __param(5, (0, common_1.Query)('attendanceStatus')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], AttendancesController.prototype, "listAdmin", null);
 __decorate([

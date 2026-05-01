@@ -31,6 +31,11 @@ export declare class StudentsController {
                 id: string;
                 title: string;
             }[];
+            streakDays: number;
+            community: {
+                checkedInStudentCount: number;
+                totalActiveStudents: number;
+            };
             student: {
                 id: string;
                 name: string;
@@ -43,6 +48,18 @@ export declare class StudentsController {
     profile(user: JwtPayload): Promise<{
         success: boolean;
         data: {
+            preferences: {
+                notificationEnabled: boolean;
+            };
+            profileStats: {
+                totalStudySeconds: number;
+                totalStudyMinutes: number;
+                totalPoints: number;
+                level: number;
+                completedPlansCount: number;
+                badgeCount: number;
+                streakDays: number;
+            };
             grade: {
                 id: string;
                 name: string;
@@ -83,19 +100,21 @@ export declare class StudentsController {
                 currentStudentId: string | null;
                 updatedAt: Date;
             } | null;
-        } & {
             id: string;
             createdAt: Date;
             gradeId: string | null;
             classId: string | null;
             updatedAt: Date;
             userId: string;
+            passwordHash: string;
             studentNo: string;
+            loginId: string;
             groupId: string | null;
             assignedSeatId: string | null;
             enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
             joinedAt: Date | null;
             memo: string | null;
+            pointBalance: number;
         };
         meta: {};
     }>;
@@ -120,6 +139,22 @@ export declare class StudentsController {
             awardedAt: Date;
             reason: string | null;
         })[];
+        meta: {};
+    }>;
+    preferences(user: JwtPayload): Promise<{
+        success: boolean;
+        data: {
+            notificationEnabled: boolean;
+        };
+        meta: {};
+    }>;
+    updatePreferences(user: JwtPayload, body: {
+        notificationEnabled?: boolean;
+    }): Promise<{
+        success: boolean;
+        data: {
+            notificationEnabled: boolean;
+        };
         meta: {};
     }>;
 }

@@ -36,6 +36,8 @@ const badges_module_1 = require("./badges/badges.module");
 const common_module_1 = require("./common/common.module");
 const metrics_module_1 = require("./metrics/metrics.module");
 const parent_module_1 = require("./parent/parent.module");
+const points_module_1 = require("./points/points.module");
+const characters_module_1 = require("./characters/characters.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -88,6 +90,8 @@ exports.AppModule = AppModule = __decorate([
             display_module_1.DisplayModule,
             insights_module_1.InsightsModule,
             parent_module_1.ParentModule,
+            points_module_1.PointsModule,
+            characters_module_1.CharactersModule,
             admin_module_1.AdminModule,
         ],
     })

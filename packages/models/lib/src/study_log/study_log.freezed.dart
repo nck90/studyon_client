@@ -27,6 +27,8 @@ mixin _$StudyLog {
   String get subjectName => throw _privateConstructorUsedError;
   String? get planId => throw _privateConstructorUsedError;
   String? get studySessionId => throw _privateConstructorUsedError;
+  int get studyMinutes => throw _privateConstructorUsedError;
+  int get studySeconds => throw _privateConstructorUsedError;
   int get pagesCompleted => throw _privateConstructorUsedError;
   int get problemsSolved => throw _privateConstructorUsedError;
   double get progressPercent => throw _privateConstructorUsedError;
@@ -55,6 +57,8 @@ abstract class $StudyLogCopyWith<$Res> {
     String subjectName,
     String? planId,
     String? studySessionId,
+    int studyMinutes,
+    int studySeconds,
     int pagesCompleted,
     int problemsSolved,
     double progressPercent,
@@ -84,6 +88,8 @@ class _$StudyLogCopyWithImpl<$Res, $Val extends StudyLog>
     Object? subjectName = null,
     Object? planId = freezed,
     Object? studySessionId = freezed,
+    Object? studyMinutes = null,
+    Object? studySeconds = null,
     Object? pagesCompleted = null,
     Object? problemsSolved = null,
     Object? progressPercent = null,
@@ -116,6 +122,14 @@ class _$StudyLogCopyWithImpl<$Res, $Val extends StudyLog>
                 ? _value.studySessionId
                 : studySessionId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            studyMinutes: null == studyMinutes
+                ? _value.studyMinutes
+                : studyMinutes // ignore: cast_nullable_to_non_nullable
+                      as int,
+            studySeconds: null == studySeconds
+                ? _value.studySeconds
+                : studySeconds // ignore: cast_nullable_to_non_nullable
+                      as int,
             pagesCompleted: null == pagesCompleted
                 ? _value.pagesCompleted
                 : pagesCompleted // ignore: cast_nullable_to_non_nullable
@@ -158,6 +172,8 @@ abstract class _$$StudyLogImplCopyWith<$Res>
     String subjectName,
     String? planId,
     String? studySessionId,
+    int studyMinutes,
+    int studySeconds,
     int pagesCompleted,
     int problemsSolved,
     double progressPercent,
@@ -186,6 +202,8 @@ class __$$StudyLogImplCopyWithImpl<$Res>
     Object? subjectName = null,
     Object? planId = freezed,
     Object? studySessionId = freezed,
+    Object? studyMinutes = null,
+    Object? studySeconds = null,
     Object? pagesCompleted = null,
     Object? problemsSolved = null,
     Object? progressPercent = null,
@@ -218,6 +236,14 @@ class __$$StudyLogImplCopyWithImpl<$Res>
             ? _value.studySessionId
             : studySessionId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        studyMinutes: null == studyMinutes
+            ? _value.studyMinutes
+            : studyMinutes // ignore: cast_nullable_to_non_nullable
+                  as int,
+        studySeconds: null == studySeconds
+            ? _value.studySeconds
+            : studySeconds // ignore: cast_nullable_to_non_nullable
+                  as int,
         pagesCompleted: null == pagesCompleted
             ? _value.pagesCompleted
             : pagesCompleted // ignore: cast_nullable_to_non_nullable
@@ -253,6 +279,8 @@ class _$StudyLogImpl extends _StudyLog {
     required this.subjectName,
     this.planId,
     this.studySessionId,
+    this.studyMinutes = 0,
+    this.studySeconds = 0,
     this.pagesCompleted = 0,
     this.problemsSolved = 0,
     this.progressPercent = 0,
@@ -277,6 +305,12 @@ class _$StudyLogImpl extends _StudyLog {
   final String? studySessionId;
   @override
   @JsonKey()
+  final int studyMinutes;
+  @override
+  @JsonKey()
+  final int studySeconds;
+  @override
+  @JsonKey()
   final int pagesCompleted;
   @override
   @JsonKey()
@@ -292,7 +326,7 @@ class _$StudyLogImpl extends _StudyLog {
 
   @override
   String toString() {
-    return 'StudyLog(id: $id, studentId: $studentId, logDate: $logDate, subjectName: $subjectName, planId: $planId, studySessionId: $studySessionId, pagesCompleted: $pagesCompleted, problemsSolved: $problemsSolved, progressPercent: $progressPercent, isCompleted: $isCompleted, memo: $memo)';
+    return 'StudyLog(id: $id, studentId: $studentId, logDate: $logDate, subjectName: $subjectName, planId: $planId, studySessionId: $studySessionId, studyMinutes: $studyMinutes, studySeconds: $studySeconds, pagesCompleted: $pagesCompleted, problemsSolved: $problemsSolved, progressPercent: $progressPercent, isCompleted: $isCompleted, memo: $memo)';
   }
 
   @override
@@ -309,6 +343,10 @@ class _$StudyLogImpl extends _StudyLog {
             (identical(other.planId, planId) || other.planId == planId) &&
             (identical(other.studySessionId, studySessionId) ||
                 other.studySessionId == studySessionId) &&
+            (identical(other.studyMinutes, studyMinutes) ||
+                other.studyMinutes == studyMinutes) &&
+            (identical(other.studySeconds, studySeconds) ||
+                other.studySeconds == studySeconds) &&
             (identical(other.pagesCompleted, pagesCompleted) ||
                 other.pagesCompleted == pagesCompleted) &&
             (identical(other.problemsSolved, problemsSolved) ||
@@ -330,6 +368,8 @@ class _$StudyLogImpl extends _StudyLog {
     subjectName,
     planId,
     studySessionId,
+    studyMinutes,
+    studySeconds,
     pagesCompleted,
     problemsSolved,
     progressPercent,
@@ -359,6 +399,8 @@ abstract class _StudyLog extends StudyLog {
     required final String subjectName,
     final String? planId,
     final String? studySessionId,
+    final int studyMinutes,
+    final int studySeconds,
     final int pagesCompleted,
     final int problemsSolved,
     final double progressPercent,
@@ -382,6 +424,10 @@ abstract class _StudyLog extends StudyLog {
   String? get planId;
   @override
   String? get studySessionId;
+  @override
+  int get studyMinutes;
+  @override
+  int get studySeconds;
   @override
   int get pagesCompleted;
   @override
@@ -413,6 +459,8 @@ mixin _$CreateStudyLogRequest {
   String get subjectName => throw _privateConstructorUsedError;
   String? get planId => throw _privateConstructorUsedError;
   String? get studySessionId => throw _privateConstructorUsedError;
+  int get studyMinutes => throw _privateConstructorUsedError;
+  int get studySeconds => throw _privateConstructorUsedError;
   int get pagesCompleted => throw _privateConstructorUsedError;
   int get problemsSolved => throw _privateConstructorUsedError;
   double get progressPercent => throw _privateConstructorUsedError;
@@ -441,6 +489,8 @@ abstract class $CreateStudyLogRequestCopyWith<$Res> {
     String subjectName,
     String? planId,
     String? studySessionId,
+    int studyMinutes,
+    int studySeconds,
     int pagesCompleted,
     int problemsSolved,
     double progressPercent,
@@ -471,6 +521,8 @@ class _$CreateStudyLogRequestCopyWithImpl<
     Object? subjectName = null,
     Object? planId = freezed,
     Object? studySessionId = freezed,
+    Object? studyMinutes = null,
+    Object? studySeconds = null,
     Object? pagesCompleted = null,
     Object? problemsSolved = null,
     Object? progressPercent = null,
@@ -495,6 +547,14 @@ class _$CreateStudyLogRequestCopyWithImpl<
                 ? _value.studySessionId
                 : studySessionId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            studyMinutes: null == studyMinutes
+                ? _value.studyMinutes
+                : studyMinutes // ignore: cast_nullable_to_non_nullable
+                      as int,
+            studySeconds: null == studySeconds
+                ? _value.studySeconds
+                : studySeconds // ignore: cast_nullable_to_non_nullable
+                      as int,
             pagesCompleted: null == pagesCompleted
                 ? _value.pagesCompleted
                 : pagesCompleted // ignore: cast_nullable_to_non_nullable
@@ -535,6 +595,8 @@ abstract class _$$CreateStudyLogRequestImplCopyWith<$Res>
     String subjectName,
     String? planId,
     String? studySessionId,
+    int studyMinutes,
+    int studySeconds,
     int pagesCompleted,
     int problemsSolved,
     double progressPercent,
@@ -562,6 +624,8 @@ class __$$CreateStudyLogRequestImplCopyWithImpl<$Res>
     Object? subjectName = null,
     Object? planId = freezed,
     Object? studySessionId = freezed,
+    Object? studyMinutes = null,
+    Object? studySeconds = null,
     Object? pagesCompleted = null,
     Object? problemsSolved = null,
     Object? progressPercent = null,
@@ -586,6 +650,14 @@ class __$$CreateStudyLogRequestImplCopyWithImpl<$Res>
             ? _value.studySessionId
             : studySessionId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        studyMinutes: null == studyMinutes
+            ? _value.studyMinutes
+            : studyMinutes // ignore: cast_nullable_to_non_nullable
+                  as int,
+        studySeconds: null == studySeconds
+            ? _value.studySeconds
+            : studySeconds // ignore: cast_nullable_to_non_nullable
+                  as int,
         pagesCompleted: null == pagesCompleted
             ? _value.pagesCompleted
             : pagesCompleted // ignore: cast_nullable_to_non_nullable
@@ -619,6 +691,8 @@ class _$CreateStudyLogRequestImpl extends _CreateStudyLogRequest {
     required this.subjectName,
     this.planId,
     this.studySessionId,
+    this.studyMinutes = 0,
+    this.studySeconds = 0,
     this.pagesCompleted = 0,
     this.problemsSolved = 0,
     this.progressPercent = 0,
@@ -639,6 +713,12 @@ class _$CreateStudyLogRequestImpl extends _CreateStudyLogRequest {
   final String? studySessionId;
   @override
   @JsonKey()
+  final int studyMinutes;
+  @override
+  @JsonKey()
+  final int studySeconds;
+  @override
+  @JsonKey()
   final int pagesCompleted;
   @override
   @JsonKey()
@@ -654,7 +734,7 @@ class _$CreateStudyLogRequestImpl extends _CreateStudyLogRequest {
 
   @override
   String toString() {
-    return 'CreateStudyLogRequest(logDate: $logDate, subjectName: $subjectName, planId: $planId, studySessionId: $studySessionId, pagesCompleted: $pagesCompleted, problemsSolved: $problemsSolved, progressPercent: $progressPercent, isCompleted: $isCompleted, memo: $memo)';
+    return 'CreateStudyLogRequest(logDate: $logDate, subjectName: $subjectName, planId: $planId, studySessionId: $studySessionId, studyMinutes: $studyMinutes, studySeconds: $studySeconds, pagesCompleted: $pagesCompleted, problemsSolved: $problemsSolved, progressPercent: $progressPercent, isCompleted: $isCompleted, memo: $memo)';
   }
 
   @override
@@ -668,6 +748,10 @@ class _$CreateStudyLogRequestImpl extends _CreateStudyLogRequest {
             (identical(other.planId, planId) || other.planId == planId) &&
             (identical(other.studySessionId, studySessionId) ||
                 other.studySessionId == studySessionId) &&
+            (identical(other.studyMinutes, studyMinutes) ||
+                other.studyMinutes == studyMinutes) &&
+            (identical(other.studySeconds, studySeconds) ||
+                other.studySeconds == studySeconds) &&
             (identical(other.pagesCompleted, pagesCompleted) ||
                 other.pagesCompleted == pagesCompleted) &&
             (identical(other.problemsSolved, problemsSolved) ||
@@ -687,6 +771,8 @@ class _$CreateStudyLogRequestImpl extends _CreateStudyLogRequest {
     subjectName,
     planId,
     studySessionId,
+    studyMinutes,
+    studySeconds,
     pagesCompleted,
     problemsSolved,
     progressPercent,
@@ -718,6 +804,8 @@ abstract class _CreateStudyLogRequest extends CreateStudyLogRequest {
     required final String subjectName,
     final String? planId,
     final String? studySessionId,
+    final int studyMinutes,
+    final int studySeconds,
     final int pagesCompleted,
     final int problemsSolved,
     final double progressPercent,
@@ -737,6 +825,10 @@ abstract class _CreateStudyLogRequest extends CreateStudyLogRequest {
   String? get planId;
   @override
   String? get studySessionId;
+  @override
+  int get studyMinutes;
+  @override
+  int get studySeconds;
   @override
   int get pagesCompleted;
   @override

@@ -8,6 +8,7 @@ import 'package:studyon_design_system/studyon_design_system.dart';
 import '../../shared/providers/app_providers.dart';
 import '../../shared/providers/student_providers.dart';
 import '../../shared/services/local_storage.dart';
+import '../../shared/widgets/studyon_logo.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -55,7 +56,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     final role = authState.user?.role.toUpperCase();
     if (role == 'STUDENT') {
-      await ref.read(studentProvider.notifier).hydrate();
+      try {
+        await ref.read(studentProvider.notifier).hydrate();
+      } catch (_) {
+        // New user with no data — proceed with default state
+      }
       if (!mounted) return;
       final student = ref.read(studentProvider);
       context.go(student.isCheckedIn ? '/student/home' : '/student/checkin');
@@ -83,19 +88,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           child: Column(
             children: [
               const Spacer(flex: 3),
-              TossFace('📚', size: isIPad ? 64 : 48),
-              const SizedBox(height: 28),
-              Text(
-                '자습ON',
-                style: TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: isIPad ? 48 : 42,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -1.5,
-                  height: 1.1,
-                ),
-              ),
+              StudyonLogo(scale: isIPad ? 1.2 : 1),
               const SizedBox(height: 12),
               Text(
                 '자습실 관리 시스템',

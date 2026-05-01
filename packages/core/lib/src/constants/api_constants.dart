@@ -31,7 +31,14 @@ abstract final class ApiConstants {
   static const String studentRankings = '/student/rankings';
   static const String studentBadges = '/student/badges';
   static const String studentProfile = '/student/profile';
+  static const String studentPreferences = '/student/preferences';
   static const String studentNotifications = '/student/notifications';
+  static const String studentPoints = '/student/points';
+  static const String studentPointsHistory = '/student/points/history';
+  static const String studentCharacter = '/student/character';
+  static const String studentCharacterShop = '/student/character/shop';
+  static const String studentCharacterItems = '/student/character/items';
+  static const String studentCharacterEquip = '/student/character/equip';
 
   // Admin
   static const String adminDashboard = '/admin/dashboard';

@@ -53,7 +53,7 @@ export class AdminController {
     });
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
   @Post('admin/students')
   createStudent(
     @CurrentUser() user: JwtPayload,
@@ -76,7 +76,7 @@ export class AdminController {
     return this.adminService.getStudent(studentId);
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
   @Patch('admin/students/:studentId')
   patchStudent(
     @CurrentUser() user: JwtPayload,
@@ -86,7 +86,7 @@ export class AdminController {
     return this.adminService.updateStudent(studentId, body, user.sub);
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
   @Delete('admin/students/:studentId')
   deleteStudent(
     @CurrentUser() user: JwtPayload,
@@ -112,6 +112,22 @@ export class AdminController {
   }
 
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
+  @Get('admin/study-overview/subjects')
+  studyOverviewSubjects(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('classId') classId?: string,
+    @Query('groupId') groupId?: string,
+  ) {
+    return this.adminService.getStudyOverviewSubjects(
+      startDate,
+      endDate,
+      classId,
+      groupId,
+    );
+  }
+
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
   @Get('admin/students/:studentId/study-summary')
   studentStudySummary(@Param('studentId') studentId: string) {
     return this.adminService.studentStudySummary(studentId);
@@ -129,7 +145,7 @@ export class AdminController {
     return this.adminService.grades();
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
   @Post('admin/grades')
   createGrade(@CurrentUser() user: JwtPayload, @Body('name') name: string) {
     return this.adminService.createGrade(name, user.sub);
@@ -141,7 +157,7 @@ export class AdminController {
     return this.adminService.classes();
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
   @Post('admin/classes')
   createClass(
     @CurrentUser() user: JwtPayload,
@@ -157,7 +173,7 @@ export class AdminController {
     return this.adminService.groups();
   }
 
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
   @Post('admin/groups')
   createGroup(
     @CurrentUser() user: JwtPayload,

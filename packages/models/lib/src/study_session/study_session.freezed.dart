@@ -28,7 +28,9 @@ mixin _$StudySession {
   String? get startedAt => throw _privateConstructorUsedError;
   String? get endedAt => throw _privateConstructorUsedError;
   int get studyMinutes => throw _privateConstructorUsedError;
+  int get studySeconds => throw _privateConstructorUsedError;
   int get breakMinutes => throw _privateConstructorUsedError;
+  int get breakSeconds => throw _privateConstructorUsedError;
 
   /// Serializes this StudySession to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -55,7 +57,9 @@ abstract class $StudySessionCopyWith<$Res> {
     String? startedAt,
     String? endedAt,
     int studyMinutes,
+    int studySeconds,
     int breakMinutes,
+    int breakSeconds,
   });
 }
 
@@ -81,7 +85,9 @@ class _$StudySessionCopyWithImpl<$Res, $Val extends StudySession>
     Object? startedAt = freezed,
     Object? endedAt = freezed,
     Object? studyMinutes = null,
+    Object? studySeconds = null,
     Object? breakMinutes = null,
+    Object? breakSeconds = null,
   }) {
     return _then(
       _value.copyWith(
@@ -113,9 +119,17 @@ class _$StudySessionCopyWithImpl<$Res, $Val extends StudySession>
                 ? _value.studyMinutes
                 : studyMinutes // ignore: cast_nullable_to_non_nullable
                       as int,
+            studySeconds: null == studySeconds
+                ? _value.studySeconds
+                : studySeconds // ignore: cast_nullable_to_non_nullable
+                      as int,
             breakMinutes: null == breakMinutes
                 ? _value.breakMinutes
                 : breakMinutes // ignore: cast_nullable_to_non_nullable
+                      as int,
+            breakSeconds: null == breakSeconds
+                ? _value.breakSeconds
+                : breakSeconds // ignore: cast_nullable_to_non_nullable
                       as int,
           )
           as $Val,
@@ -140,7 +154,9 @@ abstract class _$$StudySessionImplCopyWith<$Res>
     String? startedAt,
     String? endedAt,
     int studyMinutes,
+    int studySeconds,
     int breakMinutes,
+    int breakSeconds,
   });
 }
 
@@ -165,7 +181,9 @@ class __$$StudySessionImplCopyWithImpl<$Res>
     Object? startedAt = freezed,
     Object? endedAt = freezed,
     Object? studyMinutes = null,
+    Object? studySeconds = null,
     Object? breakMinutes = null,
+    Object? breakSeconds = null,
   }) {
     return _then(
       _$StudySessionImpl(
@@ -197,9 +215,17 @@ class __$$StudySessionImplCopyWithImpl<$Res>
             ? _value.studyMinutes
             : studyMinutes // ignore: cast_nullable_to_non_nullable
                   as int,
+        studySeconds: null == studySeconds
+            ? _value.studySeconds
+            : studySeconds // ignore: cast_nullable_to_non_nullable
+                  as int,
         breakMinutes: null == breakMinutes
             ? _value.breakMinutes
             : breakMinutes // ignore: cast_nullable_to_non_nullable
+                  as int,
+        breakSeconds: null == breakSeconds
+            ? _value.breakSeconds
+            : breakSeconds // ignore: cast_nullable_to_non_nullable
                   as int,
       ),
     );
@@ -217,7 +243,9 @@ class _$StudySessionImpl extends _StudySession {
     this.startedAt,
     this.endedAt,
     this.studyMinutes = 0,
+    this.studySeconds = 0,
     this.breakMinutes = 0,
+    this.breakSeconds = 0,
   }) : super._();
 
   factory _$StudySessionImpl.fromJson(Map<String, dynamic> json) =>
@@ -240,11 +268,17 @@ class _$StudySessionImpl extends _StudySession {
   final int studyMinutes;
   @override
   @JsonKey()
+  final int studySeconds;
+  @override
+  @JsonKey()
   final int breakMinutes;
+  @override
+  @JsonKey()
+  final int breakSeconds;
 
   @override
   String toString() {
-    return 'StudySession(id: $id, studentId: $studentId, status: $status, linkedPlanId: $linkedPlanId, startedAt: $startedAt, endedAt: $endedAt, studyMinutes: $studyMinutes, breakMinutes: $breakMinutes)';
+    return 'StudySession(id: $id, studentId: $studentId, status: $status, linkedPlanId: $linkedPlanId, startedAt: $startedAt, endedAt: $endedAt, studyMinutes: $studyMinutes, studySeconds: $studySeconds, breakMinutes: $breakMinutes, breakSeconds: $breakSeconds)';
   }
 
   @override
@@ -263,8 +297,12 @@ class _$StudySessionImpl extends _StudySession {
             (identical(other.endedAt, endedAt) || other.endedAt == endedAt) &&
             (identical(other.studyMinutes, studyMinutes) ||
                 other.studyMinutes == studyMinutes) &&
+            (identical(other.studySeconds, studySeconds) ||
+                other.studySeconds == studySeconds) &&
             (identical(other.breakMinutes, breakMinutes) ||
-                other.breakMinutes == breakMinutes));
+                other.breakMinutes == breakMinutes) &&
+            (identical(other.breakSeconds, breakSeconds) ||
+                other.breakSeconds == breakSeconds));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -278,7 +316,9 @@ class _$StudySessionImpl extends _StudySession {
     startedAt,
     endedAt,
     studyMinutes,
+    studySeconds,
     breakMinutes,
+    breakSeconds,
   );
 
   /// Create a copy of StudySession
@@ -304,7 +344,9 @@ abstract class _StudySession extends StudySession {
     final String? startedAt,
     final String? endedAt,
     final int studyMinutes,
+    final int studySeconds,
     final int breakMinutes,
+    final int breakSeconds,
   }) = _$StudySessionImpl;
   const _StudySession._() : super._();
 
@@ -326,7 +368,11 @@ abstract class _StudySession extends StudySession {
   @override
   int get studyMinutes;
   @override
+  int get studySeconds;
+  @override
   int get breakMinutes;
+  @override
+  int get breakSeconds;
 
   /// Create a copy of StudySession
   /// with the given fields replaced by the non-null parameter values.

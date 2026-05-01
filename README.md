@@ -1,59 +1,60 @@
 # 자습ON
 
-학원 자습실 운영 자동화 앱
+학원 자습실 운영 자동화 서비스다. 현재 기준으로 학생 모바일 앱과 NestJS API가 실데이터 기반으로 연결되어 있다.
 
-## 구조
+## 현재 범위
 
-```
-studyon/
-├── apps/
-│   ├── studyon_client/     # Flutter iPad 앱 (학생 + 관리자)
-│   └── tv_display_web/     # Next.js TV 디스플레이
-├── packages/
-│   ├── design_system/      # 디자인 시스템 (테마, 컬러, 위젯)
-│   ├── core/               # 유틸리티, 환경 설정
-│   ├── models/             # 데이터 모델 (Freezed)
-│   ├── api_client/         # API 클라이언트 (Dio)
-│   ├── auth/               # 인증 관리
-│   └── realtime/           # SSE 실시간 이벤트
-└── reference/              # 디자인 레퍼런스
-```
+- 학생 앱: `apps/studyon_client`
+- 백엔드 API: `apps/api`
+- 관리자 웹: `apps/admin_web`
+- TV 디스플레이: `apps/tv_display_web`
 
-## 실행
+## 빠른 실행
+
+### 학생 앱 로컬 실행
 
 ```bash
-# 루트에서 의존성 설치
-cd studyon
 flutter pub get
-
-# iPad 시뮬레이터에서 실행
-flutter run -d <device-id>
-
-# TV 디스플레이 (Next.js)
-cd apps/tv_display_web
-npm install
-npm run dev
+flutter run \
+  --dart-define=API_BASE_URL=http://127.0.0.1:3000 \
+  --dart-define=APP_ENV=dev \
+  --dart-define=ENABLE_LOGGING=true
 ```
 
-## 학생 화면
-- 스플래시 → 로그인 → 입실 → 홈 대시보드
-- 공부 타이머 (다크 모드, 목표 선택, 휴식 카운트)
-- 기록 (주간 차트, 과목 분포, 출석 캘린더)
-- 랭킹 (포디움, 리더보드, 순위 추이)
-- 프로필 (학생 카드, 배지, 주간 리포트, 설정)
-- 학습 계획 (CRUD, 스와이프 삭제, 드래그 정렬)
+### API 로컬 실행
 
-## 관리자 화면
-- 대시보드 (KPI, 좌석맵, 랭킹, 시간대 차트)
-- 학생 관리 (리스트, 상세, 등록/수정/삭제, 메시지)
-- 좌석 관리 (상태, 편집, 강제 퇴실)
-- 출결 관리 (일간/주간/월간, 캘린더)
-- 학습 현황 (반별 필터, 과목 분석)
-- 랭킹 관리 (시상 기능)
-- 알림 / TV 제어 / 설정
+```bash
+cd apps/api
+cp .env.example .env
+docker compose -f ../../infra/compose/docker-compose.yml up -d postgres redis
+pnpm install
+pnpm prisma:generate
+pnpm prisma:migrate:dev
+pnpm prisma:seed
+pnpm start:dev
+```
+
+## 주요 기능
+
+- 학생 회원가입 / 로그인 / 자동 로그인
+- 입실 / 퇴실 / 좌석 변경
+- 공부 세션 시작 / 휴식 / 재개 / 종료
+- 학습 로그, 주간/월간 기록, 랭킹, 알림
+- 프로필 포인트 / 레벨 / 알림 설정
+
+## 배포
+
+운영 배포 절차는 [DEPLOYMENT.md](/Users/bagjun-won/studyon/DEPLOYMENT.md:1)에 정리했다.
+
+빠른 빌드 스크립트:
+
+- API: `./scripts/deploy_api.sh`
+- 학생 실기기 테스트 APK: `./scripts/build_student_device_test.sh`
+- 학생 release 빌드: `./scripts/build_student_release.sh`
+- 웹 standalone 빌드: `./scripts/build_web_release.sh`
 
 ## 기술 스택
-- Flutter 3.32+ (Dart 3.10+)
-- Riverpod (상태 관리)
-- GoRouter (라우팅)
-- Next.js 15 (TV 디스플레이)
+
+- Flutter 3.32+ / Dart 3.10+
+- Riverpod / GoRouter / Dio
+- NestJS / Prisma / PostgreSQL / Redis

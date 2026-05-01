@@ -2,12 +2,16 @@ import { AttendanceStatus } from '@prisma/client';
 import { AuditService } from "../audit/audit.service";
 import { PrismaService } from "../database/prisma.service";
 import { EventsService } from "../events/events.service";
+import { NotificationsService } from "../notifications/notifications.service";
+import { PointsService } from "../points/points.service";
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 export declare class AttendancesService {
     private readonly prisma;
     private readonly audit;
     private readonly events;
-    constructor(prisma: PrismaService, audit: AuditService, events: EventsService);
+    private readonly notificationsService;
+    private readonly pointsService;
+    constructor(prisma: PrismaService, audit: AuditService, events: EventsService, notificationsService: NotificationsService, pointsService: PointsService);
     private serializeAttendance;
     getToday(studentId: string): Promise<{
         success: boolean;
@@ -69,7 +73,7 @@ export declare class AttendancesService {
         } | null;
         meta: {};
     }>;
-    listAdmin(date?: string, classId?: string, groupId?: string, attendanceStatus?: AttendanceStatus): Promise<{
+    listAdmin(date?: string, startDate?: string, endDate?: string, classId?: string, groupId?: string, attendanceStatus?: AttendanceStatus): Promise<{
         success: boolean;
         data: ({
             seat: {
@@ -114,27 +118,30 @@ export declare class AttendancesService {
                 classId: string | null;
                 updatedAt: Date;
                 userId: string;
+                passwordHash: string;
                 studentNo: string;
+                loginId: string;
                 groupId: string | null;
                 assignedSeatId: string | null;
                 enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
                 joinedAt: Date | null;
                 memo: string | null;
+                pointBalance: number;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             createdById: string | null;
-            studentId: string;
-            seatId: string | null;
             attendanceDate: Date;
+            studentId: string;
+            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
             checkInAt: Date | null;
             checkOutAt: Date | null;
-            stayMinutes: number;
+            seatId: string | null;
             lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
             earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
+            stayMinutes: number;
         })[];
         meta: {};
     }>;
@@ -169,27 +176,30 @@ export declare class AttendancesService {
                 classId: string | null;
                 updatedAt: Date;
                 userId: string;
+                passwordHash: string;
                 studentNo: string;
+                loginId: string;
                 groupId: string | null;
                 assignedSeatId: string | null;
                 enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
                 joinedAt: Date | null;
                 memo: string | null;
+                pointBalance: number;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             createdById: string | null;
-            studentId: string;
-            seatId: string | null;
             attendanceDate: Date;
+            studentId: string;
+            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
             checkInAt: Date | null;
             checkOutAt: Date | null;
-            stayMinutes: number;
+            seatId: string | null;
             lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
             earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
+            stayMinutes: number;
         };
         meta: {};
     }>;
@@ -224,27 +234,30 @@ export declare class AttendancesService {
                 classId: string | null;
                 updatedAt: Date;
                 userId: string;
+                passwordHash: string;
                 studentNo: string;
+                loginId: string;
                 groupId: string | null;
                 assignedSeatId: string | null;
                 enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
                 joinedAt: Date | null;
                 memo: string | null;
+                pointBalance: number;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             createdById: string | null;
-            studentId: string;
-            seatId: string | null;
             attendanceDate: Date;
+            studentId: string;
+            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
             checkInAt: Date | null;
             checkOutAt: Date | null;
-            stayMinutes: number;
+            seatId: string | null;
             lateStatus: import("@prisma/client").$Enums.AttendanceFlag;
             earlyLeaveStatus: import("@prisma/client").$Enums.AttendanceFlag;
-            attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
+            stayMinutes: number;
         };
         meta: {};
     }>;
@@ -259,4 +272,5 @@ export declare class AttendancesService {
         };
         meta: {};
     }>;
+    private notifyStudent;
 }

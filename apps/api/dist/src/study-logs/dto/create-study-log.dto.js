@@ -17,6 +17,8 @@ class CreateStudyLogDto {
     studySessionId;
     logDate;
     subjectName;
+    studyMinutes;
+    studySeconds;
     pagesCompleted;
     problemsSolved;
     progressPercent;
@@ -46,6 +48,20 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateStudyLogDto.prototype, "subjectName", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateStudyLogDto.prototype, "studyMinutes", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateStudyLogDto.prototype, "studySeconds", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsInt)(),

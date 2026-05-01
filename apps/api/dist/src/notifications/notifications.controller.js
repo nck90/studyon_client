@@ -48,6 +48,17 @@ let NotificationsController = class NotificationsController {
             scheduledAt: body.scheduledAt,
         });
     }
+    direct(body) {
+        return this.notificationsService.sendDirectToUsers({
+            userIds: Array.isArray(body.userIds)
+                ? body.userIds.filter((item) => typeof item === 'string')
+                : [],
+            notificationType: client_1.NotificationType.NOTICE,
+            channel: client_1.NotificationChannel.IN_APP,
+            title: typeof body.title === 'string' ? body.title : '',
+            body: typeof body.body === 'string' ? body.body : '',
+        });
+    }
     send(notificationId) {
         return this.notificationsService.send(notificationId);
     }
@@ -94,6 +105,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, create_notification_dto_1.CreateNotificationDto]),
     __metadata("design:returntype", void 0)
 ], NotificationsController.prototype, "create", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/notifications/direct'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], NotificationsController.prototype, "direct", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
     (0, common_1.Post)('admin/notifications/:notificationId/send'),

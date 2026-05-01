@@ -1,4 +1,6 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TokenStorage {
   TokenStorage([FlutterSecureStorage? storage])
@@ -17,26 +19,72 @@ class TokenStorage {
     String? sessionId,
     String? role,
   }) async {
-    await Future.wait([
-      _storage.write(key: _accessTokenKey, value: accessToken),
-      _storage.write(key: _refreshTokenKey, value: refreshToken),
-      if (sessionId != null)
-        _storage.write(key: _sessionIdKey, value: sessionId),
-      if (role != null) _storage.write(key: _roleKey, value: role),
-    ]);
+    final values = <String, String>{
+      _accessTokenKey: accessToken,
+      _refreshTokenKey: refreshToken,
+      if (sessionId != null) _sessionIdKey: sessionId,
+      if (role != null) _roleKey: role,
+    };
+    await _runWithFallback(
+      secure: () => Future.wait([
+        for (final entry in values.entries)
+          _storage.write(key: entry.key, value: entry.value),
+      ]),
+      fallback: () async {
+        final prefs = await SharedPreferences.getInstance();
+        await Future.wait([
+          for (final entry in values.entries)
+            prefs.setString(entry.key, entry.value),
+        ]);
+      },
+    );
   }
 
-  Future<String?> get accessToken => _storage.read(key: _accessTokenKey);
-  Future<String?> get refreshToken => _storage.read(key: _refreshTokenKey);
-  Future<String?> get sessionId => _storage.read(key: _sessionIdKey);
-  Future<String?> get role => _storage.read(key: _roleKey);
+  Future<String?> get accessToken => _read(_accessTokenKey);
+  Future<String?> get refreshToken => _read(_refreshTokenKey);
+  Future<String?> get sessionId => _read(_sessionIdKey);
+  Future<String?> get role => _read(_roleKey);
 
   Future<void> clearAll() async {
-    await Future.wait([
-      _storage.delete(key: _accessTokenKey),
-      _storage.delete(key: _refreshTokenKey),
-      _storage.delete(key: _sessionIdKey),
-      _storage.delete(key: _roleKey),
-    ]);
+    const keys = [
+      _accessTokenKey,
+      _refreshTokenKey,
+      _sessionIdKey,
+      _roleKey,
+    ];
+    await _runWithFallback(
+      secure: () => Future.wait([
+        for (final key in keys) _storage.delete(key: key),
+      ]),
+      fallback: () async {
+        final prefs = await SharedPreferences.getInstance();
+        await Future.wait([
+          for (final key in keys) prefs.remove(key),
+        ]);
+      },
+    );
+  }
+
+  Future<String?> _read(String key) {
+    return _runWithFallback(
+      secure: () => _storage.read(key: key),
+      fallback: () async {
+        final prefs = await SharedPreferences.getInstance();
+        return prefs.getString(key);
+      },
+    );
+  }
+
+  Future<T> _runWithFallback<T>({
+    required Future<T> Function() secure,
+    required Future<T> Function() fallback,
+  }) async {
+    try {
+      return await secure();
+    } on MissingPluginException {
+      return fallback();
+    } on PlatformException {
+      return fallback();
+    }
   }
 }

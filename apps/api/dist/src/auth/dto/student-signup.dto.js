@@ -13,12 +13,26 @@ exports.StudentSignupDto = void 0;
 const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 class StudentSignupDto {
+    loginId;
+    password;
     studentNo;
     name;
     phone;
     deviceCode;
 }
 exports.StudentSignupDto = StudentSignupDto;
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(4, 50),
+    __metadata("design:type", String)
+], StudentSignupDto.prototype, "loginId", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Length)(8, 100),
+    __metadata("design:type", String)
+], StudentSignupDto.prototype, "password", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsString)(),

@@ -1,13 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { StudyPlanStatus } from '@prisma/client';
+import {
+  NotificationChannel,
+  NotificationType,
+  StudyPlanStatus,
+} from '@prisma/client';
 import { dateOnly } from '@/common/utils/date.util';
 import { PrismaService } from '@/database/prisma.service';
+import { NotificationsService } from '@/notifications/notifications.service';
 import { CreateStudyPlanDto } from './dto/create-study-plan.dto';
 import { UpdateStudyPlanDto } from './dto/update-study-plan.dto';
 
 @Injectable()
 export class StudyPlansService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   private serializePlan(plan: {
     id: string;
@@ -59,8 +67,8 @@ export class StudyPlansService {
     return { success: true, data: this.serializePlan(plan), meta: {} };
   }
 
-  create(studentId: string, dto: CreateStudyPlanDto) {
-    return this.prisma.studyPlan
+  async create(studentId: string, dto: CreateStudyPlanDto) {
+    const data = await this.prisma.studyPlan
       .create({
         data: {
           studentId,
@@ -72,11 +80,13 @@ export class StudyPlansService {
           priority: dto.priority,
         },
       })
-      .then((data) => ({
-        success: true,
-        data: this.serializePlan(data),
-        meta: {},
-      }));
+      .then((item) => this.serializePlan(item));
+    await this.notifyStudent(
+      studentId,
+      '새 계획이 추가되었어요',
+      `${dto.subjectName} 계획 "${dto.title}"이(가) 오늘 일정에 추가되었습니다.`,
+    );
+    return { success: true, data, meta: {} };
   }
 
   async update(studentId: string, planId: string, dto: UpdateStudyPlanDto) {
@@ -107,6 +117,33 @@ export class StudyPlansService {
       where: { id: planId },
       data: { status: StudyPlanStatus.COMPLETED, completedAt: new Date() },
     });
+    await this.notifyStudent(
+      studentId,
+      '계획 완료',
+      `${plan.title} 계획을 완료했어요.`,
+    );
     return { success: true, data: this.serializePlan(plan), meta: {} };
+  }
+
+  private async notifyStudent(
+    studentId: string,
+    title: string,
+    body: string,
+    notificationType: NotificationType = NotificationType.NOTICE,
+  ) {
+    const student = await this.prisma.student.findUnique({
+      where: { id: studentId },
+      select: { userId: true },
+    });
+    if (!student?.userId) {
+      return;
+    }
+    await this.notificationsService.sendDirectToUsers({
+      userIds: [student.userId],
+      notificationType,
+      channel: NotificationChannel.IN_APP,
+      title,
+      body,
+    });
   }
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
-import 'package:studyon_models/studyon_models.dart';
 import '../../../shared/providers/providers.dart';
 
 class AdminAttendanceScreen extends ConsumerStatefulWidget {
@@ -34,6 +33,9 @@ class _AdminAttendanceScreenState extends ConsumerState<AdminAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     final attendanceAsync = ref.watch(adminAttendanceProvider(_selectedDate));
+    final summaryAsync = ref.watch(
+      adminAttendanceSummaryProvider((mode: _viewMode, date: _selectedDate)),
+    );
 
     return Scaffold(
       backgroundColor: AppColors.bg(context),
@@ -149,7 +151,11 @@ class _AdminAttendanceScreenState extends ConsumerState<AdminAttendanceScreen> {
                       error: (e, _) => Center(child: Text('오류: $e', style: AppTypography.bodyMedium)),
                       data: (records) => _buildContent(records),
                     )
-                  : _buildAggregateView(_viewMode),
+                  : summaryAsync.when(
+                      loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                      error: (e, _) => Center(child: Text('오류: $e', style: AppTypography.bodyMedium)),
+                      data: (summary) => _buildAggregateView(_viewMode, summary),
+                    ),
             ),
           ],
         ),
@@ -315,13 +321,11 @@ class _AdminAttendanceScreenState extends ConsumerState<AdminAttendanceScreen> {
     );
   }
 
-  Widget _buildAggregateView(String mode) {
+  Widget _buildAggregateView(String mode, AttendanceSummary summary) {
     final isWeekly = mode == 'weekly';
-    final period = isWeekly ? '이번 주 (4/8 - 4/14)' : '이번 달 (4월)';
-    final attendanceRate = isWeekly ? '87%' : '91%';
-    final avgStay = isWeekly ? '4.2시간' : '4.5시간';
-    final lateCount = isWeekly ? 3 : 11;
-    final absentCount = isWeekly ? 2 : 6;
+    final period = summary.periodLabel;
+    final attendanceRate = '${(summary.attendanceRate * 100).round()}%';
+    final avgStayHours = (summary.avgStayMinutes / 60).toStringAsFixed(1);
     final days = isWeekly ? 7 : 30;
 
     return Padding(
@@ -347,15 +351,15 @@ class _AdminAttendanceScreenState extends ConsumerState<AdminAttendanceScreen> {
             children: [
               Expanded(child: _AggregateStat(label: '출석률', value: attendanceRate, icon: Icons.check_circle_outline_rounded, color: AppColors.success, bgColor: AppColors.tintGreen)),
               const SizedBox(width: 10),
-              Expanded(child: _AggregateStat(label: '평균 체류', value: avgStay, icon: Icons.timer_outlined, color: AppColors.primary, bgColor: AppColors.tintPurple)),
+              Expanded(child: _AggregateStat(label: '평균 체류', value: '$avgStayHours시간', icon: Icons.timer_outlined, color: AppColors.primary, bgColor: AppColors.tintPurple)),
             ],
           ),
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: _AggregateStat(label: '지각', value: '$lateCount건', icon: Icons.schedule_rounded, color: AppColors.warning, bgColor: AppColors.tintYellow)),
+              Expanded(child: _AggregateStat(label: '지각', value: '${summary.lateCount}건', icon: Icons.schedule_rounded, color: AppColors.warning, bgColor: AppColors.tintYellow)),
               const SizedBox(width: 10),
-              Expanded(child: _AggregateStat(label: '결석', value: '$absentCount명', icon: Icons.cancel_outlined, color: AppColors.error, bgColor: AppColors.tintPink)),
+              Expanded(child: _AggregateStat(label: '결석', value: '${summary.absentCount}명', icon: Icons.cancel_outlined, color: AppColors.error, bgColor: AppColors.tintPink)),
             ],
           ),
           const SizedBox(height: 24),
@@ -378,8 +382,8 @@ class _AdminAttendanceScreenState extends ConsumerState<AdminAttendanceScreen> {
                 const SizedBox(height: 12),
                 Text(
                   isWeekly
-                      ? '지난 $days일 동안 총 ${(14 * 0.87).round()}명이 출석했습니다. 전주 대비 출석률이 3% 향상되었습니다.'
-                      : '이번 달 $days일 동안 평균 출석률 $attendanceRate를 기록했습니다. 전달 대비 출석률이 2% 향상되었습니다.',
+                      ? '지난 $days일 동안 총 ${summary.totalCount}건의 출결이 집계되었습니다. 평균 체류 시간은 $avgStayHours시간입니다.'
+                      : '이번 달 $days일 동안 평균 출석률 $attendanceRate를 기록했습니다. 결석 ${summary.absentCount}건, 지각 ${summary.lateCount}건입니다.',
                   style: AppTypography.bodyMedium.copyWith(
                     color: AppColors.textSecondary,
                     height: 1.6,
@@ -393,7 +397,7 @@ class _AdminAttendanceScreenState extends ConsumerState<AdminAttendanceScreen> {
     );
   }
 
-  Widget _buildContent(List<Attendance> records) {
+  Widget _buildContent(List<AdminAttendanceRecord> records) {
     final checkedIn = records.where((r) => r.status != 'absent').length;
     final absent = records.where((r) => r.status == 'absent').length;
     final lateCount = records.where((r) => r.isLate).length;
@@ -428,7 +432,7 @@ class _AdminAttendanceScreenState extends ConsumerState<AdminAttendanceScreen> {
     );
   }
 
-  Widget _buildAttendanceList(List<Attendance> records) {
+  Widget _buildAttendanceList(List<AdminAttendanceRecord> records) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 28),
       decoration: BoxDecoration(
@@ -577,7 +581,7 @@ class _SummaryCard extends StatelessWidget {
 
 class _AttendanceRow extends StatelessWidget {
   const _AttendanceRow({required this.record, required this.index});
-  final Attendance record;
+  final AdminAttendanceRecord record;
   final int index;
 
   Color _statusColor(String status, bool isLate) {
@@ -628,7 +632,12 @@ class _AttendanceRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text('학생 ${record.studentId}', style: AppTypography.titleMedium),
+                Text(
+                  record.studentName.isEmpty
+                      ? '학생 ${record.studentNo}'
+                      : record.studentName,
+                  style: AppTypography.titleMedium,
+                ),
               ],
             ),
           ),

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AttendanceStatus, UserRole } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import { AuditService } from '@/audit/audit.service';
 import {
   dateOnly,
@@ -151,6 +152,7 @@ export class AdminService {
     assignedSeatId?: string;
   }) {
     const data = await this.prisma.$transaction(async (tx) => {
+      const passwordHash = await bcrypt.hash(input.studentNo, 10);
       const user = await tx.user.create({
         data: { name: input.name, role: UserRole.STUDENT, status: 'ACTIVE' },
       });
@@ -158,6 +160,8 @@ export class AdminService {
         data: {
           userId: user.id,
           studentNo: input.studentNo,
+          loginId: input.studentNo,
+          passwordHash,
           gradeId: input.gradeId,
           classId: input.classId,
           groupId: input.groupId,
@@ -265,6 +269,51 @@ export class AdminService {
         orderBy: { metricDate: 'desc' },
       })
       .then((data) => ({ success: true, data, meta: {} }));
+  }
+
+  getStudyOverviewSubjects(
+    startDate?: string,
+    endDate?: string,
+    classId?: string,
+    groupId?: string,
+  ) {
+    return this.prisma.studyLog
+      .findMany({
+        where: {
+          logDate: {
+            gte: startDate ? dateOnly(startDate) : undefined,
+            lte: endDate ? dateOnly(endDate) : undefined,
+          },
+          student: {
+            classId: classId ?? undefined,
+            groupId: groupId ?? undefined,
+          },
+        },
+        select: {
+          subjectName: true,
+          studyMinutes: true,
+          studySeconds: true,
+        },
+      })
+      .then((items) => {
+        const grouped = new Map<
+          string,
+          { subjectName: string; studyMinutes: number }
+        >();
+        for (const item of items) {
+          const current = grouped.get(item.subjectName) ?? {
+            subjectName: item.subjectName,
+            studyMinutes: 0,
+          };
+          current.studyMinutes +=
+            item.studyMinutes ?? Math.floor((item.studySeconds ?? 0) / 60);
+          grouped.set(item.subjectName, current);
+        }
+        const data = [...grouped.values()].sort(
+          (a, b) => b.studyMinutes - a.studyMinutes,
+        );
+        return { success: true, data, meta: {} };
+      });
   }
 
   studentStudySummary(studentId: string) {

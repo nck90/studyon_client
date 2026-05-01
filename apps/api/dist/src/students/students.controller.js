@@ -33,6 +33,12 @@ let StudentsController = class StudentsController {
     badges(user) {
         return this.studentsService.getBadges(user.studentId);
     }
+    preferences(user) {
+        return this.studentsService.getPreferences(user.studentId);
+    }
+    updatePreferences(user, body) {
+        return this.studentsService.updatePreferences(user.studentId, body);
+    }
 };
 exports.StudentsController = StudentsController;
 __decorate([
@@ -56,6 +62,21 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], StudentsController.prototype, "badges", null);
+__decorate([
+    (0, common_1.Get)('preferences'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], StudentsController.prototype, "preferences", null);
+__decorate([
+    (0, common_1.Patch)('preferences'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], StudentsController.prototype, "updatePreferences", null);
 exports.StudentsController = StudentsController = __decorate([
     (0, swagger_1.ApiTags)('student'),
     (0, swagger_1.ApiBearerAuth)(),

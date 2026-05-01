@@ -8,13 +8,16 @@ export declare class ReportsService {
             date: string;
             attendanceMinutes: number;
             studyMinutes: number;
+            studySeconds: number;
             breakMinutes: number;
+            breakSeconds: number;
             targetMinutes: number;
             achievedRate: number;
             attendanceStatus: import("@prisma/client").$Enums.AttendanceStatus;
             subjectBreakdown: {
                 subjectName: string;
-                pagesCompleted: number;
+                studyMinutes: number;
+                studySeconds: number;
             }[];
             logs: {
                 id: string;
@@ -22,12 +25,14 @@ export declare class ReportsService {
                 updatedAt: Date;
                 memo: string | null;
                 studentId: string;
-                subjectName: string;
+                studyMinutes: number;
+                studySeconds: number;
                 studySessionId: string | null;
-                planId: string | null;
-                logDate: Date;
+                subjectName: string;
                 pagesCompleted: number;
                 problemsSolved: number;
+                planId: string | null;
+                logDate: Date;
                 progressPercent: import("@prisma/client/runtime/library").Decimal;
                 isCompleted: boolean;
             }[];
@@ -39,8 +44,10 @@ export declare class ReportsService {
         data: {
             weekStartDate: string;
             studyMinutes: number;
+            studySeconds: number;
             attendanceDays: number;
             targetMinutes: number;
+            achievedRate: number;
             pagesCompleted: number;
             problemsSolved: number;
         };
@@ -51,8 +58,10 @@ export declare class ReportsService {
         data: {
             month: string;
             studyMinutes: number;
+            studySeconds: number;
             attendanceDays: number;
             targetMinutes: number;
+            achievedRate: number;
             pagesCompleted: number;
             problemsSolved: number;
         };

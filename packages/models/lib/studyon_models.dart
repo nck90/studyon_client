@@ -30,6 +30,12 @@ export 'src/report/daily_report.dart';
 // Ranking
 export 'src/ranking/ranking.dart';
 
+// Point
+export 'src/point/point_transaction.dart';
+
+// Character
+export 'src/character/character_item.dart';
+
 // Common
 export 'src/common/api_response.dart';
 export 'src/common/pagination_meta.dart';

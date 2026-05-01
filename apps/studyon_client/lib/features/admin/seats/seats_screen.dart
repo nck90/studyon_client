@@ -138,18 +138,13 @@ class _SeatsScreenState extends ConsumerState<SeatsScreen> {
             child: Text('취소', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary)),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               final seatNo = controller.text.trim();
               if (seatNo.isNotEmpty) {
-                setState(() {
-                  _editSeats!.add(_SeatData(
-                    id: 'new_${DateTime.now().millisecondsSinceEpoch}',
-                    seatNo: seatNo,
-                    status: 'empty',
-                    zone: seatNo.isNotEmpty ? seatNo[0] : 'A',
-                  ));
-                });
+                await ref.read(adminRepositoryProvider).createSeat(seatNo);
+                ref.invalidate(adminSeatsProvider);
               }
+              if (!ctx.mounted) return;
               Navigator.pop(ctx);
             },
             child: Text(
@@ -182,10 +177,10 @@ class _SeatsScreenState extends ConsumerState<SeatsScreen> {
             child: Text('취소', style: AppTypography.labelLarge.copyWith(color: AppColors.textSecondary)),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                _editSeats!.removeWhere((s) => s.id == seatId);
-              });
+            onPressed: () async {
+              await ref.read(adminRepositoryProvider).deleteSeat(seatId);
+              ref.invalidate(adminSeatsProvider);
+              if (!ctx.mounted) return;
               Navigator.pop(ctx);
             },
             child: Text(

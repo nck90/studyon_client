@@ -1,5 +1,6 @@
 import { AuthService } from './auth.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
+import { AdminSignupDto } from './dto/admin-signup.dto';
 import { AutoLoginDto } from './dto/auto-login.dto';
 import { CreateQrTokenDto } from './dto/create-qr-token.dto';
 import { LogoutDto } from './dto/logout.dto';
@@ -55,6 +56,20 @@ export declare class AuthController {
         meta: {};
     }>;
     studentAutoLogin(dto: AutoLoginDto): Promise<{
+        success: boolean;
+        data: {
+            sessionId: string;
+            user: {
+                id: string;
+                role: import("@prisma/client").$Enums.UserRole;
+                name: string;
+            };
+            accessToken: string;
+            refreshToken: string;
+        };
+        meta: {};
+    }>;
+    adminSignup(dto: AdminSignupDto): Promise<{
         success: boolean;
         data: {
             sessionId: string;
@@ -129,12 +144,15 @@ export declare class AuthController {
                 classId: string | null;
                 updatedAt: Date;
                 userId: string;
+                passwordHash: string;
                 studentNo: string;
+                loginId: string;
                 groupId: string | null;
                 assignedSeatId: string | null;
                 enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
                 joinedAt: Date | null;
                 memo: string | null;
+                pointBalance: number;
             }) | null;
             adminUser: {
                 id: string;
@@ -179,9 +197,9 @@ export declare class AuthController {
             createdAt: Date;
             status: import("@prisma/client").$Enums.DeviceStatus;
             updatedAt: Date;
+            seatId: string | null;
             deviceCode: string;
             deviceType: import("@prisma/client").$Enums.DeviceType;
-            seatId: string | null;
             lastSeenAt: Date | null;
         };
         meta: {};

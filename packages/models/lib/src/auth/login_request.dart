@@ -7,8 +7,8 @@ part 'login_request.g.dart';
 class StudentLoginRequest with _$StudentLoginRequest {
   const StudentLoginRequest._();
   const factory StudentLoginRequest({
-    required String studentNo,
-    required String name,
+    required String loginId,
+    required String password,
     String? deviceCode,
   }) = _StudentLoginRequest;
 
@@ -20,6 +20,8 @@ class StudentLoginRequest with _$StudentLoginRequest {
 class StudentSignupRequest with _$StudentSignupRequest {
   const StudentSignupRequest._();
   const factory StudentSignupRequest({
+    required String loginId,
+    required String password,
     required String studentNo,
     required String name,
     String? phone,

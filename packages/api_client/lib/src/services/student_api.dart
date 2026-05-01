@@ -12,6 +12,24 @@ class StudentApi {
     return response.data['data'] as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> getPreferences() async {
+    final response = await _dio.get(ApiConstants.studentPreferences);
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updatePreferences({
+    bool? notificationEnabled,
+  }) async {
+    final response = await _dio.patch(
+      ApiConstants.studentPreferences,
+      data: {
+        if (notificationEnabled != null)
+          'notificationEnabled': notificationEnabled,
+      },
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
   // Home
   Future<StudentHome> getHome() async {
     final response = await _dio.get(ApiConstants.studentHome);
@@ -231,5 +249,66 @@ class StudentApi {
 
   Future<void> markNotificationRead(String notificationId) async {
     await _dio.post('/student/notifications/$notificationId/read');
+  }
+
+  // Points
+  Future<Map<String, dynamic>> getPointBalance() async {
+    final response = await _dio.get(ApiConstants.studentPoints);
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<List<Map<String, dynamic>>> getPointHistory({int take = 50, int skip = 0}) async {
+    final response = await _dio.get(
+      ApiConstants.studentPointsHistory,
+      queryParameters: {'take': take, 'skip': skip},
+    );
+    final list = response.data['data'] as List;
+    return list.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  // Character
+  Future<Map<String, dynamic>> getMyCharacter() async {
+    final response = await _dio.get(ApiConstants.studentCharacter);
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<List<Map<String, dynamic>>> getCharacterShop({String? category}) async {
+    final response = await _dio.get(
+      ApiConstants.studentCharacterShop,
+      queryParameters: category != null ? {'category': category} : null,
+    );
+    final list = response.data['data'] as List;
+    return list.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  Future<Map<String, dynamic>> buyCharacterItem(String itemId) async {
+    final response = await _dio.post('${ApiConstants.studentCharacter}/buy/$itemId');
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> equipCharacterItems({
+    String? hatItemId,
+    String? glassesItemId,
+    String? outfitItemId,
+    String? bgItemId,
+    String? expressionItemId,
+  }) async {
+    final response = await _dio.post(
+      ApiConstants.studentCharacterEquip,
+      data: {
+        if (hatItemId != null) 'hatItemId': hatItemId,
+        if (glassesItemId != null) 'glassesItemId': glassesItemId,
+        if (outfitItemId != null) 'outfitItemId': outfitItemId,
+        if (bgItemId != null) 'bgItemId': bgItemId,
+        if (expressionItemId != null) 'expressionItemId': expressionItemId,
+      },
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<List<Map<String, dynamic>>> getOwnedCharacterItems() async {
+    final response = await _dio.get(ApiConstants.studentCharacterItems);
+    final list = response.data['data'] as List;
+    return list.map((e) => e as Map<String, dynamic>).toList();
   }
 }

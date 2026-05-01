@@ -21,6 +21,7 @@ const public_decorator_1 = require("../common/decorators/public.decorator");
 const roles_decorator_1 = require("../common/decorators/roles.decorator");
 const auth_service_1 = require("./auth.service");
 const admin_login_dto_1 = require("./dto/admin-login.dto");
+const admin_signup_dto_1 = require("./dto/admin-signup.dto");
 const auto_login_dto_1 = require("./dto/auto-login.dto");
 const create_qr_token_dto_1 = require("./dto/create-qr-token.dto");
 const logout_dto_1 = require("./dto/logout.dto");
@@ -45,6 +46,9 @@ let AuthController = class AuthController {
     }
     studentAutoLogin(dto) {
         return this.authService.autoLogin(dto);
+    }
+    adminSignup(dto) {
+        return this.authService.adminSignup(dto);
     }
     adminLogin(dto) {
         return this.authService.adminLogin(dto);
@@ -98,6 +102,14 @@ __decorate([
     __metadata("design:paramtypes", [auto_login_dto_1.AutoLoginDto]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "studentAutoLogin", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)('admin/signup'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [admin_signup_dto_1.AdminSignupDto]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "adminSignup", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Post)('admin/login'),

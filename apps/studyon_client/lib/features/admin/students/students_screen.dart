@@ -74,7 +74,15 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
             ),
             const SizedBox(height: 16),
             GestureDetector(
-              onTap: () {
+              onTap: () async {
+                final message = controller.text.trim();
+                if (message.isEmpty) return;
+                await ref.read(adminRepositoryProvider).sendNotification(
+                      title: '학생 안내',
+                      body: message,
+                      userIds: _selected.toList(),
+                    );
+                if (!ctx.mounted || !mounted) return;
                 Navigator.pop(ctx);
                 setState(() {
                   _selectMode = false;

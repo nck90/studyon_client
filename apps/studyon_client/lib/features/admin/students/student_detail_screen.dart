@@ -12,7 +12,7 @@ class StudentDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final studentAsync = ref.watch(studentDetailProvider(studentId));
+    final studentAsync = ref.watch(adminStudentDetailProvider(studentId));
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -20,13 +20,15 @@ class StudentDetailScreen extends ConsumerWidget {
         child: studentAsync.when(
           loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
           error: (e, _) => Center(child: Text('오류: $e', style: AppTypography.bodyMedium)),
-          data: (student) => _buildContent(context, ref, student),
+          data: (detail) => _buildContent(context, ref, detail),
         ),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, WidgetRef ref, Student student) {
+  Widget _buildContent(
+      BuildContext context, WidgetRef ref, AdminStudentDetail detail) {
+    final student = detail.student;
     return LayoutBuilder(
       builder: (context, constraints) {
         final isWide = constraints.maxWidth > 900;
@@ -40,8 +42,8 @@ class StudentDetailScreen extends ConsumerWidget {
             const Divider(height: 1, color: AppColors.cardBorder),
             Expanded(
               child: isWide
-                  ? _buildWideLayout(student)
-                  : _buildNarrowLayout(student),
+                  ? _buildWideLayout(detail)
+                  : _buildNarrowLayout(detail),
             ),
           ],
         );
@@ -85,7 +87,7 @@ class StudentDetailScreen extends ConsumerWidget {
         ),
         const SizedBox(width: 10),
         GestureDetector(
-          onTap: () => _showMessageSheet(context, student.name),
+          onTap: () => _showMessageSheet(context, ref, student.name),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
             decoration: BoxDecoration(
@@ -110,13 +112,14 @@ class StudentDetailScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 10),
-        _DeleteButton(studentId: studentId, studentName: student.name),
+        _DeleteButton(studentId: studentId, studentName: student.name, ref: ref),
       ],
     );
   }
 
   // 2-column layout for wide screens (iPad)
-  Widget _buildWideLayout(Student student) {
+  Widget _buildWideLayout(AdminStudentDetail detail) {
+    final student = detail.student;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -128,7 +131,7 @@ class StudentDetailScreen extends ConsumerWidget {
             children: [
               _buildProfileCard(student),
               const SizedBox(height: 20),
-              _buildStatsRow(),
+              _buildStatsRow(detail),
               const SizedBox(height: 24),
               Text('설정', style: AppTypography.headlineSmall),
               const SizedBox(height: 12),
@@ -144,13 +147,13 @@ class StudentDetailScreen extends ConsumerWidget {
             children: [
               Text('이번 주 공부 현황', style: AppTypography.headlineSmall),
               const SizedBox(height: 12),
-              _buildWeeklyChart(),
+              _buildWeeklyChart(detail),
               const SizedBox(height: 24),
-              _buildSubjectDistribution(),
+              _buildSubjectDistribution(detail),
               const SizedBox(height: 24),
               Text('최근 활동 로그', style: AppTypography.headlineSmall),
               const SizedBox(height: 12),
-              _buildActivityLog(),
+              _buildActivityLog(detail),
             ],
           ),
         ),
@@ -159,23 +162,24 @@ class StudentDetailScreen extends ConsumerWidget {
   }
 
   // Single-column layout for narrow screens
-  Widget _buildNarrowLayout(Student student) {
+  Widget _buildNarrowLayout(AdminStudentDetail detail) {
+    final student = detail.student;
     return ListView(
       padding: const EdgeInsets.all(28),
       children: [
         _buildProfileCard(student),
         const SizedBox(height: 20),
-        _buildStatsRow(),
+        _buildStatsRow(detail),
         const SizedBox(height: 24),
         Text('최근 활동 로그', style: AppTypography.headlineSmall),
         const SizedBox(height: 12),
-        _buildActivityLog(),
+        _buildActivityLog(detail),
         const SizedBox(height: 24),
         Text('이번 주 공부 현황', style: AppTypography.headlineSmall),
         const SizedBox(height: 12),
-        _buildWeeklyChart(),
+        _buildWeeklyChart(detail),
         const SizedBox(height: 24),
-        _buildSubjectDistribution(),
+        _buildSubjectDistribution(detail),
       ],
     );
   }
@@ -263,12 +267,18 @@ class StudentDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsRow() {
+  Widget _buildStatsRow(AdminStudentDetail detail) {
+    String formatMinutes(int minutes) {
+      final hours = minutes ~/ 60;
+      final remain = minutes % 60;
+      return hours > 0 ? '$hours시간 $remain분' : '$remain분';
+    }
+
     final stats = [
-      ('오늘 공부시간', '3시간 24분', Icons.timer_rounded, AppColors.studying, AppColors.tintPurple),
-      ('이번 주', '18시간 12분', Icons.calendar_month_rounded, AppColors.success, AppColors.tintMint),
-      ('이번 달', '72시간', Icons.bar_chart_rounded, AppColors.accent, AppColors.tintPurple),
-      ('출석률', '94%', Icons.checklist_rounded, AppColors.warning, AppColors.tintYellow),
+      ('오늘 공부시간', formatMinutes(detail.todayStudyMinutes), Icons.timer_rounded, AppColors.studying, AppColors.tintPurple),
+      ('이번 주', formatMinutes(detail.weeklyStudyMinutes), Icons.calendar_month_rounded, AppColors.success, AppColors.tintMint),
+      ('이번 달', formatMinutes(detail.monthlyStudyMinutes), Icons.bar_chart_rounded, AppColors.accent, AppColors.tintPurple),
+      ('출석률', '${(detail.attendanceRate * 100).round()}%', Icons.checklist_rounded, AppColors.warning, AppColors.tintYellow),
     ];
 
     return Row(
@@ -337,14 +347,17 @@ class StudentDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildActivityLog() {
-    final logs = [
-      ('09:05', '입실', Icons.login_rounded, AppColors.success),
-      ('11:30', '휴식 시작', Icons.pause_circle_rounded, AppColors.onBreak),
-      ('11:45', '공부 재개', Icons.play_circle_rounded, AppColors.studying),
-      ('13:00', '점심 휴식', Icons.pause_circle_rounded, AppColors.onBreak),
-      ('14:00', '공부 재개', Icons.play_circle_rounded, AppColors.studying),
-    ];
+  Widget _buildActivityLog(AdminStudentDetail detail) {
+    final logs = detail.activityLogs.map((item) {
+      switch (item.kind) {
+        case 'checkin':
+          return (item.time, item.label, Icons.login_rounded, AppColors.success);
+        case 'checkout':
+          return (item.time, item.label, Icons.logout_rounded, AppColors.textSecondary);
+        default:
+          return (item.time, item.label, Icons.menu_book_rounded, AppColors.studying);
+      }
+    }).toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -387,10 +400,11 @@ class StudentDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWeeklyChart() {
-    final days = ['월', '화', '수', '목', '금', '토', '일'];
-    final minutes = [180, 240, 200, 220, 160, 300, 120];
-    final maxMin = minutes.reduce((a, b) => a > b ? a : b);
+  Widget _buildWeeklyChart(AdminStudentDetail detail) {
+    final stats = detail.weeklyStats.isEmpty
+        ? [const DailyStat(date: '오늘', minutes: 0, count: 0)]
+        : detail.weeklyStats;
+    final maxMin = stats.map((item) => item.minutes).reduce((a, b) => a > b ? a : b);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -414,12 +428,12 @@ class StudentDetailScreen extends ConsumerWidget {
             height: 120,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
-              children: days.asMap().entries.map((e) {
+              children: stats.asMap().entries.map((e) {
                 final i = e.key;
-                final day = e.value;
-                final min = minutes[i];
+                final day = e.value.date;
+                final min = e.value.minutes;
                 final ratio = min / maxMin;
-                final isToday = i == 0;
+                final isToday = i == stats.length - 1;
                 return Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -458,14 +472,16 @@ class StudentDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSubjectDistribution() {
-    final subjects = [
-      ('수학', 0.40, AppColors.primary),
-      ('영어', 0.30, AppColors.success),
-      ('국어', 0.15, AppColors.warning),
-      ('과학', 0.10, AppColors.accent),
-      ('기타', 0.05, AppColors.textTertiary),
+  Widget _buildSubjectDistribution(AdminStudentDetail detail) {
+    final palette = [
+      AppColors.primary,
+      AppColors.success,
+      AppColors.warning,
+      AppColors.accent,
+      AppColors.textTertiary,
     ];
+    final total = detail.subjectStats.fold<int>(0, (sum, item) => sum + item.minutes);
+    final subjects = detail.subjectStats.take(5).toList();
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -479,8 +495,12 @@ class StudentDetailScreen extends ConsumerWidget {
         children: [
           Text('과목별 공부 비중', style: AppTypography.titleMedium),
           const SizedBox(height: 16),
-          ...subjects.map((s) {
-            final (name, ratio, color) = s;
+          ...subjects.asMap().entries.map((entry) {
+            final index = entry.key;
+            final s = entry.value;
+            final name = s.subject;
+            final ratio = total == 0 ? 0.0 : s.minutes / total;
+            final color = palette[index % palette.length];
             final pct = (ratio * 100).toStringAsFixed(0);
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -530,7 +550,7 @@ class StudentDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _showMessageSheet(BuildContext context, String studentName) {
+  void _showMessageSheet(BuildContext context, WidgetRef ref, String studentName) {
     final controller = TextEditingController();
     showModalBottomSheet<void>(
       context: context,
@@ -563,7 +583,15 @@ class StudentDetailScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             GestureDetector(
-              onTap: () {
+              onTap: () async {
+                final message = controller.text.trim();
+                if (message.isEmpty) return;
+                await ref.read(adminRepositoryProvider).sendNotification(
+                      title: '$studentName 학생 안내',
+                      body: message,
+                      userIds: [studentId],
+                    );
+                if (!context.mounted) return;
                 Navigator.pop(ctx);
                 showStudyonSnackbar(context, '알림이 전송되었어요');
               },
@@ -634,9 +662,14 @@ class _SettingsRow extends StatelessWidget {
 
 // Delete button widget with confirmation dialog
 class _DeleteButton extends StatelessWidget {
-  const _DeleteButton({required this.studentId, required this.studentName});
+  const _DeleteButton({
+    required this.studentId,
+    required this.studentName,
+    required this.ref,
+  });
   final String studentId;
   final String studentName;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
@@ -689,8 +722,12 @@ class _DeleteButton extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
+              await ref.read(adminRepositoryProvider).deleteStudent(studentId);
+              ref.invalidate(adminStudentsProvider);
+              if (!ctx.mounted) return;
               Navigator.of(ctx).pop();
+              if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(

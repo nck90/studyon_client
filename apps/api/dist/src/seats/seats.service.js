@@ -24,6 +24,31 @@ let SeatsService = class SeatsService {
         this.audit = audit;
         this.events = events;
     }
+    serializeSeat(seat, pausedStudentIds) {
+        let uiStatus = 'empty';
+        if (seat.status === client_1.SeatStatus.LOCKED) {
+            uiStatus = 'locked';
+        }
+        else if (seat.currentStudentId) {
+            uiStatus = pausedStudentIds.has(seat.currentStudentId)
+                ? 'onBreak'
+                : 'studying';
+        }
+        return {
+            id: seat.id,
+            seatNo: seat.seatNo,
+            zone: seat.zone,
+            status: seat.status,
+            isActive: seat.isActive,
+            uiStatus,
+            currentStudent: seat.currentStudent
+                ? {
+                    id: seat.currentStudent.id,
+                    name: seat.currentStudent.user.name,
+                }
+                : null,
+        };
+    }
     async getMySeat(studentId) {
         const student = await this.prisma.student.findUnique({
             where: { id: studentId },
@@ -37,9 +62,38 @@ let SeatsService = class SeatsService {
     async getSeatMap(zone) {
         const seats = await this.prisma.seat.findMany({
             where: { zone: zone ?? undefined, isActive: true },
+            include: {
+                currentStudent: {
+                    include: { user: true },
+                },
+            },
             orderBy: { seatNo: 'asc' },
         });
-        return { success: true, data: seats, meta: {} };
+        const currentStudentIds = seats
+            .map((seat) => seat.currentStudentId)
+            .filter((studentId) => Boolean(studentId));
+        const activeSessions = currentStudentIds.length
+            ? await this.prisma.studySession.findMany({
+                where: {
+                    studentId: { in: currentStudentIds },
+                    status: {
+                        in: [client_1.StudySessionStatus.ACTIVE, client_1.StudySessionStatus.PAUSED],
+                    },
+                },
+                select: {
+                    studentId: true,
+                    status: true,
+                },
+            })
+            : [];
+        const pausedStudentIds = new Set(activeSessions
+            .filter((session) => session.status === client_1.StudySessionStatus.PAUSED)
+            .map((session) => session.studentId));
+        return {
+            success: true,
+            data: seats.map((seat) => this.serializeSeat(seat, pausedStudentIds)),
+            meta: {},
+        };
     }
     async getAvailableSeats(zone) {
         const seats = await this.prisma.seat.findMany({
@@ -50,7 +104,19 @@ let SeatsService = class SeatsService {
             },
             orderBy: { seatNo: 'asc' },
         });
-        return { success: true, data: seats, meta: {} };
+        return {
+            success: true,
+            data: seats.map((seat) => ({
+                id: seat.id,
+                seatNo: seat.seatNo,
+                zone: seat.zone,
+                status: seat.status,
+                isActive: seat.isActive,
+                uiStatus: 'empty',
+                currentStudent: null,
+            })),
+            meta: {},
+        };
     }
     async requestSeatChange(studentId, toSeatId, reason) {
         const [seat, student, existingPending] = await Promise.all([
@@ -96,11 +162,84 @@ let SeatsService = class SeatsService {
     }
     async listAdmin(zone, status) {
         const seats = await this.prisma.seat.findMany({
-            where: { zone: zone ?? undefined, status: status ?? undefined },
+            where: {
+                zone: zone ?? undefined,
+                status: status ?? undefined,
+                isActive: true,
+            },
             include: { currentStudent: { include: { user: true } } },
             orderBy: { seatNo: 'asc' },
         });
-        return { success: true, data: seats, meta: {} };
+        const currentStudentIds = seats
+            .map((seat) => seat.currentStudentId)
+            .filter((studentId) => Boolean(studentId));
+        const activeSessions = currentStudentIds.length
+            ? await this.prisma.studySession.findMany({
+                where: {
+                    studentId: { in: currentStudentIds },
+                    status: {
+                        in: [client_1.StudySessionStatus.ACTIVE, client_1.StudySessionStatus.PAUSED],
+                    },
+                },
+                select: {
+                    studentId: true,
+                    status: true,
+                },
+            })
+            : [];
+        const pausedStudentIds = new Set(activeSessions
+            .filter((session) => session.status === client_1.StudySessionStatus.PAUSED)
+            .map((session) => session.studentId));
+        return {
+            success: true,
+            data: seats.map((seat) => this.serializeSeat(seat, pausedStudentIds)),
+            meta: {},
+        };
+    }
+    async createSeat(seatNo, zone, actorUserId) {
+        if (!seatNo.trim()) {
+            throw new common_1.BadRequestException('좌석 번호가 필요합니다.');
+        }
+        const created = await this.prisma.seat.create({
+            data: {
+                seatNo,
+                zone: zone ?? seatNo.slice(0, 1),
+                status: client_1.SeatStatus.AVAILABLE,
+            },
+        });
+        await this.audit.log({
+            actorUserId,
+            actionType: 'SEAT_CREATED',
+            targetType: 'seat',
+            targetId: created.id,
+            afterData: created,
+        });
+        return { success: true, data: created, meta: {} };
+    }
+    async deleteSeat(seatId, actorUserId) {
+        const seat = await this.prisma.seat.findUnique({
+            where: { id: seatId },
+            include: { assignedStudents: true, currentStudent: true },
+        });
+        if (!seat) {
+            throw new common_1.NotFoundException('좌석을 찾을 수 없습니다.');
+        }
+        if (seat.currentStudentId || seat.assignedStudents.length > 0) {
+            throw new common_1.BadRequestException('사용 중인 좌석은 삭제할 수 없습니다.');
+        }
+        const deleted = await this.prisma.seat.update({
+            where: { id: seatId },
+            data: { isActive: false, status: client_1.SeatStatus.LOCKED },
+        });
+        await this.audit.log({
+            actorUserId,
+            actionType: 'SEAT_DELETED',
+            targetType: 'seat',
+            targetId: seatId,
+            beforeData: seat,
+            afterData: deleted,
+        });
+        return { success: true, data: { deleted: true }, meta: {} };
     }
     async assign(seatId, studentId, assignmentType, actorUserId) {
         const [seat, student, activeAttendance] = await Promise.all([

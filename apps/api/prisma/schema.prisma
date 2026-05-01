@@ -53,7 +53,7 @@ enum SessionStatus {
 }
 
 enum LoginMethod {
-  STUDENT_NO_NAME
+  STUDENT_ID_PASSWORD
   QR
   AUTO
   ADMIN_PASSWORD
@@ -200,6 +200,8 @@ model Student {
   id                 String                 @id @default(uuid()) @db.Uuid
   userId             String                 @unique @db.Uuid
   studentNo          String                 @unique @db.VarChar(50)
+  loginId            String                 @unique @db.VarChar(50)
+  passwordHash       String                 @db.VarChar(255)
   gradeId            String?                @db.Uuid
   classId            String?                @db.Uuid
   groupId            String?                @db.Uuid
@@ -228,6 +230,10 @@ model Student {
   monthlyMetrics     MonthlyStudentMetric[]
   rankingItems       RankingSnapshotItem[]
   studentBadges      StudentBadge[]
+  pointBalance       Int                    @default(0)
+  pointTransactions  PointTransaction[]
+  ownedItems         StudentItem[]
+  character          StudentCharacter?
 
   @@index([classId])
   @@index([groupId])
@@ -459,7 +465,9 @@ model StudySession {
   startedAt        DateTime?
   endedAt          DateTime?
   studyMinutes     Int                @default(0)
+  studySeconds     Int                @default(0)
   breakMinutes     Int                @default(0)
+  breakSeconds     Int                @default(0)
   autoClosedReason String?            @db.VarChar(50)
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
@@ -482,6 +490,7 @@ model StudyBreak {
   startedAt      DateTime
   endedAt        DateTime?
   breakMinutes   Int          @default(0)
+  breakSeconds   Int          @default(0)
   createdAt      DateTime     @default(now())
   studySession   StudySession @relation(fields: [studySessionId], references: [id], onDelete: Cascade)
 
@@ -496,6 +505,8 @@ model StudyLog {
   studySessionId  String?       @db.Uuid
   logDate         DateTime      @db.Date
   subjectName     String        @db.VarChar(100)
+  studyMinutes    Int           @default(0)
+  studySeconds    Int           @default(0)
   pagesCompleted  Int           @default(0)
   problemsSolved  Int           @default(0)
   progressPercent Decimal       @default(0) @db.Decimal(5, 2)
@@ -744,4 +755,91 @@ model TvDisplaySetting {
   updatedBy               User?         @relation("TvDisplaySettingUpdatedBy", fields: [updatedById], references: [id])
 
   @@map("tv_display_settings")
+}
+
+// ─── Points ──────────────────────────────────────────
+
+enum PointTransactionType {
+  EARN
+  SPEND
+}
+
+enum PointSource {
+  STUDY_TIME
+  ATTENDANCE
+  STREAK_BONUS
+  BADGE_EARNED
+  ITEM_PURCHASE
+  ADMIN_GRANT
+}
+
+model PointTransaction {
+  id        String               @id @default(uuid()) @db.Uuid
+  studentId String               @db.Uuid
+  type      PointTransactionType
+  source    PointSource
+  amount    Int
+  balance   Int
+  memo      String?              @db.VarChar(255)
+  createdAt DateTime             @default(now())
+  student   Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([createdAt])
+  @@map("point_transactions")
+}
+
+// ─── Character Customization ─────────────────────────
+
+enum ItemCategory {
+  HAT
+  GLASSES
+  OUTFIT
+  BACKGROUND
+  EXPRESSION
+}
+
+model CharacterItem {
+  id          String       @id @default(uuid()) @db.Uuid
+  category    ItemCategory
+  name        String       @db.VarChar(100)
+  description String?      @db.VarChar(255)
+  price       Int          @default(0)
+  svgKey      String       @db.VarChar(100)
+  sortOrder   Int          @default(0)
+  isDefault   Boolean      @default(false)
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  studentItems StudentItem[]
+
+  @@index([category])
+  @@map("character_items")
+}
+
+model StudentItem {
+  id          String        @id @default(uuid()) @db.Uuid
+  studentId   String        @db.Uuid
+  itemId      String        @db.Uuid
+  purchasedAt DateTime      @default(now())
+  student     Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  item        CharacterItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, itemId])
+  @@index([studentId])
+  @@map("student_items")
+}
+
+model StudentCharacter {
+  id           String  @id @default(uuid()) @db.Uuid
+  studentId    String  @unique @db.Uuid
+  hatItemId    String? @db.Uuid
+  glassesItemId String? @db.Uuid
+  outfitItemId String? @db.Uuid
+  bgItemId     String? @db.Uuid
+  expressionItemId String? @db.Uuid
+  student      Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("student_characters")
 }

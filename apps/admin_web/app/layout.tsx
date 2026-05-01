@@ -1,32 +1,60 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
-import { Sidebar } from '@/components/sidebar';
-import { MobileNav } from '@/components/mobile-nav';
+import { AuthProvider } from '@/lib/auth';
+import { AppShell } from '@/components/app-shell';
+import { ServiceWorkerRegistrar } from '@/components/sw-registrar';
 
 export const metadata: Metadata = {
   title: '자습ON 관리자',
-  description: '자습실 관리 시스템',
+  description: '수학학원 자습실 관리 시스템',
   manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: '자습ON',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: '#6C5CE7',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body className="bg-[#F7F8FA] text-gray-900 antialiased">
-        <div className="flex h-screen">
-          {/* Desktop sidebar */}
-          <Sidebar />
-          {/* Main content */}
-          <main className="flex-1 overflow-auto pb-20 md:pb-0">
-            {children}
-          </main>
-        </div>
-        {/* Mobile bottom nav */}
-        <MobileNav />
+      <head>
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link
+          rel="preconnect"
+          href="https://cdn.jsdelivr.net"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          as="style"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
+      </head>
+      <body className="bg-bg text-text-primary antialiased">
+        <AuthProvider>
+          <AppShell>{children}</AppShell>
+        </AuthProvider>
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   );

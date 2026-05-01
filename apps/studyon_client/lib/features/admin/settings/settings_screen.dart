@@ -27,6 +27,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _alertBreakOvertime = true;
   bool _alertCheckOut = true;
 
+  Future<void> _saveSettings() async {
+    await ref.read(adminRepositoryProvider).updateSettings(
+          AppSettings(
+            academyName: _academyNameCtrl.text.trim().isEmpty
+                ? '자습ON 학원'
+                : _academyNameCtrl.text.trim(),
+            openTime: _openTimeCtrl.text.trim().isEmpty
+                ? '09:00'
+                : _openTimeCtrl.text.trim(),
+            closeTime: _closeTimeCtrl.text.trim().isEmpty
+                ? '22:00'
+                : _closeTimeCtrl.text.trim(),
+            lateThresholdMinutes: 15,
+            autoCheckoutEnabled: _autoCheckout,
+            notificationEnabled: _notifications,
+            tvDisplayEnabled: _tvDisplay,
+          ),
+        );
+    ref.invalidate(appSettingsProvider);
+  }
+
   @override
   void dispose() {
     _academyNameCtrl.dispose();
@@ -281,7 +302,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(width: 10),
                   StudyonButton(
                     label: '저장',
-                    onPressed: () => setState(() => _isEditing = false),
+                    onPressed: () async {
+                      await _saveSettings();
+                      if (!mounted) return;
+                      setState(() => _isEditing = false);
+                      showStudyonSnackbar(context, '설정을 저장했어요');
+                    },
                     variant: StudyonButtonVariant.primary,
                     isExpanded: false,
                     isSmall: true,

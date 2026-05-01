@@ -1,7 +1,0 @@
-{
-  "tool_name": "Read",
-  "tool_input_preview": "{\"file_path\":\"/Users/bagjun-won/studyon/reference/스크린샷 2026-04-14 오전 11.43.24.png\"}",
-  "error": "File does not exist. Note: your current working directory is /Users/bagjun-won/studyon.",
-  "timestamp": "2026-04-14T14:35:57.325Z",
-  "retry_count": 2
-}

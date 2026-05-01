@@ -52,12 +52,15 @@ export declare class RankingsController {
                     classId: string | null;
                     updatedAt: Date;
                     userId: string;
+                    passwordHash: string;
                     studentNo: string;
+                    loginId: string;
                     groupId: string | null;
                     assignedSeatId: string | null;
                     enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
                     joinedAt: Date | null;
                     memo: string | null;
+                    pointBalance: number;
                 };
             } & {
                 id: string;

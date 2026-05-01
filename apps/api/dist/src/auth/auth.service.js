@@ -47,22 +47,34 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const client_1 = require("@prisma/client");
 const bcrypt = __importStar(require("bcrypt"));
+const date_util_1 = require("../common/utils/date.util");
+const attendances_service_1 = require("../attendances/attendances.service");
 const prisma_service_1 = require("../database/prisma.service");
 const redis_service_1 = require("../redis/redis.service");
 let AuthService = class AuthService {
     prisma;
     redis;
     jwtService;
-    constructor(prisma, redis, jwtService) {
+    attendancesService;
+    constructor(prisma, redis, jwtService, attendancesService) {
         this.prisma = prisma;
         this.redis = redis;
         this.jwtService = jwtService;
+        this.attendancesService = attendancesService;
     }
     async studentSignup(dto) {
+        const existingLogin = await this.prisma.student.findUnique({
+            where: { loginId: dto.loginId },
+            select: { id: true },
+        });
+        if (existingLogin) {
+            throw new common_1.ConflictException('이미 사용 중인 아이디입니다.');
+        }
         const existingStudent = await this.prisma.student.findUnique({
             where: { studentNo: dto.studentNo },
             include: { user: true, class: true, assignedSeat: true },
         });
+        const passwordHash = await bcrypt.hash(dto.password, 10);
         if (existingStudent?.user.status === 'ACTIVE') {
             throw new common_1.ConflictException('이미 가입된 학번입니다.');
         }
@@ -75,13 +87,20 @@ let AuthService = class AuthService {
                     status: 'ACTIVE',
                 },
             });
+            await this.prisma.student.update({
+                where: { id: existingStudent.id },
+                data: {
+                    loginId: dto.loginId,
+                    passwordHash,
+                },
+            });
             await this.revokeActiveStudentSessions(existingStudent.id);
             return this.createSessionAndTokens({
                 userId: existingStudent.userId,
                 role: client_1.UserRole.STUDENT,
                 name: dto.name,
                 studentId: existingStudent.id,
-                loginMethod: client_1.LoginMethod.STUDENT_NO_NAME,
+                loginMethod: client_1.LoginMethod.STUDENT_ID_PASSWORD,
                 deviceCode: dto.deviceCode,
                 meta: {
                     student: {
@@ -105,6 +124,8 @@ let AuthService = class AuthService {
             const student = await tx.student.create({
                 data: {
                     userId: user.id,
+                    loginId: dto.loginId,
+                    passwordHash,
                     studentNo: dto.studentNo,
                 },
                 include: { class: true, assignedSeat: true },
@@ -116,7 +137,7 @@ let AuthService = class AuthService {
             role: client_1.UserRole.STUDENT,
             name: created.user.name,
             studentId: created.student.id,
-            loginMethod: client_1.LoginMethod.STUDENT_NO_NAME,
+            loginMethod: client_1.LoginMethod.STUDENT_ID_PASSWORD,
             deviceCode: dto.deviceCode,
             meta: {
                 student: {
@@ -129,18 +150,19 @@ let AuthService = class AuthService {
         });
     }
     async studentLogin(dto) {
-        if (!dto.studentNo.trim() || !dto.name.trim()) {
-            throw new common_1.BadRequestException('학번과 이름을 입력해 주세요.');
+        if (!dto.loginId.trim() || !dto.password.trim()) {
+            throw new common_1.BadRequestException('아이디와 비밀번호를 입력해 주세요.');
         }
         const student = await this.prisma.student.findFirst({
             where: {
-                studentNo: dto.studentNo,
-                user: { name: dto.name, status: 'ACTIVE' },
+                loginId: dto.loginId,
+                user: { status: 'ACTIVE' },
             },
             include: { user: true, class: true, assignedSeat: true },
         });
-        if (!student) {
-            throw new common_1.UnauthorizedException('학생 정보를 확인할 수 없습니다.');
+        if (!student ||
+            !(await bcrypt.compare(dto.password, student.passwordHash))) {
+            throw new common_1.UnauthorizedException('아이디 또는 비밀번호를 확인해 주세요.');
         }
         await this.revokeActiveStudentSessions(student.id);
         return this.createSessionAndTokens({
@@ -148,7 +170,7 @@ let AuthService = class AuthService {
             role: client_1.UserRole.STUDENT,
             name: student.user.name,
             studentId: student.id,
-            loginMethod: client_1.LoginMethod.STUDENT_NO_NAME,
+            loginMethod: client_1.LoginMethod.STUDENT_ID_PASSWORD,
             deviceCode: dto.deviceCode,
             meta: {
                 student: {
@@ -255,6 +277,47 @@ let AuthService = class AuthService {
             },
         });
     }
+    async adminSignup(dto) {
+        const existing = await this.prisma.adminUser.findUnique({
+            where: { email: dto.email },
+        });
+        if (existing) {
+            throw new common_1.ConflictException('이미 사용 중인 이메일입니다.');
+        }
+        const passwordHash = await bcrypt.hash(dto.password, 10);
+        const result = await this.prisma.$transaction(async (tx) => {
+            const user = await tx.user.create({
+                data: {
+                    role: client_1.UserRole.ADMIN,
+                    status: 'ACTIVE',
+                    name: dto.name,
+                },
+            });
+            const admin = await tx.adminUser.create({
+                data: {
+                    userId: user.id,
+                    adminType: client_1.UserRole.ADMIN,
+                    email: dto.email,
+                    passwordHash,
+                },
+            });
+            return { user, admin };
+        });
+        return this.createSessionAndTokens({
+            userId: result.user.id,
+            role: client_1.UserRole.ADMIN,
+            name: result.user.name,
+            loginMethod: client_1.LoginMethod.ADMIN_PASSWORD,
+            meta: {
+                user: {
+                    id: result.user.id,
+                    role: result.user.role,
+                    name: result.user.name,
+                    email: result.admin.email,
+                },
+            },
+        });
+    }
     async adminLogin(dto) {
         const admin = await this.prisma.adminUser.findUnique({
             where: { email: dto.email },
@@ -309,6 +372,24 @@ let AuthService = class AuthService {
         });
     }
     async logout(sessionId, refreshToken) {
+        const session = await this.prisma.authSession.findUnique({
+            where: { id: sessionId },
+            select: { studentId: true, sessionStatus: true },
+        });
+        if (session?.studentId && session.sessionStatus === client_1.SessionStatus.ACTIVE) {
+            const attendance = await this.prisma.attendance.findUnique({
+                where: {
+                    studentId_attendanceDate: {
+                        studentId: session.studentId,
+                        attendanceDate: (0, date_util_1.dateOnly)(),
+                    },
+                },
+                select: { attendanceStatus: true },
+            });
+            if (attendance?.attendanceStatus === client_1.AttendanceStatus.CHECKED_IN) {
+                await this.attendancesService.checkOut(session.studentId, true);
+            }
+        }
         await this.prisma.authSession.update({
             where: { id: sessionId },
             data: { sessionStatus: client_1.SessionStatus.LOGGED_OUT, endedAt: new Date() },
@@ -491,6 +572,7 @@ exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         redis_service_1.RedisService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        attendances_service_1.AttendancesService])
 ], AuthService);
 //# sourceMappingURL=auth.service.js.map

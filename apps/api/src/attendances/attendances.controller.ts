@@ -62,12 +62,16 @@ export class AttendancesController {
   @Get('admin/attendances')
   listAdmin(
     @Query('date') date?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
     @Query('classId') classId?: string,
     @Query('groupId') groupId?: string,
     @Query('attendanceStatus') attendanceStatus?: AttendanceStatus,
   ) {
     return this.attendancesService.listAdmin(
       date,
+      startDate,
+      endDate,
       classId,
       groupId,
       attendanceStatus,

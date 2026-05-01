@@ -1,0 +1,7 @@
+{
+  "tool_name": "Read",
+  "tool_input_preview": "{\"file_path\":\"/Users/bagjun-won/studyon/apps/api/prisma/prisma.config.ts\"}",
+  "error": "File does not exist. Note: your current working directory is /Users/bagjun-won/studyon/apps/api.",
+  "timestamp": "2026-04-16T09:46:17.852Z",
+  "retry_count": 1
+}

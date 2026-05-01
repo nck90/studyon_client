@@ -35,14 +35,16 @@ let ReportsService = class ReportsService {
         const logs = await this.prisma.studyLog.findMany({
             where: { studentId, logDate: targetDate },
         });
-        const studyMinutes = sessions.reduce((sum, item) => sum + item.studyMinutes, 0);
-        const breakMinutes = sessions.reduce((sum, item) => sum + item.breakMinutes, 0);
+        const studySeconds = sessions.reduce((sum, item) => sum + item.studySeconds, 0);
+        const studyMinutes = Math.floor(studySeconds / 60);
+        const breakSeconds = sessions.reduce((sum, item) => sum + item.breakSeconds, 0);
+        const breakMinutes = Math.floor(breakSeconds / 60);
         const targetMinutes = plans.reduce((sum, item) => sum + item.targetMinutes, 0);
         const achievedRate = targetMinutes === 0
             ? 0
             : Number(((studyMinutes / targetMinutes) * 100).toFixed(2));
         const subjectMap = new Map();
-        logs.forEach((log) => subjectMap.set(log.subjectName, (subjectMap.get(log.subjectName) ?? 0) + log.pagesCompleted));
+        logs.forEach((log) => subjectMap.set(log.subjectName, (subjectMap.get(log.subjectName) ?? 0) + log.studySeconds));
         sessions.forEach((session) => {
             if (session.linkedPlanId) {
             }
@@ -53,13 +55,16 @@ let ReportsService = class ReportsService {
                 date: targetDate.toISOString().slice(0, 10),
                 attendanceMinutes: attendance?.stayMinutes ?? 0,
                 studyMinutes,
+                studySeconds,
                 breakMinutes,
+                breakSeconds,
                 targetMinutes,
                 achievedRate,
                 attendanceStatus: attendance?.attendanceStatus ?? client_1.AttendanceStatus.ABSENT,
-                subjectBreakdown: Array.from(subjectMap.entries()).map(([subjectName, pagesCompleted]) => ({
+                subjectBreakdown: Array.from(subjectMap.entries()).map(([subjectName, studySeconds]) => ({
                     subjectName,
-                    pagesCompleted,
+                    studyMinutes: Math.floor(studySeconds / 60),
+                    studySeconds,
                 })),
                 logs,
             },
@@ -83,13 +88,20 @@ let ReportsService = class ReportsService {
                 where: { studentId, planDate: { gte: start, lte: end } },
             }),
         ]);
+        const studySeconds = sessions.reduce((sum, item) => sum + item.studySeconds, 0);
         return {
             success: true,
             data: {
                 weekStartDate: start.toISOString().slice(0, 10),
-                studyMinutes: sessions.reduce((sum, item) => sum + item.studyMinutes, 0),
+                studyMinutes: Math.floor(studySeconds / 60),
+                studySeconds,
                 attendanceDays: attendances.filter((item) => item.attendanceStatus !== client_1.AttendanceStatus.ABSENT).length,
                 targetMinutes: plans.reduce((sum, item) => sum + item.targetMinutes, 0),
+                achievedRate: plans.reduce((sum, item) => sum + item.targetMinutes, 0) == 0
+                    ? 0
+                    : Number(((Math.floor(studySeconds / 60) /
+                        plans.reduce((sum, item) => sum + item.targetMinutes, 0)) *
+                        100).toFixed(2)),
                 pagesCompleted: logs.reduce((sum, item) => sum + item.pagesCompleted, 0),
                 problemsSolved: logs.reduce((sum, item) => sum + item.problemsSolved, 0),
             },
@@ -115,13 +127,20 @@ let ReportsService = class ReportsService {
                 where: { studentId, planDate: { gte: start, lte: end } },
             }),
         ]);
+        const studySeconds = sessions.reduce((sum, item) => sum + item.studySeconds, 0);
         return {
             success: true,
             data: {
                 month: key,
-                studyMinutes: sessions.reduce((sum, item) => sum + item.studyMinutes, 0),
+                studyMinutes: Math.floor(studySeconds / 60),
+                studySeconds,
                 attendanceDays: attendances.filter((item) => item.attendanceStatus !== client_1.AttendanceStatus.ABSENT).length,
                 targetMinutes: plans.reduce((sum, item) => sum + item.targetMinutes, 0),
+                achievedRate: plans.reduce((sum, item) => sum + item.targetMinutes, 0) == 0
+                    ? 0
+                    : Number(((Math.floor(studySeconds / 60) /
+                        plans.reduce((sum, item) => sum + item.targetMinutes, 0)) *
+                        100).toFixed(2)),
                 pagesCompleted: logs.reduce((sum, item) => sum + item.pagesCompleted, 0),
                 problemsSolved: logs.reduce((sum, item) => sum + item.problemsSolved, 0),
             },

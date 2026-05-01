@@ -21,8 +21,8 @@ StudentLoginRequest _$StudentLoginRequestFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$StudentLoginRequest {
-  String get studentNo => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
+  String get loginId => throw _privateConstructorUsedError;
+  String get password => throw _privateConstructorUsedError;
   String? get deviceCode => throw _privateConstructorUsedError;
 
   /// Serializes this StudentLoginRequest to a JSON map.
@@ -42,7 +42,7 @@ abstract class $StudentLoginRequestCopyWith<$Res> {
     $Res Function(StudentLoginRequest) then,
   ) = _$StudentLoginRequestCopyWithImpl<$Res, StudentLoginRequest>;
   @useResult
-  $Res call({String studentNo, String name, String? deviceCode});
+  $Res call({String loginId, String password, String? deviceCode});
 }
 
 /// @nodoc
@@ -60,19 +60,19 @@ class _$StudentLoginRequestCopyWithImpl<$Res, $Val extends StudentLoginRequest>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? studentNo = null,
-    Object? name = null,
+    Object? loginId = null,
+    Object? password = null,
     Object? deviceCode = freezed,
   }) {
     return _then(
       _value.copyWith(
-            studentNo: null == studentNo
-                ? _value.studentNo
-                : studentNo // ignore: cast_nullable_to_non_nullable
+            loginId: null == loginId
+                ? _value.loginId
+                : loginId // ignore: cast_nullable_to_non_nullable
                       as String,
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
+            password: null == password
+                ? _value.password
+                : password // ignore: cast_nullable_to_non_nullable
                       as String,
             deviceCode: freezed == deviceCode
                 ? _value.deviceCode
@@ -93,7 +93,7 @@ abstract class _$$StudentLoginRequestImplCopyWith<$Res>
   ) = __$$StudentLoginRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String studentNo, String name, String? deviceCode});
+  $Res call({String loginId, String password, String? deviceCode});
 }
 
 /// @nodoc
@@ -110,19 +110,19 @@ class __$$StudentLoginRequestImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? studentNo = null,
-    Object? name = null,
+    Object? loginId = null,
+    Object? password = null,
     Object? deviceCode = freezed,
   }) {
     return _then(
       _$StudentLoginRequestImpl(
-        studentNo: null == studentNo
-            ? _value.studentNo
-            : studentNo // ignore: cast_nullable_to_non_nullable
+        loginId: null == loginId
+            ? _value.loginId
+            : loginId // ignore: cast_nullable_to_non_nullable
                   as String,
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
+        password: null == password
+            ? _value.password
+            : password // ignore: cast_nullable_to_non_nullable
                   as String,
         deviceCode: freezed == deviceCode
             ? _value.deviceCode
@@ -137,8 +137,8 @@ class __$$StudentLoginRequestImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$StudentLoginRequestImpl extends _StudentLoginRequest {
   const _$StudentLoginRequestImpl({
-    required this.studentNo,
-    required this.name,
+    required this.loginId,
+    required this.password,
     this.deviceCode,
   }) : super._();
 
@@ -146,15 +146,15 @@ class _$StudentLoginRequestImpl extends _StudentLoginRequest {
       _$$StudentLoginRequestImplFromJson(json);
 
   @override
-  final String studentNo;
+  final String loginId;
   @override
-  final String name;
+  final String password;
   @override
   final String? deviceCode;
 
   @override
   String toString() {
-    return 'StudentLoginRequest(studentNo: $studentNo, name: $name, deviceCode: $deviceCode)';
+    return 'StudentLoginRequest(loginId: $loginId, password: $password, deviceCode: $deviceCode)';
   }
 
   @override
@@ -162,16 +162,16 @@ class _$StudentLoginRequestImpl extends _StudentLoginRequest {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$StudentLoginRequestImpl &&
-            (identical(other.studentNo, studentNo) ||
-                other.studentNo == studentNo) &&
-            (identical(other.name, name) || other.name == name) &&
+            (identical(other.loginId, loginId) || other.loginId == loginId) &&
+            (identical(other.password, password) ||
+                other.password == password) &&
             (identical(other.deviceCode, deviceCode) ||
                 other.deviceCode == deviceCode));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, studentNo, name, deviceCode);
+  int get hashCode => Object.hash(runtimeType, loginId, password, deviceCode);
 
   /// Create a copy of StudentLoginRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -192,8 +192,8 @@ class _$StudentLoginRequestImpl extends _StudentLoginRequest {
 
 abstract class _StudentLoginRequest extends StudentLoginRequest {
   const factory _StudentLoginRequest({
-    required final String studentNo,
-    required final String name,
+    required final String loginId,
+    required final String password,
     final String? deviceCode,
   }) = _$StudentLoginRequestImpl;
   const _StudentLoginRequest._() : super._();
@@ -202,9 +202,9 @@ abstract class _StudentLoginRequest extends StudentLoginRequest {
       _$StudentLoginRequestImpl.fromJson;
 
   @override
-  String get studentNo;
+  String get loginId;
   @override
-  String get name;
+  String get password;
   @override
   String? get deviceCode;
 
@@ -222,6 +222,8 @@ StudentSignupRequest _$StudentSignupRequestFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$StudentSignupRequest {
+  String get loginId => throw _privateConstructorUsedError;
+  String get password => throw _privateConstructorUsedError;
   String get studentNo => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
@@ -244,7 +246,14 @@ abstract class $StudentSignupRequestCopyWith<$Res> {
     $Res Function(StudentSignupRequest) then,
   ) = _$StudentSignupRequestCopyWithImpl<$Res, StudentSignupRequest>;
   @useResult
-  $Res call({String studentNo, String name, String? phone, String? deviceCode});
+  $Res call({
+    String loginId,
+    String password,
+    String studentNo,
+    String name,
+    String? phone,
+    String? deviceCode,
+  });
 }
 
 /// @nodoc
@@ -265,6 +274,8 @@ class _$StudentSignupRequestCopyWithImpl<
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? loginId = null,
+    Object? password = null,
     Object? studentNo = null,
     Object? name = null,
     Object? phone = freezed,
@@ -272,6 +283,14 @@ class _$StudentSignupRequestCopyWithImpl<
   }) {
     return _then(
       _value.copyWith(
+            loginId: null == loginId
+                ? _value.loginId
+                : loginId // ignore: cast_nullable_to_non_nullable
+                      as String,
+            password: null == password
+                ? _value.password
+                : password // ignore: cast_nullable_to_non_nullable
+                      as String,
             studentNo: null == studentNo
                 ? _value.studentNo
                 : studentNo // ignore: cast_nullable_to_non_nullable
@@ -303,7 +322,14 @@ abstract class _$$StudentSignupRequestImplCopyWith<$Res>
   ) = __$$StudentSignupRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String studentNo, String name, String? phone, String? deviceCode});
+  $Res call({
+    String loginId,
+    String password,
+    String studentNo,
+    String name,
+    String? phone,
+    String? deviceCode,
+  });
 }
 
 /// @nodoc
@@ -320,6 +346,8 @@ class __$$StudentSignupRequestImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? loginId = null,
+    Object? password = null,
     Object? studentNo = null,
     Object? name = null,
     Object? phone = freezed,
@@ -327,6 +355,14 @@ class __$$StudentSignupRequestImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$StudentSignupRequestImpl(
+        loginId: null == loginId
+            ? _value.loginId
+            : loginId // ignore: cast_nullable_to_non_nullable
+                  as String,
+        password: null == password
+            ? _value.password
+            : password // ignore: cast_nullable_to_non_nullable
+                  as String,
         studentNo: null == studentNo
             ? _value.studentNo
             : studentNo // ignore: cast_nullable_to_non_nullable
@@ -352,6 +388,8 @@ class __$$StudentSignupRequestImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$StudentSignupRequestImpl extends _StudentSignupRequest {
   const _$StudentSignupRequestImpl({
+    required this.loginId,
+    required this.password,
     required this.studentNo,
     required this.name,
     this.phone,
@@ -361,6 +399,10 @@ class _$StudentSignupRequestImpl extends _StudentSignupRequest {
   factory _$StudentSignupRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$StudentSignupRequestImplFromJson(json);
 
+  @override
+  final String loginId;
+  @override
+  final String password;
   @override
   final String studentNo;
   @override
@@ -372,7 +414,7 @@ class _$StudentSignupRequestImpl extends _StudentSignupRequest {
 
   @override
   String toString() {
-    return 'StudentSignupRequest(studentNo: $studentNo, name: $name, phone: $phone, deviceCode: $deviceCode)';
+    return 'StudentSignupRequest(loginId: $loginId, password: $password, studentNo: $studentNo, name: $name, phone: $phone, deviceCode: $deviceCode)';
   }
 
   @override
@@ -380,6 +422,9 @@ class _$StudentSignupRequestImpl extends _StudentSignupRequest {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$StudentSignupRequestImpl &&
+            (identical(other.loginId, loginId) || other.loginId == loginId) &&
+            (identical(other.password, password) ||
+                other.password == password) &&
             (identical(other.studentNo, studentNo) ||
                 other.studentNo == studentNo) &&
             (identical(other.name, name) || other.name == name) &&
@@ -390,8 +435,15 @@ class _$StudentSignupRequestImpl extends _StudentSignupRequest {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, studentNo, name, phone, deviceCode);
+  int get hashCode => Object.hash(
+    runtimeType,
+    loginId,
+    password,
+    studentNo,
+    name,
+    phone,
+    deviceCode,
+  );
 
   /// Create a copy of StudentSignupRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -413,6 +465,8 @@ class _$StudentSignupRequestImpl extends _StudentSignupRequest {
 
 abstract class _StudentSignupRequest extends StudentSignupRequest {
   const factory _StudentSignupRequest({
+    required final String loginId,
+    required final String password,
     required final String studentNo,
     required final String name,
     final String? phone,
@@ -423,6 +477,10 @@ abstract class _StudentSignupRequest extends StudentSignupRequest {
   factory _StudentSignupRequest.fromJson(Map<String, dynamic> json) =
       _$StudentSignupRequestImpl.fromJson;
 
+  @override
+  String get loginId;
+  @override
+  String get password;
   @override
   String get studentNo;
   @override

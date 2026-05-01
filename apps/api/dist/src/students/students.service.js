@@ -21,7 +21,7 @@ let StudentsService = class StudentsService {
     }
     async getStudentHome(studentId) {
         const today = (0, date_util_1.dateOnly)();
-        const [student, attendance, activeSession, plans, notifications] = await Promise.all([
+        const [student, attendance, activeSession, plans, notifications, dailyMetric, checkedInStudentCount, totalActiveStudents,] = await Promise.all([
             this.prisma.student.findUnique({
                 where: { id: studentId },
                 include: { user: true, assignedSeat: true, class: true },
@@ -43,6 +43,27 @@ let StudentsService = class StudentsService {
                 include: { notification: true },
                 take: 5,
                 orderBy: { createdAt: 'desc' },
+            }),
+            this.prisma.dailyStudentMetric.findUnique({
+                where: {
+                    studentId_metricDate: { studentId, metricDate: today },
+                },
+            }),
+            this.prisma.attendance.count({
+                where: {
+                    attendanceDate: today,
+                    attendanceStatus: client_1.AttendanceStatus.CHECKED_IN,
+                    student: {
+                        enrollmentStatus: 'ACTIVE',
+                        user: { status: 'ACTIVE' },
+                    },
+                },
+            }),
+            this.prisma.student.count({
+                where: {
+                    enrollmentStatus: 'ACTIVE',
+                    user: { status: 'ACTIVE' },
+                },
             }),
         ]);
         if (!student) {
@@ -92,6 +113,11 @@ let StudentsService = class StudentsService {
                     id: receipt.notification.id,
                     title: receipt.notification.title,
                 })),
+                streakDays: dailyMetric?.streakDays ?? 0,
+                community: {
+                    checkedInStudentCount,
+                    totalActiveStudents,
+                },
                 student: {
                     id: student.id,
                     name: student.user.name,
@@ -103,20 +129,68 @@ let StudentsService = class StudentsService {
         };
     }
     async getProfile(studentId) {
-        const student = await this.prisma.student.findUnique({
-            where: { id: studentId },
-            include: {
-                user: true,
-                class: true,
-                group: true,
-                grade: true,
-                assignedSeat: true,
-            },
-        });
+        const [student, sessionAggregate, completedPlansCount, badgeCount, latestMetric,] = await Promise.all([
+            this.prisma.student.findUnique({
+                where: { id: studentId },
+                include: {
+                    user: true,
+                    class: true,
+                    group: true,
+                    grade: true,
+                    assignedSeat: true,
+                },
+            }),
+            this.prisma.studySession.aggregate({
+                where: { studentId },
+                _sum: { studySeconds: true },
+            }),
+            this.prisma.studyPlan.count({
+                where: { studentId, status: 'COMPLETED' },
+            }),
+            this.prisma.studentBadge.count({
+                where: { studentId },
+            }),
+            this.prisma.dailyStudentMetric.findFirst({
+                where: { studentId },
+                orderBy: { metricDate: 'desc' },
+                select: { streakDays: true },
+            }),
+        ]);
         if (!student) {
             throw new common_1.NotFoundException('학생을 찾을 수 없습니다.');
         }
-        return { success: true, data: student, meta: {} };
+        const preferences = await this.getStudentPreferences(studentId);
+        const totalStudySeconds = sessionAggregate._sum.studySeconds ?? 0;
+        const totalStudyMinutes = Math.floor(totalStudySeconds / 60);
+        const streakDays = latestMetric?.streakDays ?? 0;
+        const totalPoints = totalStudyMinutes +
+            completedPlansCount * 50 +
+            badgeCount * 100 +
+            streakDays * 10;
+        const level = totalPoints >= 6000
+            ? 4
+            : totalPoints >= 3000
+                ? 3
+                : totalPoints >= 1000
+                    ? 2
+                    : 1;
+        return {
+            success: true,
+            data: {
+                ...student,
+                preferences,
+                profileStats: {
+                    totalStudySeconds,
+                    totalStudyMinutes,
+                    totalPoints,
+                    level,
+                    completedPlansCount,
+                    badgeCount,
+                    streakDays,
+                },
+            },
+            meta: {},
+        };
     }
     async getBadges(studentId) {
         const badges = await this.prisma.studentBadge.findMany({
@@ -125,6 +199,41 @@ let StudentsService = class StudentsService {
             orderBy: { awardedAt: 'desc' },
         });
         return { success: true, data: badges, meta: {} };
+    }
+    async getPreferences(studentId) {
+        const data = await this.getStudentPreferences(studentId);
+        return { success: true, data, meta: {} };
+    }
+    async updatePreferences(studentId, input) {
+        const current = await this.getStudentPreferences(studentId);
+        const next = {
+            notificationEnabled: input.notificationEnabled ?? current.notificationEnabled,
+        };
+        const key = this.preferenceKey(studentId);
+        const existing = await this.prisma.appSetting.findUnique({
+            where: { settingKey: key },
+        });
+        await (existing
+            ? this.prisma.appSetting.update({
+                where: { settingKey: key },
+                data: { settingValue: next },
+            })
+            : this.prisma.appSetting.create({
+                data: { settingKey: key, settingValue: next },
+            }));
+        return { success: true, data: next, meta: {} };
+    }
+    async getStudentPreferences(studentId) {
+        const setting = await this.prisma.appSetting.findUnique({
+            where: { settingKey: this.preferenceKey(studentId) },
+        });
+        const value = setting?.settingValue ?? {};
+        return {
+            notificationEnabled: value.notificationEnabled !== false,
+        };
+    }
+    preferenceKey(studentId) {
+        return `student:${studentId}:preferences`;
     }
 };
 exports.StudentsService = StudentsService;

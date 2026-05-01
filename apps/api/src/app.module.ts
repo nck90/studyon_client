@@ -27,6 +27,8 @@ import { BadgesModule } from '@/badges/badges.module';
 import { CommonModule } from '@/common/common.module';
 import { MetricsModule } from '@/metrics/metrics.module';
 import { ParentModule } from '@/parent/parent.module';
+import { PointsModule } from '@/points/points.module';
+import { CharactersModule } from '@/characters/characters.module';
 
 @Module({
   imports: [
@@ -77,6 +79,8 @@ import { ParentModule } from '@/parent/parent.module';
     DisplayModule,
     InsightsModule,
     ParentModule,
+    PointsModule,
+    CharactersModule,
     AdminModule,
   ],
 })

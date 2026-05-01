@@ -24,7 +24,9 @@ mixin _$DailyReport {
   String get date => throw _privateConstructorUsedError;
   int get attendanceMinutes => throw _privateConstructorUsedError;
   int get studyMinutes => throw _privateConstructorUsedError;
+  int get studySeconds => throw _privateConstructorUsedError;
   int get breakMinutes => throw _privateConstructorUsedError;
+  int get breakSeconds => throw _privateConstructorUsedError;
   int get targetMinutes => throw _privateConstructorUsedError;
   double get achievedRate => throw _privateConstructorUsedError;
   String get attendanceStatus => throw _privateConstructorUsedError;
@@ -52,7 +54,9 @@ abstract class $DailyReportCopyWith<$Res> {
     String date,
     int attendanceMinutes,
     int studyMinutes,
+    int studySeconds,
     int breakMinutes,
+    int breakSeconds,
     int targetMinutes,
     double achievedRate,
     String attendanceStatus,
@@ -78,7 +82,9 @@ class _$DailyReportCopyWithImpl<$Res, $Val extends DailyReport>
     Object? date = null,
     Object? attendanceMinutes = null,
     Object? studyMinutes = null,
+    Object? studySeconds = null,
     Object? breakMinutes = null,
+    Object? breakSeconds = null,
     Object? targetMinutes = null,
     Object? achievedRate = null,
     Object? attendanceStatus = null,
@@ -98,9 +104,17 @@ class _$DailyReportCopyWithImpl<$Res, $Val extends DailyReport>
                 ? _value.studyMinutes
                 : studyMinutes // ignore: cast_nullable_to_non_nullable
                       as int,
+            studySeconds: null == studySeconds
+                ? _value.studySeconds
+                : studySeconds // ignore: cast_nullable_to_non_nullable
+                      as int,
             breakMinutes: null == breakMinutes
                 ? _value.breakMinutes
                 : breakMinutes // ignore: cast_nullable_to_non_nullable
+                      as int,
+            breakSeconds: null == breakSeconds
+                ? _value.breakSeconds
+                : breakSeconds // ignore: cast_nullable_to_non_nullable
                       as int,
             targetMinutes: null == targetMinutes
                 ? _value.targetMinutes
@@ -137,7 +151,9 @@ abstract class _$$DailyReportImplCopyWith<$Res>
     String date,
     int attendanceMinutes,
     int studyMinutes,
+    int studySeconds,
     int breakMinutes,
+    int breakSeconds,
     int targetMinutes,
     double achievedRate,
     String attendanceStatus,
@@ -162,7 +178,9 @@ class __$$DailyReportImplCopyWithImpl<$Res>
     Object? date = null,
     Object? attendanceMinutes = null,
     Object? studyMinutes = null,
+    Object? studySeconds = null,
     Object? breakMinutes = null,
+    Object? breakSeconds = null,
     Object? targetMinutes = null,
     Object? achievedRate = null,
     Object? attendanceStatus = null,
@@ -182,9 +200,17 @@ class __$$DailyReportImplCopyWithImpl<$Res>
             ? _value.studyMinutes
             : studyMinutes // ignore: cast_nullable_to_non_nullable
                   as int,
+        studySeconds: null == studySeconds
+            ? _value.studySeconds
+            : studySeconds // ignore: cast_nullable_to_non_nullable
+                  as int,
         breakMinutes: null == breakMinutes
             ? _value.breakMinutes
             : breakMinutes // ignore: cast_nullable_to_non_nullable
+                  as int,
+        breakSeconds: null == breakSeconds
+            ? _value.breakSeconds
+            : breakSeconds // ignore: cast_nullable_to_non_nullable
                   as int,
         targetMinutes: null == targetMinutes
             ? _value.targetMinutes
@@ -214,7 +240,9 @@ class _$DailyReportImpl extends _DailyReport {
     required this.date,
     this.attendanceMinutes = 0,
     this.studyMinutes = 0,
+    this.studySeconds = 0,
     this.breakMinutes = 0,
+    this.breakSeconds = 0,
     this.targetMinutes = 0,
     this.achievedRate = 0,
     required this.attendanceStatus,
@@ -235,7 +263,13 @@ class _$DailyReportImpl extends _DailyReport {
   final int studyMinutes;
   @override
   @JsonKey()
+  final int studySeconds;
+  @override
+  @JsonKey()
   final int breakMinutes;
+  @override
+  @JsonKey()
+  final int breakSeconds;
   @override
   @JsonKey()
   final int targetMinutes;
@@ -256,7 +290,7 @@ class _$DailyReportImpl extends _DailyReport {
 
   @override
   String toString() {
-    return 'DailyReport(date: $date, attendanceMinutes: $attendanceMinutes, studyMinutes: $studyMinutes, breakMinutes: $breakMinutes, targetMinutes: $targetMinutes, achievedRate: $achievedRate, attendanceStatus: $attendanceStatus, subjectBreakdown: $subjectBreakdown)';
+    return 'DailyReport(date: $date, attendanceMinutes: $attendanceMinutes, studyMinutes: $studyMinutes, studySeconds: $studySeconds, breakMinutes: $breakMinutes, breakSeconds: $breakSeconds, targetMinutes: $targetMinutes, achievedRate: $achievedRate, attendanceStatus: $attendanceStatus, subjectBreakdown: $subjectBreakdown)';
   }
 
   @override
@@ -269,8 +303,12 @@ class _$DailyReportImpl extends _DailyReport {
                 other.attendanceMinutes == attendanceMinutes) &&
             (identical(other.studyMinutes, studyMinutes) ||
                 other.studyMinutes == studyMinutes) &&
+            (identical(other.studySeconds, studySeconds) ||
+                other.studySeconds == studySeconds) &&
             (identical(other.breakMinutes, breakMinutes) ||
                 other.breakMinutes == breakMinutes) &&
+            (identical(other.breakSeconds, breakSeconds) ||
+                other.breakSeconds == breakSeconds) &&
             (identical(other.targetMinutes, targetMinutes) ||
                 other.targetMinutes == targetMinutes) &&
             (identical(other.achievedRate, achievedRate) ||
@@ -290,7 +328,9 @@ class _$DailyReportImpl extends _DailyReport {
     date,
     attendanceMinutes,
     studyMinutes,
+    studySeconds,
     breakMinutes,
+    breakSeconds,
     targetMinutes,
     achievedRate,
     attendanceStatus,
@@ -316,7 +356,9 @@ abstract class _DailyReport extends DailyReport {
     required final String date,
     final int attendanceMinutes,
     final int studyMinutes,
+    final int studySeconds,
     final int breakMinutes,
+    final int breakSeconds,
     final int targetMinutes,
     final double achievedRate,
     required final String attendanceStatus,
@@ -334,7 +376,11 @@ abstract class _DailyReport extends DailyReport {
   @override
   int get studyMinutes;
   @override
+  int get studySeconds;
+  @override
   int get breakMinutes;
+  @override
+  int get breakSeconds;
   @override
   int get targetMinutes;
   @override
@@ -360,6 +406,7 @@ SubjectBreakdown _$SubjectBreakdownFromJson(Map<String, dynamic> json) {
 mixin _$SubjectBreakdown {
   String get subjectName => throw _privateConstructorUsedError;
   int get studyMinutes => throw _privateConstructorUsedError;
+  int get studySeconds => throw _privateConstructorUsedError;
 
   /// Serializes this SubjectBreakdown to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -378,7 +425,7 @@ abstract class $SubjectBreakdownCopyWith<$Res> {
     $Res Function(SubjectBreakdown) then,
   ) = _$SubjectBreakdownCopyWithImpl<$Res, SubjectBreakdown>;
   @useResult
-  $Res call({String subjectName, int studyMinutes});
+  $Res call({String subjectName, int studyMinutes, int studySeconds});
 }
 
 /// @nodoc
@@ -395,7 +442,11 @@ class _$SubjectBreakdownCopyWithImpl<$Res, $Val extends SubjectBreakdown>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? subjectName = null, Object? studyMinutes = null}) {
+  $Res call({
+    Object? subjectName = null,
+    Object? studyMinutes = null,
+    Object? studySeconds = null,
+  }) {
     return _then(
       _value.copyWith(
             subjectName: null == subjectName
@@ -405,6 +456,10 @@ class _$SubjectBreakdownCopyWithImpl<$Res, $Val extends SubjectBreakdown>
             studyMinutes: null == studyMinutes
                 ? _value.studyMinutes
                 : studyMinutes // ignore: cast_nullable_to_non_nullable
+                      as int,
+            studySeconds: null == studySeconds
+                ? _value.studySeconds
+                : studySeconds // ignore: cast_nullable_to_non_nullable
                       as int,
           )
           as $Val,
@@ -421,7 +476,7 @@ abstract class _$$SubjectBreakdownImplCopyWith<$Res>
   ) = __$$SubjectBreakdownImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String subjectName, int studyMinutes});
+  $Res call({String subjectName, int studyMinutes, int studySeconds});
 }
 
 /// @nodoc
@@ -437,7 +492,11 @@ class __$$SubjectBreakdownImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? subjectName = null, Object? studyMinutes = null}) {
+  $Res call({
+    Object? subjectName = null,
+    Object? studyMinutes = null,
+    Object? studySeconds = null,
+  }) {
     return _then(
       _$SubjectBreakdownImpl(
         subjectName: null == subjectName
@@ -447,6 +506,10 @@ class __$$SubjectBreakdownImplCopyWithImpl<$Res>
         studyMinutes: null == studyMinutes
             ? _value.studyMinutes
             : studyMinutes // ignore: cast_nullable_to_non_nullable
+                  as int,
+        studySeconds: null == studySeconds
+            ? _value.studySeconds
+            : studySeconds // ignore: cast_nullable_to_non_nullable
                   as int,
       ),
     );
@@ -459,6 +522,7 @@ class _$SubjectBreakdownImpl extends _SubjectBreakdown {
   const _$SubjectBreakdownImpl({
     required this.subjectName,
     this.studyMinutes = 0,
+    this.studySeconds = 0,
   }) : super._();
 
   factory _$SubjectBreakdownImpl.fromJson(Map<String, dynamic> json) =>
@@ -469,10 +533,13 @@ class _$SubjectBreakdownImpl extends _SubjectBreakdown {
   @override
   @JsonKey()
   final int studyMinutes;
+  @override
+  @JsonKey()
+  final int studySeconds;
 
   @override
   String toString() {
-    return 'SubjectBreakdown(subjectName: $subjectName, studyMinutes: $studyMinutes)';
+    return 'SubjectBreakdown(subjectName: $subjectName, studyMinutes: $studyMinutes, studySeconds: $studySeconds)';
   }
 
   @override
@@ -483,12 +550,15 @@ class _$SubjectBreakdownImpl extends _SubjectBreakdown {
             (identical(other.subjectName, subjectName) ||
                 other.subjectName == subjectName) &&
             (identical(other.studyMinutes, studyMinutes) ||
-                other.studyMinutes == studyMinutes));
+                other.studyMinutes == studyMinutes) &&
+            (identical(other.studySeconds, studySeconds) ||
+                other.studySeconds == studySeconds));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, subjectName, studyMinutes);
+  int get hashCode =>
+      Object.hash(runtimeType, subjectName, studyMinutes, studySeconds);
 
   /// Create a copy of SubjectBreakdown
   /// with the given fields replaced by the non-null parameter values.
@@ -511,6 +581,7 @@ abstract class _SubjectBreakdown extends SubjectBreakdown {
   const factory _SubjectBreakdown({
     required final String subjectName,
     final int studyMinutes,
+    final int studySeconds,
   }) = _$SubjectBreakdownImpl;
   const _SubjectBreakdown._() : super._();
 
@@ -521,6 +592,8 @@ abstract class _SubjectBreakdown extends SubjectBreakdown {
   String get subjectName;
   @override
   int get studyMinutes;
+  @override
+  int get studySeconds;
 
   /// Create a copy of SubjectBreakdown
   /// with the given fields replaced by the non-null parameter values.

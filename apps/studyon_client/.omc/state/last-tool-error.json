@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cp \\\"/Users/bagjun-won/studyon/92d65149483b229a3d7f1f6bec7c1dc8.jpg\\\" /Users/bagjun-won/studyon/apps/studyon_client/assets/images/lockscreen_bg.jpg && ls -la /Users/bagjun-won/studyon/apps...",
-  "error": "Exit code 1\ncp: /Users/bagjun-won/studyon/apps/studyon_client/assets/images/lockscreen_bg.jpg: No such file or directory\n[rerun: b97]",
-  "timestamp": "2026-04-14T14:48:59.790Z",
+  "tool_input_preview": "{\"command\":\"agent-device-flutter press @e11 && agent-device-flutter fill @e11 \\\"jacob1\\\" 2>&1 | tail -3\",\"description\":\"Focus and fill login id\"}",
+  "error": "Exit code 1\nno snapshot node matched selector: e11",
+  "timestamp": "2026-04-27T10:28:44.628Z",
   "retry_count": 1
 }

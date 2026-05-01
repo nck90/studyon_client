@@ -1,121 +1,145 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getStudent, getAttendance } from '@/lib/mock-data';
-import type { Student, Attendance } from '@/lib/types';
+import { getStudent, getStudentStudySummary } from '@/lib/api';
+import type { StudentResponse } from '@/lib/api';
+import { ArrowLeft, Clock, Flame, Target, CalendarCheck } from 'lucide-react';
 
-const statusDot: Record<string, string> = {
-  studying: 'bg-[#6C5CE7]',
-  onBreak: 'bg-amber-400',
-  notCheckedIn: 'bg-red-400',
-  checkedOut: 'bg-gray-300',
-};
-
-const statusLabel: Record<string, string> = {
-  studying: '공부중',
-  onBreak: '휴식',
-  notCheckedIn: '미입실',
-  checkedOut: '퇴실',
-};
+interface DayMetric {
+  metricDate: string;
+  studyMinutes: number;
+  attendanceMinutes: number;
+  attendanceStatus: string;
+}
 
 export default function StudentDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const [student, setStudent] = useState<Student | null>(null);
-  const [activityLog, setActivityLog] = useState<Attendance[]>([]);
+  const [student, setStudent] = useState<StudentResponse | null>(null);
+  const [metrics, setMetrics] = useState<DayMetric[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (params?.id) {
-      const found = getStudent(String(params.id));
-      setStudent(found ?? null);
-      if (found) {
-        const today = new Date('2026-04-14');
-        const logs: Attendance[] = [];
-        for (let d = 0; d < 7; d++) {
-          const date = new Date(today);
-          date.setDate(today.getDate() - d);
-          const dateStr = date.toISOString().split('T')[0];
-          const records = getAttendance(dateStr).filter(a => a.studentId === found.id);
-          logs.push(...records);
-        }
-        setActivityLog(logs);
-      }
+      const id = String(params.id);
+      Promise.all([
+        getStudent(id).catch(() => null),
+        getStudentStudySummary(id).then(d => d.metrics ?? []).catch(() => []),
+      ]).then(([s, m]) => {
+        setStudent(s);
+        setMetrics(m);
+        setLoading(false);
+      });
     }
   }, [params?.id]);
 
-  if (!student) {
+  if (loading) {
     return (
-      <div className="p-6 md:p-8 max-w-7xl mx-auto">
-        <p className="text-gray-400 text-sm">학생 정보를 찾을 수 없습니다.</p>
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
       </div>
     );
   }
 
-  const todayHours = (student.todayMinutes / 60).toFixed(1);
-  const weeklyHours = (student.weeklyMinutes / 60).toFixed(1);
+  if (!student) {
+    return (
+      <div className="p-6 md:p-8 max-w-7xl mx-auto">
+        <p className="text-text-tertiary text-sm">학생 정보를 찾을 수 없습니다.</p>
+      </div>
+    );
+  }
+
+  const totalStudyMinutes = metrics.reduce((acc, m) => acc + m.studyMinutes, 0);
+  const attendanceDays = metrics.filter(m => m.attendanceStatus === 'PRESENT' || m.attendanceStatus === 'LATE').length;
+  const avgMinutes = metrics.length > 0 ? Math.round(totalStudyMinutes / metrics.length) : 0;
 
   return (
     <div className="p-6 md:p-8 max-w-4xl mx-auto">
-      {/* Back */}
       <button
         onClick={() => router.back()}
-        className="text-gray-400 hover:text-gray-600 transition-colors text-lg mb-6 block"
+        className="flex items-center gap-1.5 text-text-tertiary hover:text-text-primary transition-colors text-sm font-medium mb-6"
       >
-        ←
+        <ArrowLeft size={16} />
+        뒤로
       </button>
 
       {/* Profile header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-1">
-          <h1 className="text-2xl font-bold text-gray-900">{student.name}</h1>
-          <div className="flex items-center gap-1.5">
-            <span className={`w-1.5 h-1.5 rounded-full ${statusDot[student.status]}`} />
-            <span className="text-sm text-gray-400">{statusLabel[student.status]}</span>
+      <div className="bg-white rounded-2xl p-6 border border-card-border card-shadow mb-6">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-primary-surface flex items-center justify-center">
+            <span className="text-xl font-bold text-primary">{student.user.name[0]}</span>
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2.5 mb-1">
+              <h1 className="text-xl font-bold text-text-primary">{student.user.name}</h1>
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                student.enrollmentStatus === 'ACTIVE'
+                  ? 'bg-accent-light text-accent'
+                  : 'bg-bg text-text-tertiary'
+              }`}>
+                {student.enrollmentStatus === 'ACTIVE' ? '재학' : '비활성'}
+              </span>
+            </div>
+            <p className="text-sm text-text-tertiary">
+              {[student.grade?.name, student.class?.name, student.group?.name].filter(Boolean).join(' · ') || '미배정'}
+            </p>
           </div>
         </div>
-        <p className="text-sm text-gray-400">
-          {student.grade}학년 {student.className} · 학번 {student.studentNo} · 좌석 {student.seatNo ?? '-'}
-        </p>
       </div>
 
-      {/* Stats row - no cards, just numbers */}
-      <div className="grid grid-cols-4 gap-6 mb-8 bg-white rounded-2xl p-6">
+      {/* Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 stagger-children">
         {[
-          { label: '오늘 공부', value: `${todayHours}h` },
-          { label: '이번 주', value: `${weeklyHours}h` },
-          { label: '연속 출석', value: `${student.streak}일` },
-          { label: '주간 목표', value: '달성중' },
+          { icon: Clock, label: '총 공부시간', value: `${(totalStudyMinutes / 60).toFixed(1)}h`, iconColor: 'text-primary', iconBg: 'bg-primary-surface' },
+          { icon: CalendarCheck, label: '출석 일수', value: `${attendanceDays}일`, iconColor: 'text-accent', iconBg: 'bg-accent-light' },
+          { icon: Flame, label: '일 평균', value: `${(avgMinutes / 60).toFixed(1)}h`, iconColor: 'text-hot', iconBg: 'bg-hot-light' },
+          { icon: Target, label: '기록 일수', value: `${metrics.length}일`, iconColor: 'text-warm', iconBg: 'bg-warm-light' },
         ].map(stat => (
-          <div key={stat.label} className="text-center">
-            <p className="text-2xl font-extrabold tabular-nums text-gray-900">{stat.value}</p>
-            <p className="text-xs font-semibold text-gray-400 mt-1">{stat.label}</p>
+          <div key={stat.label} className="bg-white rounded-2xl p-5 border border-card-border card-shadow">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-semibold text-text-tertiary">{stat.label}</span>
+              <div className={`w-7 h-7 rounded-lg ${stat.iconBg} flex items-center justify-center`}>
+                <stat.icon size={14} className={stat.iconColor} />
+              </div>
+            </div>
+            <p className="text-2xl font-extrabold tabular-nums text-text-primary">{stat.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Activity log - timeline */}
-      <div className="bg-white rounded-2xl p-6">
-        <h3 className="text-sm font-semibold text-gray-400 mb-5">최근 7일 활동</h3>
+      {/* Activity log */}
+      <div className="bg-white rounded-2xl p-6 border border-card-border card-shadow">
+        <div className="flex items-center gap-2 mb-5">
+          <CalendarCheck size={16} className="text-text-tertiary" />
+          <h3 className="text-sm font-bold text-text-primary">최근 활동</h3>
+        </div>
 
-        {activityLog.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">활동 기록이 없습니다.</p>
+        {metrics.length === 0 ? (
+          <p className="text-sm text-text-tertiary text-center py-8">활동 기록이 없습니다.</p>
         ) : (
           <div className="space-y-0">
-            {activityLog.map((log, idx) => (
+            {metrics.slice(0, 14).map((m, idx) => (
               <div
-                key={idx}
-                className={`flex gap-6 py-3 ${idx !== activityLog.length - 1 ? 'border-b border-gray-50' : ''}`}
+                key={m.metricDate}
+                className={`flex gap-6 py-3.5 ${idx !== Math.min(metrics.length, 14) - 1 ? 'border-b border-divider/50' : ''}`}
               >
                 <div className="w-24 shrink-0">
-                  <p className="text-xs font-semibold text-gray-400 tabular-nums">{log.date.slice(5)}</p>
+                  <p className="text-xs font-semibold text-text-tertiary tabular-nums">{m.metricDate.slice(5)}</p>
                 </div>
                 <div className="flex-1 flex items-center gap-4 text-sm">
-                  <span className="text-gray-500 tabular-nums">{log.checkIn ?? '-'}</span>
-                  <span className="text-gray-300">→</span>
-                  <span className="text-gray-500 tabular-nums">{log.checkOut ?? '재실중'}</span>
-                  <span className="ml-auto font-semibold tabular-nums text-[#6C5CE7]">
-                    {log.stayMinutes > 0
-                      ? `${Math.floor(log.stayMinutes / 60)}h ${log.stayMinutes % 60}m`
+                  <span className={`px-2 py-0.5 rounded-md text-[11px] font-semibold ${
+                    m.attendanceStatus === 'PRESENT' ? 'bg-accent-light text-accent' :
+                    m.attendanceStatus === 'LATE' ? 'bg-warm-light text-warm' :
+                    m.attendanceStatus === 'ABSENT' ? 'bg-hot-light text-hot' :
+                    'bg-bg text-text-tertiary'
+                  }`}>
+                    {m.attendanceStatus === 'PRESENT' ? '출석' :
+                     m.attendanceStatus === 'LATE' ? '지각' :
+                     m.attendanceStatus === 'ABSENT' ? '결석' : m.attendanceStatus}
+                  </span>
+                  <span className="ml-auto font-bold tabular-nums text-primary">
+                    {m.studyMinutes > 0
+                      ? `${Math.floor(m.studyMinutes / 60)}h ${m.studyMinutes % 60}m`
                       : '-'}
                   </span>
                 </div>

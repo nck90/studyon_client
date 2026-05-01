@@ -14,6 +14,7 @@ dependencies:
     sdk: flutter
   flutter_riverpod: ^2.6.0
   flutter_secure_storage: ^9.2.0
+  shared_preferences: ^2.3.0
   studyon_core:
     path: ../core
   studyon_api_client:

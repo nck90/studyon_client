@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
-import 'package:studyon_models/studyon_models.dart';
 import '../../../shared/providers/providers.dart';
 
 class TvControlScreen extends ConsumerStatefulWidget {
@@ -18,9 +17,8 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
 
   static const _modes = [
     ('ranking', '랭킹', Icons.leaderboard_rounded),
-    ('seats', '좌석 현황', Icons.event_seat_rounded),
-    ('message', '공지 메시지', Icons.campaign_rounded),
-    ('clock', '시계', Icons.access_time_rounded),
+    ('status', '현황', Icons.event_seat_rounded),
+    ('motivation', '동기부여', Icons.campaign_rounded),
   ];
 
   @override
@@ -40,14 +38,16 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
           loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
           error: (e, _) => Center(child: Text('오류: $e', style: AppTypography.bodyMedium)),
           data: (data) {
-            return _buildContent(data.rankings);
+            _isOn = data.isOn;
+            _displayMode = data.displayMode;
+            return _buildContent(data);
           },
         ),
       ),
     );
   }
 
-  Widget _buildContent(List<RankingItem> rankings) {
+  Widget _buildContent(TvDisplayData data) {
     return ListView(
       padding: const EdgeInsets.all(28),
       children: [
@@ -58,9 +58,9 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
           const SizedBox(height: 20),
           _buildDisplayModeSection(),
           const SizedBox(height: 20),
-          if (_displayMode == 'message') _buildMessageSection(),
+          if (_displayMode == 'motivation') _buildMessageSection(),
           const SizedBox(height: 4),
-          _buildPreview(_displayMode, rankings),
+          _buildPreview(_displayMode, data),
           const SizedBox(height: 20),
           _buildBrightnessSection(),
         ],
@@ -149,7 +149,11 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
             final (value, label, icon) = _modes[i];
             final isActive = _displayMode == value;
             return GestureDetector(
-              onTap: () => setState(() => _displayMode = value),
+              onTap: () async {
+                setState(() => _displayMode = value);
+                await ref.read(adminRepositoryProvider).updateTvControl(value);
+                ref.invalidate(tvControlProvider);
+              },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
@@ -218,7 +222,7 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
               ),
               const SizedBox(height: 14),
               StudyonButton(
-                label: '메시지 전송',
+                label: '모드 반영',
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: const Text('메시지가 전송되었어요', style: TextStyle(fontFamily: 'Pretendard', fontWeight: FontWeight.w600)),
@@ -239,12 +243,11 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
     );
   }
 
-  Widget _buildPreview(String mode, List<RankingItem> rankings) {
+  Widget _buildPreview(String mode, TvDisplayData data) {
     final modeLabels = {
       'ranking': '랭킹 미리보기',
-      'seats': '좌석 현황 미리보기',
-      'message': '메시지 미리보기',
-      'clock': '시계 미리보기',
+      'status': '현황 미리보기',
+      'motivation': '동기부여 미리보기',
     };
 
     return Column(
@@ -260,16 +263,16 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
             borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
           ),
           padding: const EdgeInsets.all(20),
-          child: _buildPreviewContent(mode, rankings),
+          child: _buildPreviewContent(mode, data),
         ),
       ],
     );
   }
 
-  Widget _buildPreviewContent(String mode, List<RankingItem> rankings) {
+  Widget _buildPreviewContent(String mode, TvDisplayData data) {
     switch (mode) {
       case 'ranking':
-        final top3 = rankings.take(3).toList();
+        final top3 = data.rankings.take(3).toList();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -330,10 +333,7 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
           ],
         );
 
-      case 'seats':
-        // 5×8 dot grid representing seats
-        const totalSeats = 40;
-        const occupiedSeats = 27;
+      case 'status':
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -349,7 +349,7 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              '$occupiedSeats / $totalSeats 석',
+              '${data.occupiedSeats} / ${data.totalSeats} 석',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -366,10 +366,10 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
                   crossAxisSpacing: 5,
                   mainAxisSpacing: 5,
                 ),
-                itemCount: totalSeats,
+                itemCount: data.totalSeats,
                 itemBuilder: (_, i) => Container(
                   decoration: BoxDecoration(
-                    color: i < occupiedSeats
+                    color: i < data.occupiedSeats
                         ? AppColors.accent.withValues(alpha: 0.8)
                         : Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
@@ -380,7 +380,7 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
           ],
         );
 
-      case 'message':
+      case 'motivation':
         final msg = _messageCtrl.text.trim().isEmpty
             ? '메시지를 입력하세요'
             : _messageCtrl.text;
@@ -399,38 +399,6 @@ class _TvControlScreenState extends ConsumerState<TvControlScreen> {
                   fontWeight: FontWeight.w700,
                   fontFamily: 'Pretendard',
                   height: 1.5,
-                ),
-              ),
-            ],
-          ),
-        );
-
-      case 'clock':
-        final now = DateTime.now();
-        final h = now.hour.toString().padLeft(2, '0');
-        final m = now.minute.toString().padLeft(2, '0');
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '$h:$m',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 52,
-                  fontWeight: FontWeight.w300,
-                  fontFamily: 'Pretendard',
-                  letterSpacing: 4,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '${now.year}.${now.month.toString().padLeft(2, '0')}.${now.day.toString().padLeft(2, '0')}',
-                style: const TextStyle(
-                  color: Colors.white54,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  fontFamily: 'Pretendard',
                 ),
               ),
             ],

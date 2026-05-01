@@ -7,6 +7,7 @@ export declare class SeatsService {
     private readonly audit;
     private readonly events;
     constructor(prisma: PrismaService, audit: AuditService, events: EventsService);
+    private serializeSeat;
     getMySeat(studentId: string): Promise<{
         success: boolean;
         data: {
@@ -25,13 +26,15 @@ export declare class SeatsService {
         success: boolean;
         data: {
             id: string;
-            createdAt: Date;
             seatNo: string;
             zone: string | null;
             status: import("@prisma/client").$Enums.SeatStatus;
             isActive: boolean;
-            currentStudentId: string | null;
-            updatedAt: Date;
+            uiStatus: string;
+            currentStudent: {
+                id: string;
+                name: string;
+            } | null;
         }[];
         meta: {};
     }>;
@@ -39,13 +42,12 @@ export declare class SeatsService {
         success: boolean;
         data: {
             id: string;
-            createdAt: Date;
             seatNo: string;
             zone: string | null;
             status: import("@prisma/client").$Enums.SeatStatus;
             isActive: boolean;
-            currentStudentId: string | null;
-            updatedAt: Date;
+            uiStatus: string;
+            currentStudent: null;
         }[];
         meta: {};
     }>;
@@ -104,33 +106,23 @@ export declare class SeatsService {
     }>;
     listAdmin(zone?: string, status?: SeatStatus): Promise<{
         success: boolean;
-        data: ({
-            currentStudent: ({
-                user: {
-                    id: string;
-                    name: string;
-                    createdAt: Date;
-                    status: import("@prisma/client").$Enums.UserStatus;
-                    updatedAt: Date;
-                    role: import("@prisma/client").$Enums.UserRole;
-                    phone: string | null;
-                    lastLoginAt: Date | null;
-                };
-            } & {
+        data: {
+            id: string;
+            seatNo: string;
+            zone: string | null;
+            status: import("@prisma/client").$Enums.SeatStatus;
+            isActive: boolean;
+            uiStatus: string;
+            currentStudent: {
                 id: string;
-                createdAt: Date;
-                gradeId: string | null;
-                classId: string | null;
-                updatedAt: Date;
-                userId: string;
-                studentNo: string;
-                groupId: string | null;
-                assignedSeatId: string | null;
-                enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
-                joinedAt: Date | null;
-                memo: string | null;
-            }) | null;
-        } & {
+                name: string;
+            } | null;
+        }[];
+        meta: {};
+    }>;
+    createSeat(seatNo: string, zone?: string, actorUserId?: string): Promise<{
+        success: boolean;
+        data: {
             id: string;
             createdAt: Date;
             seatNo: string;
@@ -139,7 +131,14 @@ export declare class SeatsService {
             isActive: boolean;
             currentStudentId: string | null;
             updatedAt: Date;
-        })[];
+        };
+        meta: {};
+    }>;
+    deleteSeat(seatId: string, actorUserId?: string): Promise<{
+        success: boolean;
+        data: {
+            deleted: boolean;
+        };
         meta: {};
     }>;
     assign(seatId: string, studentId: string, assignmentType: SeatAssignmentType, actorUserId?: string): Promise<{
@@ -200,12 +199,15 @@ export declare class SeatsService {
                 classId: string | null;
                 updatedAt: Date;
                 userId: string;
+                passwordHash: string;
                 studentNo: string;
+                loginId: string;
                 groupId: string | null;
                 assignedSeatId: string | null;
                 enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
                 joinedAt: Date | null;
                 memo: string | null;
+                pointBalance: number;
             };
             fromSeat: {
                 id: string;

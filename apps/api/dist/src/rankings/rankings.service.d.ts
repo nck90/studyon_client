@@ -51,12 +51,15 @@ export declare class RankingsService {
                     classId: string | null;
                     updatedAt: Date;
                     userId: string;
+                    passwordHash: string;
                     studentNo: string;
+                    loginId: string;
                     groupId: string | null;
                     assignedSeatId: string | null;
                     enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
                     joinedAt: Date | null;
                     memo: string | null;
+                    pointBalance: number;
                 };
             } & {
                 id: string;
@@ -79,4 +82,5 @@ export declare class RankingsService {
         periodKey: string;
         generatedAt: Date;
     }>;
+    private buildScoreMap;
 }

@@ -52,7 +52,7 @@ class _StudyOverviewScreenState extends ConsumerState<StudyOverviewScreen> {
         const SizedBox(height: 24),
         _buildChartSection(data),
         const SizedBox(height: 24),
-        _buildSubjectBreakdown(),
+        _buildSubjectBreakdown(data),
         const SizedBox(height: 24),
         _buildInsightsSection(data),
       ],
@@ -93,13 +93,17 @@ class _StudyOverviewScreenState extends ConsumerState<StudyOverviewScreen> {
     );
   }
 
-  Widget _buildSubjectBreakdown() {
-    const subjects = [
-      ('수학', 0.40, AppColors.primary),
-      ('영어', 0.25, AppColors.accent),
-      ('과학', 0.20, AppColors.warm),
-      ('국어', 0.15, AppColors.hot),
+  Widget _buildSubjectBreakdown(StudyOverviewData data) {
+    final colors = [
+      AppColors.primary,
+      AppColors.accent,
+      AppColors.warm,
+      AppColors.hot,
+      AppColors.success,
     ];
+    final totalMinutes =
+        data.subjectStats.fold<int>(0, (sum, item) => sum + item.minutes);
+    final subjects = data.subjectStats.take(5).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,8 +118,11 @@ class _StudyOverviewScreenState extends ConsumerState<StudyOverviewScreen> {
             border: Border.all(color: AppColors.cardBorder),
           ),
           child: Column(
-            children: subjects.map((entry) {
-              final (name, pct, color) = entry;
+            children: subjects.asMap().entries.map((entry) {
+              final name = entry.value.subject;
+              final pct =
+                  totalMinutes == 0 ? 0.0 : entry.value.minutes / totalMinutes;
+              final color = colors[entry.key % colors.length];
               return Padding(
                 padding: const EdgeInsets.only(bottom: 14),
                 child: Row(
@@ -146,7 +153,7 @@ class _StudyOverviewScreenState extends ConsumerState<StudyOverviewScreen> {
                     SizedBox(
                       width: 36,
                       child: Text(
-                        '${(pct * 100).toInt()}%',
+                        '${(pct * 100).round()}%',
                         textAlign: TextAlign.end,
                         style: AppTypography.labelSmall.copyWith(
                           color: color,
@@ -274,34 +281,39 @@ class _StudyOverviewScreenState extends ConsumerState<StudyOverviewScreen> {
     final totalHours = (data.totalStudyMinutes / 60).toStringAsFixed(0);
     final avgHours = (data.avgStudyMinutes / 60).toStringAsFixed(1);
 
+    final peakDay = data.dailyStats.isEmpty
+        ? null
+        : (data.dailyStats.toList()..sort((a, b) => b.minutes.compareTo(a.minutes))).first;
     final insights = [
       _InsightItem(
         icon: Icons.trending_up_rounded,
         color: AppColors.success,
         bgColor: AppColors.tintGreen,
-        title: '공부 시간 증가',
-        desc: '전주 대비 12% 증가했습니다.',
+        title: '누적 공부시간',
+        desc: '이번 기간 총 $totalHours시간 기록',
       ),
       _InsightItem(
         icon: Icons.star_rounded,
         color: AppColors.rankGold,
         bgColor: AppColors.tintYellow,
-        title: '최고 기록',
-        desc: '이번 주 총 $totalHours시간 달성',
+        title: '최고 기록일',
+        desc: peakDay == null
+            ? '집계 데이터가 없습니다.'
+            : '${peakDay.date} ${peakDay.minutes ~/ 60}시간 ${(peakDay.minutes % 60)}분',
       ),
       _InsightItem(
         icon: Icons.people_rounded,
         color: AppColors.primary,
         bgColor: AppColors.tintPurple,
         title: '활성 학생',
-        desc: '평균 ${data.activeStudents}명이 매일 공부 중',
+        desc: '총 ${data.activeStudents}명이 활동했습니다.',
       ),
       _InsightItem(
         icon: Icons.timer_rounded,
         color: AppColors.accent,
         bgColor: AppColors.tintPurple,
         title: '평균 공부 시간',
-        desc: '학생 1인당 일 평균 $avgHours시간',
+        desc: '학생 1인당 평균 $avgHours시간',
       ),
     ];
 

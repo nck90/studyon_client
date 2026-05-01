@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1776149405052,
+  "lastScanned": 1777510970489,
   "projectRoot": "/Users/bagjun-won/studyon",
   "techStack": {
     "languages": [
@@ -33,7 +33,9 @@
   "structure": {
     "isMonorepo": false,
     "workspaces": [],
-    "mainDirectories": [],
+    "mainDirectories": [
+      "scripts"
+    ],
     "gitBranches": null
   },
   "customNotes": [],
@@ -42,41 +44,73 @@
       "path": "apps",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1776149404979,
+      "lastAccessed": 1777510970469,
+      "keyFiles": []
+    },
+    "build": {
+      "path": "build",
+      "purpose": "Build output",
+      "fileCount": 0,
+      "lastAccessed": 1777510970475,
+      "keyFiles": []
+    },
+    "designs": {
+      "path": "designs",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1777510970476,
       "keyFiles": []
     },
     "infra": {
       "path": "infra",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1776149404980,
+      "lastAccessed": 1777510970476,
       "keyFiles": []
     },
     "packages": {
       "path": "packages",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1776149405011,
+      "lastAccessed": 1777510970476,
       "keyFiles": []
     },
-    "reference": {
-      "path": "reference",
+    "projects": {
+      "path": "projects",
       "purpose": null,
-      "fileCount": 46,
-      "lastAccessed": 1776149405012,
+      "fileCount": 0,
+      "lastAccessed": 1777510970477,
+      "keyFiles": []
+    },
+    "release-assets": {
+      "path": "release-assets",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1777510970477,
       "keyFiles": [
-        "components (2).md",
-        "consumer-ux-guide (2).md",
-        "resolution (1).md",
-        "resources (1).md",
-        "ux-writing (2).md"
+        "asc_client.py",
+        "submit_for_review.py",
+        "upload_screenshots.py"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 6,
+      "lastAccessed": 1777510970477,
+      "keyFiles": [
+        "build_ios_testflight.sh",
+        "build_student_device_test.sh",
+        "build_student_release.sh",
+        "build_web_release.sh",
+        "deploy_api.sh"
       ]
     },
     "apps/api": {
       "path": "apps/api",
       "purpose": "API routes",
       "fileCount": 13,
-      "lastAccessed": 1776149405013,
+      "lastAccessed": 1777510970477,
       "keyFiles": [
         "Dockerfile",
         "README.md",
@@ -87,7 +121,7 @@
       "path": "packages/models",
       "purpose": "Data models",
       "fileCount": 1,
-      "lastAccessed": 1776149405043,
+      "lastAccessed": 1777510970478,
       "keyFiles": [
         "pubspec.yaml"
       ]
@@ -96,44 +130,44 @@
   "hotPaths": [
     {
       "path": "apps/studyon_client/lib/features/student/home/home_screen.dart",
-      "accessCount": 177,
-      "lastAccessed": 1776177176048,
+      "accessCount": 207,
+      "lastAccessed": 1777283841422,
       "type": "file"
     },
     {
       "path": "apps/studyon_client/lib/features/student/profile/profile_screen.dart",
-      "accessCount": 124,
-      "lastAccessed": 1776175367533,
+      "accessCount": 133,
+      "lastAccessed": 1777285119964,
       "type": "file"
     },
     {
       "path": "apps/studyon_client/lib/features/student/study_session/study_session_screen.dart",
-      "accessCount": 106,
-      "lastAccessed": 1776177187213,
+      "accessCount": 129,
+      "lastAccessed": 1777283823795,
       "type": "file"
     },
     {
       "path": "apps/studyon_client/lib/features/student/rankings/rankings_screen.dart",
-      "accessCount": 83,
-      "lastAccessed": 1776177196080,
-      "type": "file"
-    },
-    {
-      "path": "apps/studyon_client/lib/features/admin/dashboard/dashboard_screen.dart",
-      "accessCount": 49,
-      "lastAccessed": 1776177234015,
+      "accessCount": 84,
+      "lastAccessed": 1777259315796,
       "type": "file"
     },
     {
       "path": "apps/studyon_client/lib/features/login/login_screen.dart",
-      "accessCount": 44,
-      "lastAccessed": 1776174246304,
+      "accessCount": 52,
+      "lastAccessed": 1776768153927,
+      "type": "file"
+    },
+    {
+      "path": "apps/studyon_client/lib/features/admin/dashboard/dashboard_screen.dart",
+      "accessCount": 51,
+      "lastAccessed": 1776765692991,
       "type": "file"
     },
     {
       "path": "apps/studyon_client/lib/features/admin/students/student_detail_screen.dart",
-      "accessCount": 33,
-      "lastAccessed": 1776173607849,
+      "accessCount": 34,
+      "lastAccessed": 1776314991032,
       "type": "file"
     },
     {
@@ -143,15 +177,21 @@
       "type": "file"
     },
     {
-      "path": "apps/studyon_client/lib/features/admin/attendance/admin_attendance_screen.dart",
-      "accessCount": 27,
-      "lastAccessed": 1776167677925,
-      "type": "file"
+      "path": "apps/studyon_client/lib",
+      "accessCount": 29,
+      "lastAccessed": 1776765691195,
+      "type": "directory"
     },
     {
       "path": "packages/design_system/lib/src/theme/app_colors.dart",
-      "accessCount": 25,
-      "lastAccessed": 1776173256829,
+      "accessCount": 28,
+      "lastAccessed": 1777283292848,
+      "type": "file"
+    },
+    {
+      "path": "apps/studyon_client/lib/features/admin/attendance/admin_attendance_screen.dart",
+      "accessCount": 27,
+      "lastAccessed": 1776167677925,
       "type": "file"
     },
     {
@@ -204,20 +244,14 @@
     },
     {
       "path": "packages/design_system/lib/src/theme/app_typography.dart",
-      "accessCount": 18,
-      "lastAccessed": 1776172145537,
+      "accessCount": 19,
+      "lastAccessed": 1776304898687,
       "type": "file"
     },
     {
-      "path": "apps/studyon_client/lib",
-      "accessCount": 18,
-      "lastAccessed": 1776177227837,
-      "type": "directory"
-    },
-    {
       "path": "packages/design_system/lib/src/theme/app_spacing.dart",
-      "accessCount": 17,
-      "lastAccessed": 1776173613915,
+      "accessCount": 18,
+      "lastAccessed": 1776304898958,
       "type": "file"
     },
     {
@@ -228,20 +262,20 @@
     },
     {
       "path": "packages/design_system/lib/src/theme/app_theme.dart",
-      "accessCount": 12,
-      "lastAccessed": 1776163113176,
+      "accessCount": 14,
+      "lastAccessed": 1777283305684,
       "type": "file"
     },
     {
       "path": "packages/design_system/lib/src/widgets/studyon_button.dart",
-      "accessCount": 12,
-      "lastAccessed": 1776173609747,
+      "accessCount": 13,
+      "lastAccessed": 1776304901476,
       "type": "file"
     },
     {
       "path": "",
-      "accessCount": 10,
-      "lastAccessed": 1776177135251,
+      "accessCount": 11,
+      "lastAccessed": 1776316501040,
       "type": "directory"
     },
     {
@@ -269,6 +303,12 @@
       "type": "directory"
     },
     {
+      "path": "apps/studyon_client/lib/features/admin/students/student_form_screen.dart",
+      "accessCount": 6,
+      "lastAccessed": 1776314992149,
+      "type": "file"
+    },
+    {
       "path": "apps/studyon_client/lib/shared/shell/admin_shell.dart",
       "accessCount": 5,
       "lastAccessed": 1776153050740,
@@ -284,12 +324,6 @@
       "path": "packages/design_system/lib/src/widgets/status_badge.dart",
       "accessCount": 5,
       "lastAccessed": 1776154019356,
-      "type": "file"
-    },
-    {
-      "path": "apps/studyon_client/lib/features/admin/students/student_form_screen.dart",
-      "accessCount": 5,
-      "lastAccessed": 1776165486137,
       "type": "file"
     },
     {

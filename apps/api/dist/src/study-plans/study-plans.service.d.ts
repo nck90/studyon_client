@@ -1,9 +1,11 @@
 import { PrismaService } from "../database/prisma.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { CreateStudyPlanDto } from './dto/create-study-plan.dto';
 import { UpdateStudyPlanDto } from './dto/update-study-plan.dto';
 export declare class StudyPlansService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly notificationsService;
+    constructor(prisma: PrismaService, notificationsService: NotificationsService);
     private serializePlan;
     list(studentId: string, date?: string): Promise<{
         success: boolean;
@@ -88,4 +90,5 @@ export declare class StudyPlansService {
         };
         meta: {};
     }>;
+    private notifyStudent;
 }

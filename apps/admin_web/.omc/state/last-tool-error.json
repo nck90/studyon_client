@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"npm run build 2>&1\",\"timeout\":120000,\"description\":\"Run build to check remaining errors\"}",
+  "tool_input_preview": "{\"command\":\"npm run build 2>&1\",\"timeout\":120000,\"description\":\"Test Next.js production build\"}",
   "error": "Exit code 1\n\n> admin_web@0.1.0 build\n> next build\n\n⚠ Warning: Next.js inferred your workspace root, but it may not be correct.\n We detected multiple lockfiles and selected the directory of /Users/bagjun-won/studyon/package-lock.json as the root directory.\n To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.\n   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more inform...",
-  "timestamp": "2026-04-15T14:03:35.181Z",
-  "retry_count": 2
+  "timestamp": "2026-04-16T08:14:59.489Z",
+  "retry_count": 1
 }

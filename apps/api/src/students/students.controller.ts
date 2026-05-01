@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
 import { CurrentUser } from '@/common/decorators/current-user.decorator';
@@ -26,5 +26,18 @@ export class StudentsController {
   @Get('badges')
   badges(@CurrentUser() user: JwtPayload) {
     return this.studentsService.getBadges(user.studentId!);
+  }
+
+  @Get('preferences')
+  preferences(@CurrentUser() user: JwtPayload) {
+    return this.studentsService.getPreferences(user.studentId!);
+  }
+
+  @Patch('preferences')
+  updatePreferences(
+    @CurrentUser() user: JwtPayload,
+    @Body() body: { notificationEnabled?: boolean },
+  ) {
+    return this.studentsService.updatePreferences(user.studentId!, body);
   }
 }

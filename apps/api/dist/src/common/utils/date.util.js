@@ -4,6 +4,7 @@ exports.dateOnly = dateOnly;
 exports.startOfDay = startOfDay;
 exports.endOfDay = endOfDay;
 exports.diffMinutes = diffMinutes;
+exports.diffSeconds = diffSeconds;
 exports.weekStart = weekStart;
 exports.monthKey = monthKey;
 function dateOnly(input) {
@@ -23,6 +24,12 @@ function diffMinutes(start, end) {
         return 0;
     }
     return Math.max(0, Math.floor((end.getTime() - start.getTime()) / 60000));
+}
+function diffSeconds(start, end) {
+    if (!start || !end) {
+        return 0;
+    }
+    return Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
 }
 function weekStart(input) {
     const base = input ? new Date(input) : new Date();

@@ -1,11 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RankingPeriodType, RankingType } from '@prisma/client';
-import {
-  endOfDay,
-  monthKey,
-  startOfDay,
-  weekStart,
-} from '@/common/utils/date.util';
+import { monthKey, startOfDay, weekStart } from '@/common/utils/date.util';
 import { PrismaService } from '@/database/prisma.service';
 import { MetricsService } from '@/metrics/metrics.service';
 
@@ -74,32 +69,6 @@ export class RankingsService {
         : periodType === RankingPeriodType.WEEKLY
           ? weekStart().toISOString().slice(0, 10)
           : monthKey();
-    const range =
-      periodType === RankingPeriodType.DAILY
-        ? {
-            start: startOfDay(new Date()),
-            end: endOfDay(new Date()),
-          }
-        : periodType === RankingPeriodType.WEEKLY
-          ? {
-              start: weekStart(),
-              end: endOfDay(
-                new Date(
-                  weekStart().getFullYear(),
-                  weekStart().getMonth(),
-                  weekStart().getDate() + 6,
-                ),
-              ),
-            }
-          : (() => {
-              const keyDate = new Date(`${monthKey()}-01T00:00:00`);
-              return {
-                start: startOfDay(keyDate),
-                end: endOfDay(
-                  new Date(keyDate.getFullYear(), keyDate.getMonth() + 1, 0),
-                ),
-              };
-            })();
 
     await this.metricsService.refreshForDate(startOfDay(new Date()));
 
@@ -121,39 +90,14 @@ export class RankingsService {
       });
     }
 
-    const metrics = await this.prisma.dailyStudentMetric.findMany({
-      where: { metricDate: { gte: range.start, lte: range.end } },
-    });
     const students = await this.prisma.student.findMany({
       include: { user: true },
     });
-    const scores = students.map((student) => {
-      const studentMetrics = metrics.filter(
-        (item) => item.studentId === student.id,
-      );
-      if (rankingType === RankingType.STUDY_TIME) {
-        return {
-          studentId: student.id,
-          score: studentMetrics.reduce(
-            (sum, item) => sum + item.studyMinutes,
-            0,
-          ),
-        };
-      }
-      if (rankingType === RankingType.STUDY_VOLUME) {
-        return {
-          studentId: student.id,
-          score: studentMetrics.reduce(
-            (sum, item) => sum + item.pagesCompleted + item.problemsSolved,
-            0,
-          ),
-        };
-      }
-      const latestMetric = studentMetrics.sort(
-        (a, b) => a.metricDate.getTime() - b.metricDate.getTime(),
-      )[studentMetrics.length - 1];
-      return { studentId: student.id, score: latestMetric?.streakDays ?? 0 };
-    });
+    const scoreMap = await this.buildScoreMap(periodType, rankingType);
+    const scores = students.map((student) => ({
+      studentId: student.id,
+      score: scoreMap.get(student.id) ?? 0,
+    }));
 
     scores.sort((a, b) => b.score - a.score);
     await this.prisma.rankingSnapshotItem.createMany({
@@ -168,5 +112,57 @@ export class RankingsService {
     });
 
     return snapshot;
+  }
+
+  private async buildScoreMap(
+    periodType: RankingPeriodType,
+    rankingType: RankingType,
+  ) {
+    if (periodType === RankingPeriodType.DAILY) {
+      const today = startOfDay(new Date());
+      const metrics = await this.prisma.dailyStudentMetric.findMany({
+        where: { metricDate: today },
+      });
+      return new Map(
+        metrics.map((metric) => [
+          metric.studentId,
+          rankingType === RankingType.STUDY_TIME
+            ? metric.studyMinutes
+            : rankingType === RankingType.STUDY_VOLUME
+              ? metric.pagesCompleted + metric.problemsSolved
+              : metric.streakDays,
+        ]),
+      );
+    }
+
+    if (periodType === RankingPeriodType.WEEKLY) {
+      const metrics = await this.prisma.weeklyStudentMetric.findMany({
+        where: { weekStartDate: weekStart() },
+      });
+      return new Map(
+        metrics.map((metric) => [
+          metric.studentId,
+          rankingType === RankingType.STUDY_TIME
+            ? metric.studyMinutes
+            : rankingType === RankingType.STUDY_VOLUME
+              ? metric.pagesCompleted + metric.problemsSolved
+              : metric.attendanceDays,
+        ]),
+      );
+    }
+
+    const metrics = await this.prisma.monthlyStudentMetric.findMany({
+      where: { monthKey: monthKey() },
+    });
+    return new Map(
+      metrics.map((metric) => [
+        metric.studentId,
+        rankingType === RankingType.STUDY_TIME
+          ? metric.studyMinutes
+          : rankingType === RankingType.STUDY_VOLUME
+            ? metric.pagesCompleted + metric.problemsSolved
+            : metric.attendanceDays,
+      ]),
+    );
   }
 }

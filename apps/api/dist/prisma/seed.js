@@ -40,6 +40,7 @@ async function main() {
     const adminEmail = process.env.DEFAULT_ADMIN_EMAIL ?? 'admin@studyon.local';
     const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD ?? 'ChangeMe123!';
     const passwordHash = await bcrypt.hash(adminPassword, 10);
+    const studentPassword = await bcrypt.hash('studyon123!', 10);
     const grade = await prisma.grade.upsert({
         where: { id: '11111111-1111-1111-1111-111111111111' },
         update: { name: '고2' },
@@ -112,6 +113,8 @@ async function main() {
         where: { studentNo: '2026001' },
         update: {
             userId: studentUser.id,
+            loginId: 'honggildong',
+            passwordHash: studentPassword,
             gradeId: grade.id,
             classId: klass.id,
             groupId: group.id,
@@ -120,6 +123,8 @@ async function main() {
         create: {
             userId: studentUser.id,
             studentNo: '2026001',
+            loginId: 'honggildong',
+            passwordHash: studentPassword,
             gradeId: grade.id,
             classId: klass.id,
             groupId: group.id,
@@ -212,6 +217,45 @@ async function main() {
             badgeType: client_1.BadgeType.ACHIEVEMENT,
         },
     });
+    const characterItems = [
+        { category: 'HAT', name: '야구모자', price: 100, svgKey: 'hat_cap', sortOrder: 1 },
+        { category: 'HAT', name: '왕관', price: 500, svgKey: 'hat_crown', sortOrder: 2 },
+        { category: 'HAT', name: '졸업모', price: 300, svgKey: 'hat_grad', sortOrder: 3 },
+        { category: 'HAT', name: '고양이귀', price: 200, svgKey: 'hat_catears', sortOrder: 4 },
+        { category: 'GLASSES', name: '둥근안경', price: 100, svgKey: 'glasses_round', sortOrder: 1 },
+        { category: 'GLASSES', name: '선글라스', price: 200, svgKey: 'glasses_sun', sortOrder: 2 },
+        { category: 'GLASSES', name: '하트안경', price: 300, svgKey: 'glasses_heart', sortOrder: 3 },
+        { category: 'GLASSES', name: 'VR 헤드셋', price: 500, svgKey: 'glasses_vr', sortOrder: 4 },
+        { category: 'OUTFIT', name: '후디', price: 200, svgKey: 'outfit_hoodie', sortOrder: 1 },
+        { category: 'OUTFIT', name: '교복', price: 100, svgKey: 'outfit_uniform', sortOrder: 2 },
+        { category: 'OUTFIT', name: '슈퍼히어로', price: 500, svgKey: 'outfit_hero', sortOrder: 3 },
+        { category: 'OUTFIT', name: '한복', price: 300, svgKey: 'outfit_hanbok', sortOrder: 4 },
+        { category: 'BACKGROUND', name: '하늘', price: 100, svgKey: 'bg_sky', sortOrder: 1 },
+        { category: 'BACKGROUND', name: '우주', price: 300, svgKey: 'bg_space', sortOrder: 2 },
+        { category: 'BACKGROUND', name: '벚꽃', price: 200, svgKey: 'bg_sakura', sortOrder: 3 },
+        { category: 'BACKGROUND', name: '무지개', price: 500, svgKey: 'bg_rainbow', sortOrder: 4 },
+        { category: 'EXPRESSION', name: '웃음', price: 0, svgKey: 'expr_smile', sortOrder: 1, isDefault: true },
+        { category: 'EXPRESSION', name: '졸림', price: 100, svgKey: 'expr_sleepy', sortOrder: 2 },
+        { category: 'EXPRESSION', name: '화남', price: 100, svgKey: 'expr_angry', sortOrder: 3 },
+        { category: 'EXPRESSION', name: '하트눈', price: 200, svgKey: 'expr_heartEyes', sortOrder: 4 },
+    ];
+    const existingItems = await prisma.characterItem.count();
+    if (existingItems === 0) {
+        await prisma.characterItem.createMany({
+            data: characterItems.map((item) => ({
+                category: item.category,
+                name: item.name,
+                price: item.price,
+                svgKey: item.svgKey,
+                sortOrder: item.sortOrder,
+                isDefault: 'isDefault' in item ? item.isDefault : false,
+            })),
+        });
+        console.log(`Seeded ${characterItems.length} character items.`);
+    }
+    else {
+        console.log(`Character items already exist (${existingItems}), skipping.`);
+    }
     console.log(`Seed complete. Admin email: ${adminEmail}`);
 }
 main()

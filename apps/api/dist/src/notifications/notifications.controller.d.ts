@@ -109,6 +109,21 @@ export declare class NotificationsController {
         };
         meta: {};
     }>;
+    direct(body: Record<string, unknown>): Promise<{
+        success: boolean;
+        data: {
+            sent: number;
+            notificationId?: undefined;
+        };
+        meta: {};
+    } | {
+        success: boolean;
+        data: {
+            notificationId: string;
+            sent: number;
+        };
+        meta: {};
+    }>;
     send(notificationId: string): Promise<{
         success: boolean;
         data: {

@@ -6,6 +6,7 @@ import { Public } from '@/common/decorators/public.decorator';
 import { Roles } from '@/common/decorators/roles.decorator';
 import { AuthService } from './auth.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
+import { AdminSignupDto } from './dto/admin-signup.dto';
 import { AutoLoginDto } from './dto/auto-login.dto';
 import { CreateQrTokenDto } from './dto/create-qr-token.dto';
 import { LogoutDto } from './dto/logout.dto';
@@ -43,6 +44,12 @@ export class AuthController {
   @Post('student/auto-login')
   studentAutoLogin(@Body() dto: AutoLoginDto) {
     return this.authService.autoLogin(dto);
+  }
+
+  @Public()
+  @Post('admin/signup')
+  adminSignup(@Body() dto: AdminSignupDto) {
+    return this.authService.adminSignup(dto);
   }
 
   @Public()

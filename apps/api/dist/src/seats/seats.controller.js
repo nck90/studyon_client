@@ -44,6 +44,9 @@ let SeatsController = class SeatsController {
     adminSeats(zone, status) {
         return this.seatsService.listAdmin(zone, status);
     }
+    createSeat(user, seatNo, zone) {
+        return this.seatsService.createSeat(seatNo, zone, user.sub);
+    }
     updateSeat(user, seatId, status, zone) {
         return this.seatsService.updateSeat(seatId, status, zone, user.sub);
     }
@@ -55,6 +58,9 @@ let SeatsController = class SeatsController {
     }
     unlock(user, seatId) {
         return this.seatsService.lock(seatId, false, user.sub);
+    }
+    deleteSeat(user, seatId) {
+        return this.seatsService.deleteSeat(seatId, user.sub);
     }
     listRequests() {
         return this.seatsService.listChangeRequests();
@@ -119,6 +125,16 @@ __decorate([
 ], SeatsController.prototype, "adminSeats", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, common_1.Post)('admin/seats'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)('seatNo')),
+    __param(2, (0, common_1.Body)('zone')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", void 0)
+], SeatsController.prototype, "createSeat", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
     (0, common_1.Patch)('admin/seats/:seatId'),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('seatId')),
@@ -156,6 +172,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
 ], SeatsController.prototype, "unlock", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, common_1.Delete)('admin/seats/:seatId'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('seatId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], SeatsController.prototype, "deleteSeat", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
     (0, common_1.Get)('admin/seat-change-requests'),

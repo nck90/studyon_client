@@ -1,39 +1,63 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
 
-class RecordsScreen extends StatefulWidget {
+import '../../../shared/providers/student_providers.dart';
+
+class RecordsScreen extends ConsumerStatefulWidget {
   const RecordsScreen({super.key});
 
   @override
-  State<RecordsScreen> createState() => _RecordsScreenState();
+  ConsumerState<RecordsScreen> createState() => _RecordsScreenState();
 }
 
-class _RecordsScreenState extends State<RecordsScreen> {
+class _RecordsScreenState extends ConsumerState<RecordsScreen> {
   String _selectedSubject = '전체';
 
-  static const _subjects = ['전체', '수학', '영어', '과학', '국어'];
-
-  // Mock record data with subjects for filtering
-  static const _allRecords = [
-    (date: '4월 14일 (토)', time: '3시간 12분', goal: '수학 문제풀이', subject: '수학', achieved: true),
-    (date: '4월 13일 (금)', time: '3시간 30분', goal: '영어 단어', subject: '영어', achieved: true),
-    (date: '4월 12일 (목)', time: '2시간 48분', goal: '과학 개념', subject: '과학', achieved: false),
-    (date: '4월 11일 (수)', time: '1시간 50분', goal: '국어 지문', subject: '국어', achieved: false),
-    (date: '4월 10일 (화)', time: '3시간 15분', goal: '수학 기출', subject: '수학', achieved: true),
-    (date: '4월 9일 (월)', time: '2시간 40분', goal: '영어 독해', subject: '영어', achieved: true),
-    (date: '4월 8일 (일)', time: '1시간 20분', goal: '국사 복습', subject: '국어', achieved: false),
-  ];
-
-  List<({String date, String time, String goal, String subject, bool achieved})> get _filteredRecords {
-    if (_selectedSubject == '전체') return _allRecords;
-    return _allRecords.where((r) => r.subject == _selectedSubject).toList();
+  String _formatDuration(int seconds) {
+    if (seconds < 60) return '$seconds초';
+    final minutes = seconds ~/ 60;
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    if (h == 0) return '$m분';
+    if (m == 0) return '${h}h';
+    return '${h}h ${m}m';
   }
 
   @override
   Widget build(BuildContext context) {
     final isIPad = MediaQuery.of(context).size.shortestSide >= 600;
     final pad = isIPad ? 32.0 : 20.0;
+    final student = ref.watch(studentProvider);
+    final records = student.recentRecords;
+    final subjects = ['전체', ...{...records.map((record) => record.subject)}];
+    final filteredRecords = _selectedSubject == '전체'
+        ? records
+        : records.where((record) => record.subject == _selectedSubject).toList();
+    final bestSeconds = records.fold<int>(
+      0,
+      (best, record) => max(best, record.studySeconds),
+    );
+    final achievedCount = records.where((record) => record.goalAchieved).length;
+    final subjectSeconds = student.dailySubjectSeconds.isNotEmpty
+        ? Map<String, int>.from(student.dailySubjectSeconds)
+        : <String, int>{};
+    if (subjectSeconds.isEmpty) {
+      for (final record in records) {
+        subjectSeconds.update(
+          record.subject,
+          (value) => value + record.studySeconds,
+          ifAbsent: () => record.studySeconds,
+        );
+      }
+    }
+    final chartRecords = records.take(7).toList().reversed.toList();
+    final targetSeconds = student.todayTargetMinutes * 60;
+    final attainment = targetSeconds == 0
+        ? 0.0
+        : (student.todayStudySeconds / targetSeconds).clamp(0.0, 1.0);
 
     return Scaffold(
       backgroundColor: AppColors.bg(context),
@@ -42,7 +66,6 @@ class _RecordsScreenState extends State<RecordsScreen> {
         child: ListView(
           padding: const EdgeInsets.only(bottom: 100),
           children: [
-            // Header
             Padding(
               padding: EdgeInsets.fromLTRB(pad, 20, pad, 0),
               child: Row(
@@ -52,10 +75,14 @@ class _RecordsScreenState extends State<RecordsScreen> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.local_fire_department_rounded, size: 14, color: AppColors.warm),
+                      const Icon(
+                        Icons.local_fire_department_rounded,
+                        size: 14,
+                        color: AppColors.warm,
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        '7일 연속',
+                        '${student.streakDays}일 연속',
                         style: AppTypography.labelSmall.copyWith(
                           color: AppColors.textSecondary,
                           fontWeight: FontWeight.w600,
@@ -67,175 +94,127 @@ class _RecordsScreenState extends State<RecordsScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
-            // Stats section: iPad = 3x2 grid, phone = 2x2
-            if (isIPad)
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: pad),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _StatCard(
-                        label: '이번 주',
-                        value: '17h',
-                        icon: Icons.calendar_today_rounded,
-                        color: AppColors.primary,
-                        bgColor: AppColors.tintPurple,
-                      ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: pad),
+              child: GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: isIPad ? 3 : 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: isIPad ? 1.8 : 1.55,
+                children: [
+                  _StatCard(
+                    label: '이번 주',
+                    value: _formatDuration(
+                      student.weeklyStudySeconds > 0
+                          ? student.weeklyStudySeconds
+                          : student.weeklyStudyMinutes * 60,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(
-                        label: '이번 달',
-                        value: '68h',
-                        icon: Icons.bar_chart_rounded,
-                        color: AppColors.accent,
-                        bgColor: AppColors.tintMint,
-                      ),
+                    icon: Icons.calendar_today_rounded,
+                    color: AppColors.primary,
+                    bgColor: AppColors.tintPurple,
+                  ),
+                  _StatCard(
+                    label: '이번 달',
+                    value: _formatDuration(
+                      student.monthlyStudySeconds > 0
+                          ? student.monthlyStudySeconds
+                          : student.monthlyStudyMinutes * 60,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(
-                        label: '출석률',
-                        value: '95%',
-                        icon: Icons.check_circle_outline_rounded,
-                        color: AppColors.accent,
-                        bgColor: AppColors.tintMint,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(
-                        label: '달성률',
-                        value: '82%',
-                        icon: Icons.flag_rounded,
-                        color: AppColors.warm,
-                        bgColor: AppColors.tintYellow,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(
-                        label: '오늘 공부',
-                        value: '2h',
-                        subtitle: '14분',
-                        icon: Icons.access_time_rounded,
-                        color: AppColors.primary,
-                        bgColor: AppColors.tintPurple,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _StatCard(
-                        label: '최고 기록',
-                        value: '5h',
-                        subtitle: '30분',
-                        icon: Icons.workspace_premium_rounded,
-                        color: AppColors.rankGold,
-                        bgColor: AppColors.tintYellow,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: pad),
-                child: GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.6,
-                  children: const [
-                    _StatCard(
-                      label: '이번 주',
-                      value: '17h',
-                      icon: Icons.calendar_today_rounded,
-                      color: AppColors.primary,
-                      bgColor: AppColors.tintPurple,
-                    ),
-                    _StatCard(
-                      label: '이번 달',
-                      value: '68h',
-                      icon: Icons.bar_chart_rounded,
-                      color: AppColors.accent,
-                      bgColor: AppColors.tintMint,
-                    ),
-                    _StatCard(
-                      label: '출석률',
-                      value: '95%',
-                      icon: Icons.check_circle_outline_rounded,
-                      color: AppColors.accent,
-                      bgColor: AppColors.tintMint,
-                    ),
-                    _StatCard(
-                      label: '달성률',
-                      value: '82%',
-                      icon: Icons.flag_rounded,
-                      color: AppColors.warm,
-                      bgColor: AppColors.tintYellow,
-                    ),
-                  ],
-                ),
+                    icon: Icons.bar_chart_rounded,
+                    color: AppColors.accent,
+                    bgColor: AppColors.tintMint,
+                  ),
+                  _StatCard(
+                    label: '오늘 공부',
+                    value: _formatDuration(student.todayStudySeconds),
+                    icon: Icons.access_time_rounded,
+                    color: AppColors.primary,
+                    bgColor: AppColors.tintPurple,
+                  ),
+                  _StatCard(
+                    label: '오늘 달성률',
+                    value: '${(attainment * 100).round()}%',
+                    icon: Icons.flag_rounded,
+                    color: attainment >= 1 ? AppColors.accent : AppColors.warm,
+                    bgColor: attainment >= 1
+                        ? AppColors.tintMint
+                        : AppColors.tintYellow,
+                  ),
+                  _StatCard(
+                    label: '최고 기록',
+                    value: _formatDuration(bestSeconds),
+                    icon: Icons.workspace_premium_rounded,
+                    color: AppColors.rankGold,
+                    bgColor: AppColors.tintYellow,
+                  ),
+                  _StatCard(
+                    label: '달성한 기록',
+                    value: '$achievedCount개',
+                    icon: Icons.event_available_rounded,
+                    color: AppColors.warm,
+                    bgColor: AppColors.tintYellow,
+                  ),
+                ],
               ),
-            const SizedBox(height: 16),
-
-            // Weekly chart - wider/taller on iPad
+            ),
+            const SizedBox(height: 20),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: pad),
-              child: _WeeklyChartCard(),
+              child: _InsightCard(student: student),
             ),
-            const SizedBox(height: 24),
-
-            // Subject distribution donut chart
+            const SizedBox(height: 20),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: pad),
-              child: const _SubjectDonutCard(),
+              child: _RecentChartCard(records: chartRecords),
             ),
-            const SizedBox(height: 24),
-
-            // Subject filter chips
+            const SizedBox(height: 20),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: pad),
+              child: _SubjectSummaryCard(subjectSeconds: subjectSeconds),
+            ),
+            const SizedBox(height: 20),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: pad),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
-                  children: _subjects.map((subject) {
+                  children: subjects.map((subject) {
                     final selected = _selectedSubject == subject;
-                    final color = subject == '전체'
-                        ? AppColors.primary
-                        : AppColors.subjectColor(subject);
                     return Padding(
-                      padding: const EdgeInsets.only(right: 20),
+                      padding: const EdgeInsets.only(right: 12),
                       child: GestureDetector(
                         onTap: () => setState(() => _selectedSubject = subject),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              subject,
-                              style: TextStyle(
-                                fontFamily: 'Pretendard',
-                                fontSize: 13,
-                                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                                color: selected ? AppColors.textPrimary : AppColors.textTertiary,
-                              ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? AppColors.tintPurple
+                                : AppColors.card(context),
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusFull,
                             ),
-                            const SizedBox(height: 4),
-                            AnimatedOpacity(
-                              duration: const Duration(milliseconds: 180),
-                              opacity: selected ? 1.0 : 0.0,
-                              child: Container(
-                                height: 2,
-                                decoration: BoxDecoration(
-                                  color: color,
-                                  borderRadius: BorderRadius.circular(1),
-                                ),
-                              ),
+                            border: Border.all(
+                              color: selected
+                                  ? AppColors.primary
+                                  : AppColors.cardBorder,
                             ),
-                          ],
+                          ),
+                          child: Text(
+                            subject,
+                            style: AppTypography.labelLarge.copyWith(
+                              color: selected
+                                  ? AppColors.primary
+                                  : AppColors.textSecondary,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ),
                     );
@@ -244,284 +223,113 @@ class _RecordsScreenState extends State<RecordsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // iPad: records + calendar side by side; phone: stacked
-            if (isIPad)
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: pad),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Left: Recent records list
-                    Expanded(
-                      flex: 5,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Text(
-                              '최근 기록',
-                              style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.textTertiary,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                                letterSpacing: 0.5,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: pad),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.card(context),
+                  borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+                ),
+                child: filteredRecords.isEmpty
+                    ? const EmptyState(
+                        icon: Icons.bar_chart_rounded,
+                        message: '기록이 아직 없어요',
+                      )
+                    : Column(
+                        children: filteredRecords.map((record) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: AppColors.divider,
+                                  width: 0.5,
+                                ),
                               ),
                             ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.card(context),
-                              borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                            ),
-                            child: _filteredRecords.isEmpty
-                                ? const EmptyState(
-                                    icon: Icons.bar_chart_rounded,
-                                    message: '해당 과목 기록이 없어요',
-                                  )
-                                : Column(
-                                    children: [
-                                      for (int i = 0; i < _filteredRecords.length; i++) ...[
-                                        if (i > 0) const Divider(height: 1, indent: 16, endIndent: 16),
-                                        _RecordRow(
-                                          date: _filteredRecords[i].date,
-                                          time: _filteredRecords[i].time,
-                                          goal: _filteredRecords[i].goal,
-                                          achieved: _filteredRecords[i].achieved,
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                    // Right: Attendance calendar
-                    Expanded(
-                      flex: 4,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Text(
-                              '출석 현황',
-                              style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.textTertiary,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: AppColors.card(context),
-                              borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                            ),
-                            child: Column(
+                            child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: record.goalAchieved
+                                        ? AppColors.tintMint
+                                        : AppColors.tintYellow,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    record.goalAchieved
+                                        ? Icons.check_rounded
+                                        : Icons.menu_book_rounded,
+                                    color: record.goalAchieved
+                                        ? AppColors.accent
+                                        : AppColors.warm,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        record.subject,
+                                        style: AppTypography.titleMedium.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        record.goalDetail,
+                                        style: AppTypography.bodySmall.copyWith(
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        record.date,
+                                        style: AppTypography.labelSmall.copyWith(
+                                          color: AppColors.textTertiary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    Text('4월 출석 현황', style: AppTypography.headlineSmall),
                                     Text(
-                                      '출석 12일',
-                                      style: AppTypography.labelSmall.copyWith(
+                                      _formatDuration(record.studySeconds),
+                                      style: AppTypography.titleMedium.copyWith(
                                         color: AppColors.primary,
-                                        fontWeight: FontWeight.w700,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      record.goalAchieved ? '목표 달성' : '진행 중',
+                                      style: AppTypography.labelSmall.copyWith(
+                                        color: record.goalAchieved
+                                            ? AppColors.accent
+                                            : AppColors.warm,
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 16),
-                                const _AttendanceCalendar(),
                               ],
                             ),
-                          ),
-                        ],
+                          );
+                        }).toList(),
                       ),
-                    ),
-                  ],
-                ),
-              )
-            else ...[
-              // Phone: attendance calendar full width
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: pad),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.card(context),
-                    borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('4월 출석 현황', style: AppTypography.headlineSmall),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: AppColors.tintPurple,
-                              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                            ),
-                            child: Text(
-                              '출석 12일',
-                              style: AppTypography.labelSmall.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      const _AttendanceCalendar(),
-                    ],
-                  ),
-                ),
               ),
-              const SizedBox(height: 24),
-
-              // Recent records label
-              Padding(
-                padding: EdgeInsets.fromLTRB(pad, 0, pad, 8),
-                child: Text(
-                  '최근 기록',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.textTertiary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: pad),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.card(context),
-                    borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-                  ),
-                  child: _filteredRecords.isEmpty
-                      ? const EmptyState(
-                          icon: Icons.bar_chart_rounded,
-                          message: '해당 과목 기록이 없어요',
-                        )
-                      : Column(
-                          children: [
-                            for (int i = 0; i < _filteredRecords.length; i++) ...[
-                              if (i > 0) const Divider(height: 1, indent: 16, endIndent: 16),
-                              _RecordRow(
-                                date: _filteredRecords[i].date,
-                                time: _filteredRecords[i].time,
-                                goal: _filteredRecords[i].goal,
-                                achieved: _filteredRecords[i].achieved,
-                              ),
-                            ],
-                          ],
-                        ),
-                ),
-              ),
-            ],
+            ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _WeeklyChartCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final isIPad = MediaQuery.of(context).size.shortestSide >= 600;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card(context),
-        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('주간 학습', style: AppTypography.headlineSmall),
-              Text(
-                '이번 주',
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: isIPad ? 220 : 120,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: const [
-                _DayBar(day: '월', hours: 2.5),
-                _DayBar(day: '화', hours: 3.2),
-                _DayBar(day: '수', hours: 1.8),
-                _DayBar(day: '목', hours: 2.8),
-                _DayBar(day: '금', hours: 3.5),
-                _DayBar(day: '토', hours: 4.0, isToday: true),
-                _DayBar(day: '일', hours: 0),
-              ],
-            ),
-          ),
-          if (isIPad) ...[
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                _ChartLegendDot(color: AppColors.primary, label: '오늘'),
-                const SizedBox(width: 16),
-                _ChartLegendDot(color: AppColors.primary.withValues(alpha: 0.25), label: '다른 날'),
-                const Spacer(),
-                Text(
-                  '이번 주 총 17시간',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _ChartLegendDot extends StatelessWidget {
-  const _ChartLegendDot({required this.color, required this.label});
-  final Color color;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),
-      ],
     );
   }
 }
@@ -533,25 +341,13 @@ class _StatCard extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.bgColor,
-    this.subtitle,
   });
+
   final String label;
   final String value;
-  final String? subtitle;
   final IconData icon;
   final Color color;
   final Color bgColor;
-
-  // Parse numeric prefix from value string for animation (e.g. "17h" -> 17, "95%" -> 95)
-  double get _numericEnd {
-    final match = RegExp(r'^(\d+(?:\.\d+)?)').firstMatch(value);
-    return match != null ? double.parse(match.group(1)!) : 0;
-  }
-
-  String get _suffix {
-    final match = RegExp(r'^[\d.]+(.*)$').firstMatch(value);
-    return match?.group(1) ?? '';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -563,56 +359,31 @@ class _StatCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: _numericEnd),
-                    duration: const Duration(milliseconds: 800),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, val, _) => Text(
-                      '${val.toInt()}$_suffix',
-                      style: TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: color,
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(width: 2),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: Text(
-                        subtitle!,
-                        style: AppTypography.labelSmall.copyWith(
-                          color: color.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: 'Pretendard',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textTertiary,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const Spacer(),
+          Text(
+            value,
+            style: AppTypography.headlineSmall.copyWith(
+              color: color,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: AppTypography.labelSmall.copyWith(
+              color: AppColors.textTertiary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -620,231 +391,183 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _DayBar extends StatelessWidget {
-  const _DayBar({required this.day, required this.hours, this.isToday = false});
-  final String day;
-  final double hours;
-  final bool isToday;
+class _RecentChartCard extends StatelessWidget {
+  const _RecentChartCard({required this.records});
+
+  final List<StudyRecord> records;
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: hours > 0
-                    ? FractionallySizedBox(
-                        heightFactor: (hours / 4.0).clamp(0.05, 1.0),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: isToday
-                                ? AppColors.primary
-                                : AppColors.primary.withValues(alpha: 0.12),
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+    final maxSeconds = records.isEmpty
+        ? 1
+        : records
+            .map((record) => record.studySeconds)
+            .reduce((a, b) => a > b ? a : b);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.card(context),
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('최근 학습 흐름', style: AppTypography.headlineSmall),
+          const SizedBox(height: 20),
+          if (records.isEmpty)
+            const EmptyState(
+              icon: Icons.insights_rounded,
+              message: '표시할 기록이 아직 없어요',
+            )
+          else
+            SizedBox(
+              height: 140,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: records.map((record) {
+                  final ratio = (record.studySeconds / maxSeconds).clamp(0.08, 1.0);
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            record.studySeconds < 60
+                                ? '${record.studySeconds}s'
+                                : '${(record.studySeconds / 60).ceil()}m',
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.textTertiary,
+                            ),
                           ),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+                          const SizedBox(height: 8),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: FractionallySizedBox(
+                                heightFactor: ratio,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: record.goalAchieved
+                                        ? AppColors.primary
+                                        : AppColors.primary.withValues(alpha: 0.24),
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            record.date.replaceAll('월 ', '/').split('일').first,
+                            style: AppTypography.labelSmall.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              day,
-              style: AppTypography.labelSmall.copyWith(
-                color: isToday ? AppColors.primary : AppColors.textTertiary,
-                fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
 }
 
-class _AttendanceCalendar extends StatefulWidget {
-  const _AttendanceCalendar();
+class _SubjectSummaryCard extends StatelessWidget {
+  const _SubjectSummaryCard({required this.subjectSeconds});
 
-  @override
-  State<_AttendanceCalendar> createState() => _AttendanceCalendarState();
-}
-
-class _AttendanceCalendarState extends State<_AttendanceCalendar> {
-  // Days 1-14 are attended (mock data), today is 14
-  static const _attendedDays = {1, 2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 14};
-  static const _today = 14;
-  // April 2026 starts on Wednesday (index 2 in Mon-Sun week)
-  static const _startOffset = 2;
-  static const _daysInMonth = 30;
-
-  // Mock study records per day
-  static const _dayRecords = {
-    1: '수학 2시간 30분',
-    2: '영어 1시간 50분',
-    3: '수학 3시간 12분',
-    4: '과학 2시간 05분',
-    7: '수학 3시간 30분',
-    8: '영어 2시간 40분',
-    9: '국어 1시간 20분',
-    10: '수학 4시간 00분',
-    11: '영어 3시간 15분',
-    12: '과학 2시간 48분',
-    13: '수학 3시간 30분',
-    14: '수학 3시간 12분',
-  };
-
-  int? _selectedDay;
+  final Map<String, int> subjectSeconds;
 
   @override
   Widget build(BuildContext context) {
-    final dayLabels = ['월', '화', '수', '목', '금', '토', '일'];
+    final sortedEntries = subjectSeconds.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final total = sortedEntries.fold<int>(0, (sum, item) => sum + item.value);
 
-    return Column(
-      children: [
-        // Day of week labels
-        Row(
-          children: dayLabels.map((d) => Expanded(
-            child: Center(
-              child: Text(
-                d,
-                style: AppTypography.labelSmall.copyWith(
-                  color: d == '일' ? AppColors.hot.withValues(alpha: 0.7) : AppColors.textTertiary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          )).toList(),
-        ),
-        const SizedBox(height: 10),
-        // Calendar grid
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 7,
-            childAspectRatio: 1.1,
-            crossAxisSpacing: 4,
-            mainAxisSpacing: 4,
-          ),
-          itemCount: _startOffset + _daysInMonth,
-          itemBuilder: (context, index) {
-            if (index < _startOffset) return const SizedBox();
-            final day = index - _startOffset + 1;
-            final isAttended = _attendedDays.contains(day);
-            final isToday = day == _today;
-            final isFuture = day > _today;
-            final isSelected = _selectedDay == day;
-
-            Color? bgColor;
-            if (isToday) {
-              bgColor = AppColors.primary;
-            } else if (isAttended) {
-              final alpha = 0.6 + 0.4 * (day / _today);
-              bgColor = AppColors.primary.withValues(alpha: alpha);
-            }
-
-            return GestureDetector(
-              onTap: isAttended || isToday
-                  ? () => setState(() => _selectedDay = isSelected ? null : day)
-                  : null,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  shape: BoxShape.circle,
-                  border: isSelected
-                      ? Border.all(color: AppColors.primary, width: 2.5)
-                      : null,
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  '$day',
-                  style: AppTypography.labelSmall.copyWith(
-                    color: isAttended || isToday
-                        ? Colors.white
-                        : isFuture
-                            ? AppColors.textTertiary.withValues(alpha: 0.4)
-                            : AppColors.textTertiary,
-                    fontWeight: isToday ? FontWeight.w800 : FontWeight.w500,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        // Selected day info row
-        AnimatedSize(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          child: _selectedDay != null
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 14),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.tintPurple,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.calendar_today_rounded, size: 13, color: AppColors.primary),
-                        const SizedBox(width: 8),
-                        Text(
-                          '4월 $_selectedDay일',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '·',
-                          style: AppTypography.labelSmall.copyWith(color: AppColors.primary),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _dayRecords[_selectedDay] ?? '',
-                          style: AppTypography.labelSmall.copyWith(
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.card(context),
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('과목별 분포', style: AppTypography.headlineSmall),
+          const SizedBox(height: 16),
+          if (sortedEntries.isEmpty)
+            const EmptyState(
+              icon: Icons.pie_chart_rounded,
+              message: '과목별 집계를 만들 기록이 없어요',
+            )
+          else
+            Column(
+              children: sortedEntries.map((entry) {
+                final ratio = total == 0 ? 0.0 : entry.value / total;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 54,
+                        child: Text(
+                          entry.key,
+                          style: AppTypography.bodySmall.copyWith(
                             color: AppColors.textSecondary,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: LinearProgressIndicator(
+                            value: ratio,
+                            minHeight: 10,
+                            backgroundColor: AppColors.background,
+                            valueColor: const AlwaysStoppedAnimation<Color>(
+                              AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '${(ratio * 100).round()}%',
+                        style: AppTypography.labelSmall.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
-                )
-              : const SizedBox.shrink(),
-        ),
-      ],
+                );
+              }).toList(),
+            ),
+        ],
+      ),
     );
   }
 }
 
-// ─────────────────────────────────────────────
-// Subject Distribution Donut Chart
-// ─────────────────────────────────────────────
-class _SubjectData {
-  final String name;
-  final double percentage;
-  final Color color;
-  const _SubjectData(this.name, this.percentage, this.color);
-}
+class _InsightCard extends StatelessWidget {
+  const _InsightCard({required this.student});
 
-class _SubjectDonutCard extends StatelessWidget {
-  const _SubjectDonutCard();
+  final StudentState student;
 
-  static const _data = [
-    _SubjectData('수학', 0.40, AppColors.primary),
-    _SubjectData('영어', 0.30, AppColors.accent),
-    _SubjectData('과학', 0.15, AppColors.warm),
-    _SubjectData('국어', 0.10, AppColors.hot),
-    _SubjectData('기타', 0.05, AppColors.textTertiary),
-  ];
+  String _formatMinutes(int minutes) {
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    if (h == 0) return '$m분';
+    if (m == 0) return '$h시간';
+    return '$h시간 $m분';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -857,74 +580,40 @@ class _SubjectDonutCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('과목별 분포', style: AppTypography.headlineSmall),
-          const SizedBox(height: 20),
+          Text('실행 인사이트', style: AppTypography.headlineSmall),
+          const SizedBox(height: 16),
           Row(
             children: [
-              SizedBox(
-                width: 140,
-                height: 140,
-                child: RepaintBoundary(
-                  child: CustomPaint(
-                    painter: _DonutChartPainter(_data),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '68h',
-                            style: AppTypography.headlineMedium.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          Text(
-                            '이번 달',
-                            style: AppTypography.labelSmall.copyWith(
-                              color: AppColors.textTertiary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+              Expanded(
+                child: _InsightTile(
+                  label: '오늘 목표',
+                  value:
+                      '${student.dailyAchievedRate.round()}% / ${_formatMinutes(student.todayTargetMinutes)}',
                 ),
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 12),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _data.map((item) => Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: item.color,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            item.name,
-                            style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '${(item.percentage * 100).toInt()}%',
-                          style: AppTypography.labelSmall.copyWith(
-                            color: item.color,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )).toList(),
+                child: _InsightTile(
+                  label: '오늘 체류',
+                  value: _formatMinutes(student.todayAttendanceMinutes),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _InsightTile(
+                  label: '주간 페이지',
+                  value: '${student.weeklyPagesCompleted}p',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _InsightTile(
+                  label: '월간 문제',
+                  value: '${student.monthlyProblemsSolved}문제',
                 ),
               ),
             ],
@@ -935,90 +624,36 @@ class _SubjectDonutCard extends StatelessWidget {
   }
 }
 
-class _DonutChartPainter extends CustomPainter {
-  final List<_SubjectData> data;
-  _DonutChartPainter(this.data);
+class _InsightTile extends StatelessWidget {
+  const _InsightTile({required this.label, required this.value});
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 16;
-    const strokeWidth = 24.0;
-    var startAngle = -pi / 2;
-
-    for (final item in data) {
-      final sweepAngle = 2 * pi * item.percentage;
-      final paint = Paint()
-        ..color = item.color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round;
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        startAngle,
-        sweepAngle - 0.04,
-        false,
-        paint,
-      );
-      startAngle += sweepAngle;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
-class _RecordRow extends StatelessWidget {
-  const _RecordRow({
-    required this.date,
-    required this.time,
-    required this.goal,
-    this.achieved = false,
-  });
-  final String date;
-  final String time;
-  final String goal;
-  final bool achieved;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      child: Row(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Row(
-              children: [
-                Text(
-                  date,
-                  style: const TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.textTertiary,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  goal,
-                  style: TextStyle(
-                    fontFamily: 'Pretendard',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.subjectColor(goal.split(' ').first),
-                  ),
-                ),
-              ],
+          Text(
+            label,
+            style: AppTypography.labelSmall.copyWith(
+              color: AppColors.textTertiary,
+              fontWeight: FontWeight.w700,
             ),
           ),
+          const SizedBox(height: 8),
           Text(
-            time,
-            style: const TextStyle(
-              fontFamily: 'Pretendard',
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-              fontFeatures: [FontFeature.tabularFigures()],
+            value,
+            style: AppTypography.titleMedium.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],

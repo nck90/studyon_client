@@ -10,7 +10,9 @@ class DailyReport with _$DailyReport {
     required String date,
     @Default(0) int attendanceMinutes,
     @Default(0) int studyMinutes,
+    @Default(0) int studySeconds,
     @Default(0) int breakMinutes,
+    @Default(0) int breakSeconds,
     @Default(0) int targetMinutes,
     @Default(0) double achievedRate,
     required String attendanceStatus,
@@ -27,6 +29,7 @@ class SubjectBreakdown with _$SubjectBreakdown {
   const factory SubjectBreakdown({
     required String subjectName,
     @Default(0) int studyMinutes,
+    @Default(0) int studySeconds,
   }) = _SubjectBreakdown;
 
   factory SubjectBreakdown.fromJson(Map<String, dynamic> json) =>

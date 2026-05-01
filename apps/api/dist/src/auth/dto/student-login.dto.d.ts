@@ -1,5 +1,5 @@
 export declare class StudentLoginDto {
-    studentNo: string;
-    name: string;
+    loginId: string;
+    password: string;
     deviceCode?: string;
 }

@@ -3,6 +3,8 @@ export declare class CreateStudyLogDto {
     studySessionId?: string;
     logDate: string;
     subjectName: string;
+    studyMinutes?: number;
+    studySeconds?: number;
     pagesCompleted: number;
     problemsSolved: number;
     progressPercent: number;

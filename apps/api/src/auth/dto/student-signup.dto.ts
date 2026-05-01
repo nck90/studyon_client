@@ -4,6 +4,16 @@ import { IsOptional, IsString, Length } from 'class-validator';
 export class StudentSignupDto {
   @ApiProperty()
   @IsString()
+  @Length(4, 50)
+  loginId!: string;
+
+  @ApiProperty()
+  @IsString()
+  @Length(8, 100)
+  password!: string;
+
+  @ApiProperty()
+  @IsString()
   @Length(1, 50)
   studentNo!: string;
 

@@ -62,6 +62,9 @@ let AdminController = class AdminController {
     studyOverview(startDate, endDate, classId, groupId) {
         return this.adminService.getStudyOverview(startDate, endDate, classId, groupId);
     }
+    studyOverviewSubjects(startDate, endDate, classId, groupId) {
+        return this.adminService.getStudyOverviewSubjects(startDate, endDate, classId, groupId);
+    }
     studentStudySummary(studentId) {
         return this.adminService.studentStudySummary(studentId);
     }
@@ -123,7 +126,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "students", null);
 __decorate([
-    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
     (0, common_1.Post)('admin/students'),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)()),
@@ -140,7 +143,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "student", null);
 __decorate([
-    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
     (0, common_1.Patch)('admin/students/:studentId'),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('studentId')),
@@ -150,7 +153,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "patchStudent", null);
 __decorate([
-    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
     (0, common_1.Delete)('admin/students/:studentId'),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Param)('studentId')),
@@ -169,6 +172,17 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "studyOverview", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/study-overview/subjects'),
+    __param(0, (0, common_1.Query)('startDate')),
+    __param(1, (0, common_1.Query)('endDate')),
+    __param(2, (0, common_1.Query)('classId')),
+    __param(3, (0, common_1.Query)('groupId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "studyOverviewSubjects", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
     (0, common_1.Get)('admin/students/:studentId/study-summary'),
@@ -193,7 +207,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "grades", null);
 __decorate([
-    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
     (0, common_1.Post)('admin/grades'),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)('name')),
@@ -209,7 +223,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "classes", null);
 __decorate([
-    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
     (0, common_1.Post)('admin/classes'),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)('name')),
@@ -226,7 +240,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "groups", null);
 __decorate([
-    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN),
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
     (0, common_1.Post)('admin/groups'),
     __param(0, (0, current_user_decorator_1.CurrentUser)()),
     __param(1, (0, common_1.Body)('name')),

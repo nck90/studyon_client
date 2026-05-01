@@ -14,7 +14,9 @@ class StudySession with _$StudySession {
     String? startedAt,
     String? endedAt,
     @Default(0) int studyMinutes,
+    @Default(0) int studySeconds,
     @Default(0) int breakMinutes,
+    @Default(0) int breakSeconds,
   }) = _StudySession;
 
   factory StudySession.fromJson(Map<String, dynamic> json) =>

@@ -30,6 +30,18 @@ export class CreateStudyLogDto {
   @IsString()
   subjectName!: string;
 
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  studyMinutes?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  studySeconds?: number;
+
   @ApiProperty()
   @IsInt()
   @Min(0)

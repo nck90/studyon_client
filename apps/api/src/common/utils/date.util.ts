@@ -38,6 +38,13 @@ export function diffMinutes(start?: Date | null, end?: Date | null): number {
   return Math.max(0, Math.floor((end.getTime() - start.getTime()) / 60000));
 }
 
+export function diffSeconds(start?: Date | null, end?: Date | null): number {
+  if (!start || !end) {
+    return 0;
+  }
+  return Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
+}
+
 export function weekStart(input?: string | Date): Date {
   const base = input ? new Date(input) : new Date();
   const day = base.getDay();

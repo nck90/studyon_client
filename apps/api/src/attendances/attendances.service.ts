@@ -6,13 +6,17 @@ import {
 import {
   AttendanceFlag,
   AttendanceStatus,
+  NotificationChannel,
+  NotificationType,
   SeatStatus,
   StudySessionStatus,
 } from '@prisma/client';
 import { AuditService } from '@/audit/audit.service';
 import { PrismaService } from '@/database/prisma.service';
-import { dateOnly, diffMinutes } from '@/common/utils/date.util';
+import { dateOnly, diffMinutes, diffSeconds } from '@/common/utils/date.util';
 import { EventsService } from '@/events/events.service';
+import { NotificationsService } from '@/notifications/notifications.service';
+import { PointsService } from '@/points/points.service';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 
 @Injectable()
@@ -21,19 +25,23 @@ export class AttendancesService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly events: EventsService,
+    private readonly notificationsService: NotificationsService,
+    private readonly pointsService: PointsService,
   ) {}
 
-  private serializeAttendance(attendance: {
-    id: string;
-    studentId: string;
-    attendanceDate: Date;
-    attendanceStatus: AttendanceStatus;
-    checkInAt: Date | null;
-    checkOutAt: Date | null;
-    stayMinutes: number;
-    lateStatus: AttendanceFlag;
-    earlyLeaveStatus: AttendanceFlag;
-  } | null) {
+  private serializeAttendance(
+    attendance: {
+      id: string;
+      studentId: string;
+      attendanceDate: Date;
+      attendanceStatus: AttendanceStatus;
+      checkInAt: Date | null;
+      checkOutAt: Date | null;
+      stayMinutes: number;
+      lateStatus: AttendanceFlag;
+      earlyLeaveStatus: AttendanceFlag;
+    } | null,
+  ) {
     if (!attendance) return null;
 
     return {
@@ -73,7 +81,11 @@ export class AttendancesService {
       event: 'display.refresh',
       payload: { type: 'status' },
     });
-    return { success: true, data: this.serializeAttendance(attendance), meta: {} };
+    return {
+      success: true,
+      data: this.serializeAttendance(attendance),
+      meta: {},
+    };
   }
 
   async listStudentAttendances(
@@ -160,7 +172,24 @@ export class AttendancesService {
       return saved;
     });
 
-    return { success: true, data: this.serializeAttendance(attendance), meta: {} };
+    await this.notifyStudent(
+      studentId,
+      '입실 완료',
+      seatId
+        ? '좌석 배정과 함께 입실 처리되었습니다.'
+        : '오늘 입실이 기록되었습니다.',
+    );
+
+    // Award attendance points (+50)
+    await this.pointsService
+      .earn(studentId, 50, 'ATTENDANCE' as never, '출석 보너스')
+      .catch(() => {});
+
+    return {
+      success: true,
+      data: this.serializeAttendance(attendance),
+      meta: {},
+    };
   }
 
   async checkOut(studentId: string, forceCloseStudySession = true) {
@@ -177,6 +206,7 @@ export class AttendancesService {
     const stayMinutes = diffMinutes(attendance.checkInAt, now);
     const earlyLeaveStatus =
       now.getHours() < 22 ? AttendanceFlag.EARLY_LEAVE : AttendanceFlag.NONE;
+    const autoClosedSessions: Array<{ id: string; studySeconds: number }> = [];
 
     const result = await this.prisma.$transaction(async (tx) => {
       if (forceCloseStudySession) {
@@ -193,30 +223,41 @@ export class AttendancesService {
         for (const session of activeSessions) {
           const openBreak = session.studyBreaks.find((item) => !item.endedAt);
           if (openBreak) {
-            const breakMinutes = diffMinutes(openBreak.startedAt, now);
+            const breakSeconds = diffSeconds(openBreak.startedAt, now);
             await tx.studyBreak.update({
               where: { id: openBreak.id },
-              data: { endedAt: now, breakMinutes },
+              data: {
+                endedAt: now,
+                breakMinutes: Math.floor(breakSeconds / 60),
+                breakSeconds,
+              },
             });
           }
 
           const refreshedBreaks = await tx.studyBreak.findMany({
             where: { studySessionId: session.id },
           });
-          const totalBreakMinutes = refreshedBreaks.reduce(
-            (sum, item) => sum + item.breakMinutes,
+          const totalBreakSeconds = refreshedBreaks.reduce(
+            (sum, item) => sum + item.breakSeconds,
             0,
           );
-          const totalMinutes = diffMinutes(session.startedAt, now);
-          await tx.studySession.update({
+          const totalSeconds = diffSeconds(session.startedAt, now);
+          const studySeconds = Math.max(0, totalSeconds - totalBreakSeconds);
+          const closedSession = await tx.studySession.update({
             where: { id: session.id },
             data: {
               status: StudySessionStatus.AUTO_CLOSED,
               endedAt: now,
-              breakMinutes: totalBreakMinutes,
-              studyMinutes: Math.max(0, totalMinutes - totalBreakMinutes),
+              breakMinutes: Math.floor(totalBreakSeconds / 60),
+              breakSeconds: totalBreakSeconds,
+              studyMinutes: Math.floor(studySeconds / 60),
+              studySeconds,
               autoClosedReason: 'CHECK_OUT',
             },
+          });
+          autoClosedSessions.push({
+            id: closedSession.id,
+            studySeconds: closedSession.studySeconds,
           });
         }
       }
@@ -251,6 +292,16 @@ export class AttendancesService {
       return updated;
     });
 
+    await Promise.all(
+      autoClosedSessions.map((session) =>
+        this.pointsService.awardStudySessionTime(
+          studentId,
+          session.id,
+          session.studySeconds,
+        ),
+      ),
+    );
+
     const studentUser = await this.prisma.student.findUnique({
       where: { id: studentId },
       select: { userId: true },
@@ -266,18 +317,31 @@ export class AttendancesService {
       event: 'display.refresh',
       payload: { type: 'status' },
     });
+    await this.notifyStudent(
+      studentId,
+      '퇴실 완료',
+      '오늘 출결이 체크아웃 상태로 저장되었습니다.',
+      NotificationType.LEAVE_TIME,
+    );
     return { success: true, data: this.serializeAttendance(result), meta: {} };
   }
 
   async listAdmin(
     date?: string,
+    startDate?: string,
+    endDate?: string,
     classId?: string,
     groupId?: string,
     attendanceStatus?: AttendanceStatus,
   ) {
     const items = await this.prisma.attendance.findMany({
       where: {
-        attendanceDate: date ? dateOnly(date) : undefined,
+        attendanceDate: date
+          ? dateOnly(date)
+          : {
+              gte: startDate ? dateOnly(startDate) : undefined,
+              lte: endDate ? dateOnly(endDate) : undefined,
+            },
         attendanceStatus,
         student: {
           classId: classId ?? undefined,
@@ -460,5 +524,27 @@ export class AttendancesService {
       },
       meta: {},
     };
+  }
+
+  private async notifyStudent(
+    studentId: string,
+    title: string,
+    body: string,
+    notificationType: NotificationType = NotificationType.NOTICE,
+  ) {
+    const student = await this.prisma.student.findUnique({
+      where: { id: studentId },
+      select: { userId: true },
+    });
+    if (!student?.userId) {
+      return;
+    }
+    await this.notificationsService.sendDirectToUsers({
+      userIds: [student.userId],
+      notificationType,
+      channel: NotificationChannel.IN_APP,
+      title,
+      body,
+    });
   }
 }

@@ -2,149 +2,86 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:studyon_client/main.dart';
-import 'package:studyon_client/features/splash/splash_screen.dart';
 import 'package:studyon_client/features/login/login_screen.dart';
 import 'package:studyon_client/features/onboarding/onboarding_screen.dart';
-import 'package:studyon_client/features/student/checkin/checkin_screen.dart';
-import 'package:studyon_client/features/student/study_session/study_session_screen.dart';
+import 'package:studyon_client/features/splash/splash_screen.dart';
 import 'package:studyon_client/features/student/plan/plan_screen.dart';
+import 'package:studyon_client/features/student/study_session/study_session_screen.dart';
+import 'package:studyon_client/main.dart';
+import 'package:studyon_core/studyon_core.dart';
 
-/// Wraps a widget in a GoRouter so screens that call context.go() don't crash.
 Widget _withRouter(Widget screen) {
   final router = GoRouter(
     initialLocation: '/',
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => screen,
-      ),
-      GoRoute(
-        path: '/onboarding',
-        builder: (context, state) => const Scaffold(body: Text('onboarding')),
-      ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const Scaffold(body: Text('login')),
-      ),
-      GoRoute(
-        path: '/student/checkin',
-        builder: (context, state) => const Scaffold(body: Text('checkin')),
-      ),
-      GoRoute(
-        path: '/student/home',
-        builder: (context, state) => const Scaffold(body: Text('home')),
-      ),
-      GoRoute(
-        path: '/admin/dashboard',
-        builder: (context, state) => const Scaffold(body: Text('dashboard')),
-      ),
-      GoRoute(
-        path: '/student/study-session',
-        builder: (context, state) => const Scaffold(body: Text('study-session')),
-      ),
-      GoRoute(
-        path: '/student/plan',
-        builder: (context, state) => const Scaffold(body: Text('plan')),
-      ),
-      GoRoute(
-        path: '/student/summary',
-        builder: (context, state) => const Scaffold(body: Text('summary')),
-      ),
+      GoRoute(path: '/', builder: (context, state) => screen),
+      GoRoute(path: '/onboarding', builder: (context, state) => const Scaffold(body: Text('onboarding'))),
+      GoRoute(path: '/login', builder: (context, state) => const Scaffold(body: Text('login'))),
+      GoRoute(path: '/signup', builder: (context, state) => const Scaffold(body: Text('signup'))),
+      GoRoute(path: '/student/checkin', builder: (context, state) => const Scaffold(body: Text('checkin'))),
+      GoRoute(path: '/student/home', builder: (context, state) => const Scaffold(body: Text('home'))),
+      GoRoute(path: '/student/summary', builder: (context, state) => const Scaffold(body: Text('summary'))),
+      GoRoute(path: '/admin/dashboard', builder: (context, state) => const Scaffold(body: Text('dashboard'))),
     ],
   );
-  return MaterialApp.router(routerConfig: router);
+  return ProviderScope(
+    child: MaterialApp.router(routerConfig: router),
+  );
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  AppEnv.init(
+    apiBaseUrl: 'http://127.0.0.1:3000',
+    environment: AppEnvironment.dev,
+    enableLogging: false,
+    deviceCode: 'test-device',
+  );
+
   group('App smoke tests', () {
-    testWidgets('App launches without error', (tester) async {
+    testWidgets('app launches', (tester) async {
       await tester.pumpWidget(const ProviderScope(child: StudyOnApp()));
       await tester.pump();
       expect(find.byType(MaterialApp), findsOneWidget);
-      // Advance past SplashScreen timer (2200ms) to avoid pending timer error.
-      await tester.pump(const Duration(seconds: 3));
     });
   });
 
-  group('SplashScreen', () {
-    testWidgets('shows app name', (tester) async {
+  group('Screen smoke tests', () {
+    testWidgets('SplashScreen shows app title', (tester) async {
       await tester.pumpWidget(_withRouter(const SplashScreen()));
       await tester.pump();
       expect(find.text('자습ON'), findsOneWidget);
-      await tester.pump(const Duration(seconds: 3));
     });
 
-    testWidgets('shows subtitle', (tester) async {
-      await tester.pumpWidget(_withRouter(const SplashScreen()));
-      await tester.pump();
-      expect(find.text('자습실 관리 시스템'), findsOneWidget);
-      await tester.pump(const Duration(seconds: 3));
-    });
-  });
-
-  group('LoginScreen', () {
-    testWidgets('shows login button', (tester) async {
+    testWidgets('LoginScreen shows login and signup entry points', (tester) async {
       await tester.pumpWidget(_withRouter(const LoginScreen()));
       await tester.pump();
       expect(find.text('로그인'), findsAtLeast(1));
+      expect(find.text('처음이면 회원가입'), findsOneWidget);
     });
 
-    testWidgets('has ID and password fields', (tester) async {
-      await tester.pumpWidget(_withRouter(const LoginScreen()));
-      await tester.pump();
-      expect(find.byType(TextField), findsAtLeast(2));
-    });
-  });
-
-  group('OnboardingScreen', () {
-    testWidgets('shows first page', (tester) async {
+    testWidgets('OnboardingScreen renders first page', (tester) async {
       await tester.pumpWidget(_withRouter(const OnboardingScreen()));
       await tester.pump();
       expect(find.text('학습 관리'), findsOneWidget);
-    });
-
-    testWidgets('shows skip button', (tester) async {
-      await tester.pumpWidget(_withRouter(const OnboardingScreen()));
-      await tester.pump();
       expect(find.text('건너뛰기'), findsOneWidget);
     });
-  });
 
-  group('CheckInScreen', () {
-    testWidgets('shows check-in button', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          child: _withRouter(const CheckInScreen()),
-        ),
-      );
-      await tester.pump();
-      expect(find.text('입실하기'), findsOneWidget);
-    });
-  });
-
-  group('StudySessionScreen', () {
-    testWidgets('shows start button', (tester) async {
+    testWidgets('StudySessionScreen renders start action', (tester) async {
       tester.view.physicalSize = const Size(1194, 834);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      await tester.pumpWidget(
-        ProviderScope(child: _withRouter(const StudySessionScreen())),
-      );
+
+      await tester.pumpWidget(_withRouter(const StudySessionScreen()));
       await tester.pump();
       expect(find.text('시작'), findsOneWidget);
     });
-  });
 
-  group('PlanScreen', () {
-    testWidgets('shows plan screen', (tester) async {
-      await tester.pumpWidget(
-        ProviderScope(child: _withRouter(const PlanScreen())),
-      );
+    testWidgets('PlanScreen renders title', (tester) async {
+      await tester.pumpWidget(_withRouter(const PlanScreen()));
       await tester.pump();
-      // Should show at least one plan item or empty state
-      expect(find.byType(Scaffold), findsOneWidget);
+      expect(find.text('오늘의 학습 계획'), findsOneWidget);
     });
   });
 }

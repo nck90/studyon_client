@@ -63,5 +63,6 @@ pnpm start:dev
 
 - Email: `admin@studyon.local`
 - Password: `ChangeMe123!`
+- Student login ID: `honggildong`
+- Student password: `studyon123!`
 - Student no: `2026001`
-- Student name: `홍길동`

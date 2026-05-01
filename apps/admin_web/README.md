@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# STUDYON Admin Web
 
-## Getting Started
+관리자용 Next.js 16 웹 앱이다. 운영 배포는 standalone output 기준으로 준비되어 있다.
 
-First, run the development server:
+## Local run
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+기본 개발 포트는 `11111`이다.
+기본 API는 운영 서버 `https://studyon-server.hyphen.it.com` 이다.
+로컬 API를 붙일 때만 `API_URL`를 덮어쓴다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+API_URL=http://127.0.0.1:3000 npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Production build
 
-## Learn More
+```bash
+API_URL=https://api.example.com npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+standalone 배포 런타임은 `.next/standalone`에 생성된다. 정적 파일까지 포함하려면 루트 스크립트를 사용한다.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cd /Users/bagjun-won/studyon
+./scripts/build_web_release.sh
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+실행:
 
-## Deploy on Vercel
+```bash
+PORT=11111 HOSTNAME=0.0.0.0 node .next/standalone/server.js
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Environment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `API_URL`: backend origin for `/api/*` rewrite target
+- `PORT`: server port
+- `HOSTNAME`: bind address
+
+예시는 [.env.example](/Users/bagjun-won/studyon/apps/admin_web/.env.example:1)에 있다.

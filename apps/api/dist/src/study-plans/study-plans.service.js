@@ -14,10 +14,13 @@ const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
 const date_util_1 = require("../common/utils/date.util");
 const prisma_service_1 = require("../database/prisma.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 let StudyPlansService = class StudyPlansService {
     prisma;
-    constructor(prisma) {
+    notificationsService;
+    constructor(prisma, notificationsService) {
         this.prisma = prisma;
+        this.notificationsService = notificationsService;
     }
     serializePlan(plan) {
         return {
@@ -55,8 +58,8 @@ let StudyPlansService = class StudyPlansService {
         }
         return { success: true, data: this.serializePlan(plan), meta: {} };
     }
-    create(studentId, dto) {
-        return this.prisma.studyPlan
+    async create(studentId, dto) {
+        const data = await this.prisma.studyPlan
             .create({
             data: {
                 studentId,
@@ -68,11 +71,9 @@ let StudyPlansService = class StudyPlansService {
                 priority: dto.priority,
             },
         })
-            .then((data) => ({
-            success: true,
-            data: this.serializePlan(data),
-            meta: {},
-        }));
+            .then((item) => this.serializePlan(item));
+        await this.notifyStudent(studentId, '새 계획이 추가되었어요', `${dto.subjectName} 계획 "${dto.title}"이(가) 오늘 일정에 추가되었습니다.`);
+        return { success: true, data, meta: {} };
     }
     async update(studentId, planId, dto) {
         await this.get(studentId, planId);
@@ -100,12 +101,30 @@ let StudyPlansService = class StudyPlansService {
             where: { id: planId },
             data: { status: client_1.StudyPlanStatus.COMPLETED, completedAt: new Date() },
         });
+        await this.notifyStudent(studentId, '계획 완료', `${plan.title} 계획을 완료했어요.`);
         return { success: true, data: this.serializePlan(plan), meta: {} };
+    }
+    async notifyStudent(studentId, title, body, notificationType = client_1.NotificationType.NOTICE) {
+        const student = await this.prisma.student.findUnique({
+            where: { id: studentId },
+            select: { userId: true },
+        });
+        if (!student?.userId) {
+            return;
+        }
+        await this.notificationsService.sendDirectToUsers({
+            userIds: [student.userId],
+            notificationType,
+            channel: client_1.NotificationChannel.IN_APP,
+            title,
+            body,
+        });
     }
 };
 exports.StudyPlansService = StudyPlansService;
 exports.StudyPlansService = StudyPlansService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        notifications_service_1.NotificationsService])
 ], StudyPlansService);
 //# sourceMappingURL=study-plans.service.js.map

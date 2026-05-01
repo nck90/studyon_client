@@ -24,13 +24,15 @@ export declare class SeatsController {
         success: boolean;
         data: {
             id: string;
-            createdAt: Date;
             seatNo: string;
             zone: string | null;
             status: import("@prisma/client").$Enums.SeatStatus;
             isActive: boolean;
-            currentStudentId: string | null;
-            updatedAt: Date;
+            uiStatus: string;
+            currentStudent: {
+                id: string;
+                name: string;
+            } | null;
         }[];
         meta: {};
     }>;
@@ -38,13 +40,12 @@ export declare class SeatsController {
         success: boolean;
         data: {
             id: string;
-            createdAt: Date;
             seatNo: string;
             zone: string | null;
             status: import("@prisma/client").$Enums.SeatStatus;
             isActive: boolean;
-            currentStudentId: string | null;
-            updatedAt: Date;
+            uiStatus: string;
+            currentStudent: null;
         }[];
         meta: {};
     }>;
@@ -103,33 +104,23 @@ export declare class SeatsController {
     }>;
     adminSeats(zone?: string, status?: SeatStatus): Promise<{
         success: boolean;
-        data: ({
-            currentStudent: ({
-                user: {
-                    id: string;
-                    name: string;
-                    createdAt: Date;
-                    status: import("@prisma/client").$Enums.UserStatus;
-                    updatedAt: Date;
-                    role: import("@prisma/client").$Enums.UserRole;
-                    phone: string | null;
-                    lastLoginAt: Date | null;
-                };
-            } & {
+        data: {
+            id: string;
+            seatNo: string;
+            zone: string | null;
+            status: import("@prisma/client").$Enums.SeatStatus;
+            isActive: boolean;
+            uiStatus: string;
+            currentStudent: {
                 id: string;
-                createdAt: Date;
-                gradeId: string | null;
-                classId: string | null;
-                updatedAt: Date;
-                userId: string;
-                studentNo: string;
-                groupId: string | null;
-                assignedSeatId: string | null;
-                enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
-                joinedAt: Date | null;
-                memo: string | null;
-            }) | null;
-        } & {
+                name: string;
+            } | null;
+        }[];
+        meta: {};
+    }>;
+    createSeat(user: JwtPayload, seatNo: string, zone?: string): Promise<{
+        success: boolean;
+        data: {
             id: string;
             createdAt: Date;
             seatNo: string;
@@ -138,7 +129,7 @@ export declare class SeatsController {
             isActive: boolean;
             currentStudentId: string | null;
             updatedAt: Date;
-        })[];
+        };
         meta: {};
     }>;
     updateSeat(user: JwtPayload, seatId: string, status?: SeatStatus, zone?: string): Promise<{
@@ -192,6 +183,13 @@ export declare class SeatsController {
         };
         meta: {};
     }>;
+    deleteSeat(user: JwtPayload, seatId: string): Promise<{
+        success: boolean;
+        data: {
+            deleted: boolean;
+        };
+        meta: {};
+    }>;
     listRequests(): Promise<{
         success: boolean;
         data: ({
@@ -213,12 +211,15 @@ export declare class SeatsController {
                 classId: string | null;
                 updatedAt: Date;
                 userId: string;
+                passwordHash: string;
                 studentNo: string;
+                loginId: string;
                 groupId: string | null;
                 assignedSeatId: string | null;
                 enrollmentStatus: import("@prisma/client").$Enums.EnrollmentStatus;
                 joinedAt: Date | null;
                 memo: string | null;
+                pointBalance: number;
             };
             fromSeat: {
                 id: string;

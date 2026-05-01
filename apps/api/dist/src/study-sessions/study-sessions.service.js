@@ -14,10 +14,16 @@ const common_1 = require("@nestjs/common");
 const client_1 = require("@prisma/client");
 const date_util_1 = require("../common/utils/date.util");
 const prisma_service_1 = require("../database/prisma.service");
+const notifications_service_1 = require("../notifications/notifications.service");
+const points_service_1 = require("../points/points.service");
 let StudySessionsService = class StudySessionsService {
     prisma;
-    constructor(prisma) {
+    notificationsService;
+    pointsService;
+    constructor(prisma, notificationsService, pointsService) {
         this.prisma = prisma;
+        this.notificationsService = notificationsService;
+        this.pointsService = pointsService;
     }
     active(studentId) {
         return this.prisma.studySession
@@ -31,7 +37,11 @@ let StudySessionsService = class StudySessionsService {
             include: { linkedPlan: true, studyBreaks: true },
             orderBy: { createdAt: 'desc' },
         })
-            .then((data) => ({ success: true, data, meta: {} }));
+            .then((data) => ({
+            success: true,
+            data: data ? this.serializeSession(data) : null,
+            meta: {},
+        }));
     }
     async start(studentId, linkedPlanId) {
         const existing = await this.prisma.studySession.findFirst({
@@ -57,7 +67,7 @@ let StudySessionsService = class StudySessionsService {
                 status: client_1.StudySessionStatus.ACTIVE,
                 startedAt: new Date(),
             },
-            include: { linkedPlan: true },
+            include: { linkedPlan: true, studyBreaks: true },
         });
         if (linkedPlanId) {
             await this.prisma.studyPlan.update({
@@ -65,7 +75,10 @@ let StudySessionsService = class StudySessionsService {
                 data: { status: 'IN_PROGRESS' },
             });
         }
-        return { success: true, data: session, meta: {} };
+        await this.notifyStudent(studentId, '공부를 시작했어요', linkedPlanId
+            ? '선택한 계획으로 공부 세션이 시작되었습니다.'
+            : '새 공부 세션이 시작되었습니다.');
+        return { success: true, data: this.serializeSession(session), meta: {} };
     }
     async pause(studentId, sessionId) {
         const session = await this.prisma.studySession.findFirst({
@@ -81,9 +94,11 @@ let StudySessionsService = class StudySessionsService {
             return tx.studySession.update({
                 where: { id: sessionId },
                 data: { status: client_1.StudySessionStatus.PAUSED },
+                include: { linkedPlan: true, studyBreaks: true },
             });
         });
-        return { success: true, data: updated, meta: {} };
+        await this.notifyStudent(studentId, '휴식 시작', '공부 세션이 일시정지되고 휴식 시간이 기록됩니다.');
+        return { success: true, data: this.serializeSession(updated), meta: {} };
     }
     async resume(studentId, sessionId) {
         const session = await this.prisma.studySession.findFirst({
@@ -98,28 +113,37 @@ let StudySessionsService = class StudySessionsService {
             throw new common_1.BadRequestException('활성 휴식 구간이 없습니다.');
         }
         const now = new Date();
-        const breakMinutes = (0, date_util_1.diffMinutes)(activeBreak.startedAt, now);
+        const breakSeconds = (0, date_util_1.diffSeconds)(activeBreak.startedAt, now);
+        const breakMinutes = Math.floor(breakSeconds / 60);
         const updated = await this.prisma.$transaction(async (tx) => {
             await tx.studyBreak.update({
                 where: { id: activeBreak.id },
-                data: { endedAt: now, breakMinutes },
+                data: { endedAt: now, breakMinutes, breakSeconds },
             });
             const breaks = await tx.studyBreak.findMany({
                 where: { studySessionId: sessionId },
             });
+            const totalBreakSeconds = breaks.reduce((sum, item) => sum + item.breakSeconds, 0);
             return tx.studySession.update({
                 where: { id: sessionId },
                 data: {
                     status: client_1.StudySessionStatus.ACTIVE,
-                    breakMinutes: breaks.reduce((sum, item) => sum + item.breakMinutes, 0),
+                    breakMinutes: Math.floor(totalBreakSeconds / 60),
+                    breakSeconds: totalBreakSeconds,
                 },
+                include: { linkedPlan: true, studyBreaks: true },
             });
         });
-        return { success: true, data: updated, meta: {} };
+        await this.notifyStudent(studentId, '공부 재개', '휴식이 종료되고 공부 세션이 다시 시작되었습니다.');
+        return { success: true, data: this.serializeSession(updated), meta: {} };
     }
     async end(studentId, sessionId) {
         const session = await this.prisma.studySession.findFirst({
-            where: { id: sessionId, studentId },
+            where: {
+                id: sessionId,
+                studentId,
+                status: { in: [client_1.StudySessionStatus.ACTIVE, client_1.StudySessionStatus.PAUSED] },
+            },
             include: { studyBreaks: true },
         });
         if (!session || !session.startedAt) {
@@ -129,31 +153,41 @@ let StudySessionsService = class StudySessionsService {
         const result = await this.prisma.$transaction(async (tx) => {
             const openBreak = session.studyBreaks.find((item) => !item.endedAt);
             if (openBreak) {
+                const breakSeconds = (0, date_util_1.diffSeconds)(openBreak.startedAt, now);
                 await tx.studyBreak.update({
                     where: { id: openBreak.id },
                     data: {
                         endedAt: now,
-                        breakMinutes: (0, date_util_1.diffMinutes)(openBreak.startedAt, now),
+                        breakMinutes: Math.floor(breakSeconds / 60),
+                        breakSeconds,
                     },
                 });
             }
             const breaks = await tx.studyBreak.findMany({
                 where: { studySessionId: sessionId },
             });
-            const breakMinutes = breaks.reduce((sum, item) => sum + item.breakMinutes, 0);
-            const totalMinutes = (0, date_util_1.diffMinutes)(session.startedAt, now);
-            const studyMinutes = Math.max(0, totalMinutes - breakMinutes);
-            return tx.studySession.update({
+            const breakSeconds = breaks.reduce((sum, item) => sum + item.breakSeconds, 0);
+            const totalSeconds = (0, date_util_1.diffSeconds)(session.startedAt, now);
+            const studySeconds = Math.max(0, totalSeconds - breakSeconds);
+            const studyMinutes = Math.floor(studySeconds / 60);
+            const breakMinutes = Math.floor(breakSeconds / 60);
+            const updated = await tx.studySession.update({
                 where: { id: sessionId },
                 data: {
                     status: client_1.StudySessionStatus.COMPLETED,
                     endedAt: now,
                     breakMinutes,
+                    breakSeconds,
                     studyMinutes,
+                    studySeconds,
                 },
+                include: { linkedPlan: true, studyBreaks: true },
             });
+            return updated;
         });
-        return { success: true, data: result, meta: {} };
+        await this.pointsService.awardStudySessionTime(studentId, result.id, result.studySeconds);
+        await this.notifyStudent(studentId, '공부 세션 완료', `이번 세션에서 ${result.studyMinutes}분 공부를 기록했어요.`);
+        return { success: true, data: this.serializeSession(result), meta: {} };
     }
     list(studentId, startDate, endDate) {
         return this.prisma.studySession
@@ -165,15 +199,77 @@ let StudySessionsService = class StudySessionsService {
                     lte: endDate ? (0, date_util_1.dateOnly)(endDate) : undefined,
                 },
             },
-            include: { linkedPlan: true },
+            include: { linkedPlan: true, studyBreaks: true },
             orderBy: { createdAt: 'desc' },
         })
-            .then((data) => ({ success: true, data, meta: {} }));
+            .then((data) => ({
+            success: true,
+            data: data.map((item) => this.serializeSession(item)),
+            meta: {},
+        }));
+    }
+    serializeSession(session) {
+        const durations = this.resolveSessionDurations(session);
+        return {
+            ...session,
+            studyMinutes: durations.studyMinutes,
+            studySeconds: durations.studySeconds,
+            breakMinutes: durations.breakMinutes,
+            breakSeconds: durations.breakSeconds,
+        };
+    }
+    resolveSessionDurations(session) {
+        if (!session.startedAt) {
+            return {
+                studyMinutes: session.studyMinutes,
+                studySeconds: session.studySeconds,
+                breakMinutes: session.breakMinutes,
+                breakSeconds: session.breakSeconds,
+            };
+        }
+        const now = new Date();
+        const closedBreakSeconds = session.studyBreaks
+            ?.filter((item) => item.endedAt != null)
+            .reduce((sum, item) => sum +
+            (item.breakSeconds > 0
+                ? item.breakSeconds
+                : (0, date_util_1.diffSeconds)(item.startedAt, item.endedAt)), 0) ?? session.breakSeconds;
+        const openBreakSeconds = session.studyBreaks
+            ?.filter((item) => item.endedAt == null)
+            .reduce((sum, item) => sum + (0, date_util_1.diffSeconds)(item.startedAt, now), 0) ?? 0;
+        const totalBreakSeconds = closedBreakSeconds + openBreakSeconds;
+        const endAt = session.endedAt ?? now;
+        const totalSeconds = (0, date_util_1.diffSeconds)(session.startedAt, endAt);
+        const studySeconds = Math.max(0, totalSeconds - totalBreakSeconds);
+        return {
+            studyMinutes: Math.floor(studySeconds / 60),
+            studySeconds,
+            breakMinutes: Math.floor(totalBreakSeconds / 60),
+            breakSeconds: totalBreakSeconds,
+        };
+    }
+    async notifyStudent(studentId, title, body, notificationType = client_1.NotificationType.NOTICE) {
+        const student = await this.prisma.student.findUnique({
+            where: { id: studentId },
+            select: { userId: true },
+        });
+        if (!student?.userId) {
+            return;
+        }
+        await this.notificationsService.sendDirectToUsers({
+            userIds: [student.userId],
+            notificationType,
+            channel: client_1.NotificationChannel.IN_APP,
+            title,
+            body,
+        });
     }
 };
 exports.StudySessionsService = StudySessionsService;
 exports.StudySessionsService = StudySessionsService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        notifications_service_1.NotificationsService,
+        points_service_1.PointsService])
 ], StudySessionsService);
 //# sourceMappingURL=study-sessions.service.js.map

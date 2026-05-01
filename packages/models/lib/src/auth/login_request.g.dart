@@ -9,22 +9,24 @@ part of 'login_request.dart';
 _$StudentLoginRequestImpl _$$StudentLoginRequestImplFromJson(
   Map<String, dynamic> json,
 ) => _$StudentLoginRequestImpl(
-  studentNo: json['studentNo'] as String,
-  name: json['name'] as String,
+  loginId: json['loginId'] as String,
+  password: json['password'] as String,
   deviceCode: json['deviceCode'] as String?,
 );
 
 Map<String, dynamic> _$$StudentLoginRequestImplToJson(
   _$StudentLoginRequestImpl instance,
 ) => <String, dynamic>{
-  'studentNo': instance.studentNo,
-  'name': instance.name,
+  'loginId': instance.loginId,
+  'password': instance.password,
   'deviceCode': instance.deviceCode,
 };
 
 _$StudentSignupRequestImpl _$$StudentSignupRequestImplFromJson(
   Map<String, dynamic> json,
 ) => _$StudentSignupRequestImpl(
+  loginId: json['loginId'] as String,
+  password: json['password'] as String,
   studentNo: json['studentNo'] as String,
   name: json['name'] as String,
   phone: json['phone'] as String?,
@@ -34,6 +36,8 @@ _$StudentSignupRequestImpl _$$StudentSignupRequestImplFromJson(
 Map<String, dynamic> _$$StudentSignupRequestImplToJson(
   _$StudentSignupRequestImpl instance,
 ) => <String, dynamic>{
+  'loginId': instance.loginId,
+  'password': instance.password,
   'studentNo': instance.studentNo,
   'name': instance.name,
   'phone': instance.phone,

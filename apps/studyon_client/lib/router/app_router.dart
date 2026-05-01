@@ -16,6 +16,8 @@ import '../features/student/study_session/study_summary_screen.dart';
 import '../features/student/plan/plan_screen.dart';
 import '../features/student/seats/seats_screen.dart';
 import '../features/student/notifications/notifications_screen.dart';
+import '../features/student/points/points_screen.dart';
+import '../features/student/character/character_screen.dart';
 import '../features/admin/shell/admin_shell.dart';
 import '../features/admin/dashboard/dashboard_screen.dart';
 import '../features/admin/seats/seats_screen.dart';
@@ -63,6 +65,8 @@ final appRouter = GoRouter(
     GoRoute(path: '/student/plan', pageBuilder: (context, state) => _noTransition(const PlanScreen(), state)),
     GoRoute(path: '/student/seats', pageBuilder: (context, state) => _noTransition(const StudentSeatsScreen(), state)),
     GoRoute(path: '/student/notifications', pageBuilder: (context, state) => _noTransition(const StudentNotificationsScreen(), state)),
+    GoRoute(path: '/student/points', pageBuilder: (context, state) => _noTransition(const PointsScreen(), state)),
+    GoRoute(path: '/student/character', pageBuilder: (context, state) => _noTransition(const CharacterScreen(), state)),
 
     // ── Admin ──
     ShellRoute(
