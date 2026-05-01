@@ -2,7 +2,7 @@ name: studyon_client
 description: "StudyON admin client app"
 publish_to: 'none'
 
-version: 1.0.1+6
+version: 1.0.2+7
 
 environment:
   sdk: ^3.10.1
