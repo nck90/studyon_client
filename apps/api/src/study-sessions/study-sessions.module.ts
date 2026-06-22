@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
+import { CharactersModule } from '@/characters/characters.module';
 import { NotificationsModule } from '@/notifications/notifications.module';
 import { PointsModule } from '@/points/points.module';
 import { StudySessionsController } from './study-sessions.controller';
 import { StudySessionsService } from './study-sessions.service';
 
 @Module({
-  imports: [NotificationsModule, PointsModule],
+  imports: [NotificationsModule, PointsModule, CharactersModule],
   controllers: [StudySessionsController],
   providers: [StudySessionsService],
   exports: [StudySessionsService],

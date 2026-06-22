@@ -1,0 +1,43 @@
+name: Mobile Store Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "Fastlane lane to run"
+        required: true
+        default: "appstore_upload"
+
+jobs:
+  app-store:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: apps/studyon_client
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: apps/studyon_client
+      - name: Install Flutter dependencies
+        run: flutter pub get
+      - name: Build IPA
+        run: flutter build ipa --release
+      - name: Run fastlane
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+          IOS_IPA_PATH: build/ios/ipa/studyon_client.ipa
+          FASTLANE_USER: ${{ secrets.FASTLANE_USER }}
+          PRODUCE_APP_NAME: "자습ON"
+          PRODUCE_SKU: "studyon-ios"
+          PRODUCE_LANGUAGE: "Korean"
+          PRODUCE_COMPANY_NAME: ${{ secrets.PRODUCE_COMPANY_NAME }}
+        run: bundle exec fastlane ${{ inputs.lane }}

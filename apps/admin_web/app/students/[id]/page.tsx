@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getStudent, getStudentStudySummary } from '@/lib/api';
+import { getStudent, getStudentStudySummary, issueParentAccess } from '@/lib/api';
 import type { StudentResponse } from '@/lib/api';
-import { ArrowLeft, Clock, Flame, Target, CalendarCheck } from 'lucide-react';
+import { ArrowLeft, Clock, Flame, Target, CalendarCheck, Copy, Link2 } from 'lucide-react';
 
 interface DayMetric {
   metricDate: string;
@@ -18,6 +18,10 @@ export default function StudentDetailPage() {
   const [student, setStudent] = useState<StudentResponse | null>(null);
   const [metrics, setMetrics] = useState<DayMetric[]>([]);
   const [loading, setLoading] = useState(true);
+  const [parentLink, setParentLink] = useState('');
+  const [parentDays, setParentDays] = useState(30);
+  const [issuingParent, setIssuingParent] = useState(false);
+  const [parentMessage, setParentMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (params?.id) {
@@ -85,6 +89,73 @@ export default function StudentDetailPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="bg-white rounded-2xl p-6 border border-card-border card-shadow mb-6">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Link2 size={16} className="text-primary" />
+              <h2 className="text-sm font-bold text-text-primary">학부모 공유</h2>
+            </div>
+            <p className="text-xs text-text-tertiary">
+              출결과 학습 리포트를 읽기 전용 링크로 공유합니다.
+            </p>
+          </div>
+          <select
+            value={parentDays}
+            onChange={event => setParentDays(Number(event.target.value))}
+            className="rounded-xl border border-card-border bg-bg px-3 py-2 text-xs font-semibold text-text-secondary"
+          >
+            <option value={7}>7일</option>
+            <option value={30}>30일</option>
+            <option value={90}>90일</option>
+          </select>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <button
+            type="button"
+            disabled={issuingParent}
+            onClick={async () => {
+              setIssuingParent(true);
+              setParentMessage(null);
+              try {
+                const issued = await issueParentAccess(student.id, parentDays);
+                const base = process.env.NEXT_PUBLIC_PARENT_WEB_URL ?? 'http://localhost:11113';
+                const link = `${base}/parent/overview?token=${encodeURIComponent(issued.token)}`;
+                setParentLink(link);
+                setParentMessage(`${issued.expiresInDays}일짜리 링크를 발급했습니다.`);
+              } catch (error) {
+                setParentMessage(error instanceof Error ? error.message : '링크 발급에 실패했습니다.');
+              } finally {
+                setIssuingParent(false);
+              }
+            }}
+            className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+          >
+            {issuingParent ? '발급 중...' : '학부모 링크 발급'}
+          </button>
+          <button
+            type="button"
+            disabled={!parentLink}
+            onClick={async () => {
+              await navigator.clipboard.writeText(parentLink);
+              setParentMessage('링크를 복사했습니다.');
+            }}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-card-border bg-bg px-4 py-2.5 text-sm font-bold text-text-secondary disabled:opacity-50"
+          >
+            <Copy size={15} />
+            복사
+          </button>
+        </div>
+        {parentLink && (
+          <p className="mt-3 break-all rounded-xl bg-bg px-3 py-2 text-xs text-text-tertiary">
+            {parentLink}
+          </p>
+        )}
+        {parentMessage && (
+          <p className="mt-3 text-xs font-semibold text-primary">{parentMessage}</p>
+        )}
       </div>
 
       {/* Stats */}

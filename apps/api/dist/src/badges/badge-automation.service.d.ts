@@ -4,5 +4,7 @@ export declare class BadgeAutomationService {
     constructor(prisma: PrismaService);
     awardBadges(): Promise<void>;
     private ensureDefaultBadges;
+    private ensureDefaultRules;
+    private metricValue;
     private give;
 }

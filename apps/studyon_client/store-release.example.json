@@ -1,0 +1,25 @@
+{
+  "appStore": {
+    "appIdentifier": "com.studyon.studyonClient",
+    "appName": "\uc790\uc2b5ON",
+    "sku": "studyon-ios",
+    "primaryLanguage": "Korean",
+    "companyName": "",
+    "appleId": "",
+    "teamId": "",
+    "ipaPath": "build/ios/ipa/studyon_client.ipa",
+    "submitForReview": false
+  },
+  "oneStore": {
+    "packageName": "com.studyon.studyon_client",
+    "productId": "",
+    "artifactPath": "build/app/outputs/bundle/release/app-release.aab",
+    "submitForVerification": false
+  },
+  "metadata": {
+    "defaultLocale": "ko",
+    "locales": [
+      "ko"
+    ]
+  }
+}

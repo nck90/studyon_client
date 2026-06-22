@@ -4,22 +4,28 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="${ROOT_DIR}/infra/compose/docker-compose.yml"
+COMPOSE_ENV_FILE="${COMPOSE_ENV_FILE:-${ROOT_DIR}/infra/compose/.env}"
 API_DIR="${ROOT_DIR}/apps/api"
-ENV_FILE="${API_DIR}/.env"
+API_ENV_FILE="${API_DIR}/.env"
 FALLBACK_ENV_FILE="${API_DIR}/.env.example"
 ACTIVE_ENV_FILE=""
+COMPOSE_ARGS=(-f "${COMPOSE_FILE}")
+
+if [[ -f "${COMPOSE_ENV_FILE}" ]]; then
+  COMPOSE_ARGS=(--env-file "${COMPOSE_ENV_FILE}" "${COMPOSE_ARGS[@]}")
+fi
 
 cd "${ROOT_DIR}"
 
 echo "[1/5] Starting postgres and redis"
-docker compose -f "${COMPOSE_FILE}" up -d postgres redis
+docker compose "${COMPOSE_ARGS[@]}" up -d postgres redis
 
 echo "[2/5] Installing API dependencies"
 cd "${API_DIR}"
 pnpm install --frozen-lockfile
 
-if [[ -f "${ENV_FILE}" ]]; then
-  ACTIVE_ENV_FILE="${ENV_FILE}"
+if [[ -f "${API_ENV_FILE}" ]]; then
+  ACTIVE_ENV_FILE="${API_ENV_FILE}"
 elif [[ -f "${FALLBACK_ENV_FILE}" ]]; then
   ACTIVE_ENV_FILE="${FALLBACK_ENV_FILE}"
 fi
@@ -38,7 +44,7 @@ pnpm build
 
 echo "[5/5] Starting production API container"
 cd "${ROOT_DIR}"
-docker compose -f "${COMPOSE_FILE}" up -d --build api
+docker compose "${COMPOSE_ARGS[@]}" up -d --build api
 
 echo
 echo "API deployment completed."

@@ -30,11 +30,17 @@ let DisplayController = class DisplayController {
     rankings(periodType = client_1.RankingPeriodType.DAILY, rankingType = client_1.RankingType.STUDY_TIME) {
         return this.displayService.rankings(periodType, rankingType);
     }
+    seats() {
+        return this.displayService.seats();
+    }
     status() {
         return this.displayService.status();
     }
     motivation() {
         return this.displayService.motivation();
+    }
+    goals() {
+        return this.displayService.goals();
     }
     control(activeScreen) {
         return this.displayService.control(activeScreen);
@@ -59,6 +65,13 @@ __decorate([
 ], DisplayController.prototype, "rankings", null);
 __decorate([
     (0, public_decorator_1.Public)(),
+    (0, common_1.Get)('seats'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], DisplayController.prototype, "seats", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)('status'),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
@@ -71,6 +84,13 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], DisplayController.prototype, "motivation", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Get)('goals'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], DisplayController.prototype, "goals", null);
 __decorate([
     (0, swagger_1.ApiBearerAuth)(),
     (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),

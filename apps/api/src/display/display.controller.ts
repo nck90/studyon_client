@@ -27,6 +27,12 @@ export class DisplayController {
   }
 
   @Public()
+  @Get('seats')
+  seats() {
+    return this.displayService.seats();
+  }
+
+  @Public()
   @Get('status')
   status() {
     return this.displayService.status();
@@ -36,6 +42,12 @@ export class DisplayController {
   @Get('motivation')
   motivation() {
     return this.displayService.motivation();
+  }
+
+  @Public()
+  @Get('goals')
+  goals() {
+    return this.displayService.goals();
   }
 
   @ApiBearerAuth()

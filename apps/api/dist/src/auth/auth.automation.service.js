@@ -45,7 +45,7 @@ let AuthAutomationService = class AuthAutomationService {
                     endedAt: new Date(),
                 },
             });
-            await this.redis.client.del(`auth:refresh:${session.id}`);
+            await this.redis.del(`auth:refresh:${session.id}`);
         }
     }
 };

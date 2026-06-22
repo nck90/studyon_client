@@ -11,11 +11,26 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SettingsService = void 0;
 const common_1 = require("@nestjs/common");
+const client_1 = require("@prisma/client");
 const audit_service_1 = require("../audit/audit.service");
 const prisma_service_1 = require("../database/prisma.service");
 const events_service_1 = require("../events/events.service");
 function stringWithDefault(value, fallback) {
     return typeof value === 'string' && value.length > 0 ? value : fallback;
+}
+function normalizeDisplayScreen(value) {
+    if (value === 'STATUS')
+        return client_1.DisplayScreen.SEAT_MAP;
+    if (value === 'MOTIVATION')
+        return client_1.DisplayScreen.MESSAGE;
+    if (value === client_1.DisplayScreen.RANKING ||
+        value === client_1.DisplayScreen.SEAT_MAP ||
+        value === client_1.DisplayScreen.MESSAGE ||
+        value === client_1.DisplayScreen.CLOCK ||
+        value === client_1.DisplayScreen.GOAL_WALL) {
+        return value;
+    }
+    return client_1.DisplayScreen.RANKING;
 }
 let SettingsService = class SettingsService {
     prisma;
@@ -79,16 +94,37 @@ let SettingsService = class SettingsService {
         const existing = await this.prisma.tvDisplaySetting.findFirst({
             orderBy: { createdAt: 'desc' },
         });
+        const existingOptions = existing?.displayOptions && typeof existing.displayOptions === 'object'
+            ? existing.displayOptions
+            : {};
+        const nextOptions = data.displayOptions && typeof data.displayOptions === 'object'
+            ? {
+                ...existingOptions,
+                ...data.displayOptions,
+            }
+            : existingOptions;
         const payload = {
-            activeScreen: data.activeScreen,
+            activeScreen: data.activeScreen !== undefined
+                ? normalizeDisplayScreen(data.activeScreen)
+                : (existing?.activeScreen ?? client_1.DisplayScreen.RANKING),
             rotationEnabled: data.rotationEnabled !== undefined
                 ? Boolean(data.rotationEnabled)
                 : undefined,
             rotationIntervalSeconds: data.rotationIntervalSeconds !== undefined
                 ? Number(data.rotationIntervalSeconds)
                 : undefined,
-            displayOptions: data.displayOptions ?? {
+            displayOptions: {
                 rankingType: 'STUDY_TIME',
+                periodType: 'DAILY',
+                message: '오늘도 목표를 끝까지 완수하세요.',
+                enabledScreens: [
+                    'RANKING',
+                    'SEAT_MAP',
+                    'MESSAGE',
+                    'CLOCK',
+                    'GOAL_WALL',
+                ],
+                ...nextOptions,
             },
         };
         const record = existing

@@ -1,0 +1,42 @@
+{
+  "html": {
+    "scrollSnapType": "none",
+    "scrollBehavior": "auto",
+    "overflow": "clip",
+    "overflowY": "clip"
+  },
+  "body": {
+    "overflow": "hidden auto",
+    "overflowY": "auto",
+    "scrollBehavior": "auto"
+  },
+  "cardSamples": [
+    {
+      "selector": "a",
+      "tag": "a",
+      "className": "",
+      "transition": "all",
+      "transform": "none",
+      "willChange": "auto",
+      "cursor": "pointer"
+    },
+    {
+      "selector": "a",
+      "tag": "a",
+      "className": "",
+      "transition": "all",
+      "transform": "none",
+      "willChange": "auto",
+      "cursor": "pointer"
+    },
+    {
+      "selector": "a",
+      "tag": "a",
+      "className": "",
+      "transition": "all",
+      "transform": "none",
+      "willChange": "auto",
+      "cursor": "pointer"
+    }
+  ]
+}

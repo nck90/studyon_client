@@ -42,37 +42,70 @@ class _PointsScreenState extends ConsumerState<PointsScreen> {
 
   String _sourceLabel(String source) {
     switch (source) {
-      case 'STUDY_TIME': return '공부 시간';
-      case 'ATTENDANCE': return '출석 보너스';
-      case 'STREAK_BONUS': return '연속 출석';
-      case 'BADGE_EARNED': return '뱃지 획득';
-      case 'ITEM_PURCHASE': return '아이템 구매';
-      case 'ADMIN_GRANT': return '관리자 지급';
-      default: return source;
+      case 'STUDY_TIME':
+        return '공부 시간';
+      case 'ATTENDANCE':
+        return '출석 보너스';
+      case 'STREAK_BONUS':
+        return '연속 출석';
+      case 'BADGE_EARNED':
+        return '뱃지 획득';
+      case 'ITEM_PURCHASE':
+        return '아이템 구매';
+      case 'DAILY_MISSION':
+        return '오늘 퀘스트';
+      case 'LEVEL_UP_BONUS':
+        return '레벨업 보너스';
+      case 'ADMIN_GRANT':
+        return '관리자 지급';
+      default:
+        return source;
     }
   }
 
   IconData _sourceIcon(String source) {
     switch (source) {
-      case 'STUDY_TIME': return Icons.timer_rounded;
-      case 'ATTENDANCE': return Icons.login_rounded;
-      case 'STREAK_BONUS': return Icons.local_fire_department_rounded;
-      case 'BADGE_EARNED': return Icons.emoji_events_rounded;
-      case 'ITEM_PURCHASE': return Icons.shopping_bag_rounded;
-      case 'ADMIN_GRANT': return Icons.card_giftcard_rounded;
-      default: return Icons.stars_rounded;
+      case 'STUDY_TIME':
+        return Icons.timer_rounded;
+      case 'ATTENDANCE':
+        return Icons.login_rounded;
+      case 'STREAK_BONUS':
+        return Icons.local_fire_department_rounded;
+      case 'BADGE_EARNED':
+        return Icons.emoji_events_rounded;
+      case 'ITEM_PURCHASE':
+        return Icons.shopping_bag_rounded;
+      case 'DAILY_MISSION':
+        return Icons.task_alt_rounded;
+      case 'LEVEL_UP_BONUS':
+        return Icons.auto_awesome_rounded;
+      case 'ADMIN_GRANT':
+        return Icons.card_giftcard_rounded;
+      default:
+        return Icons.stars_rounded;
     }
   }
 
   Color _sourceColor(String source) {
     switch (source) {
-      case 'STUDY_TIME': return AppColors.primary;
-      case 'ATTENDANCE': return AppColors.accent;
-      case 'STREAK_BONUS': return AppColors.warm;
-      case 'BADGE_EARNED': return const Color(0xFFFFB800);
-      case 'ITEM_PURCHASE': return AppColors.hot;
-      case 'ADMIN_GRANT': return const Color(0xFF74B9FF);
-      default: return AppColors.primary;
+      case 'STUDY_TIME':
+        return AppColors.primary;
+      case 'ATTENDANCE':
+        return AppColors.accent;
+      case 'STREAK_BONUS':
+        return AppColors.warm;
+      case 'BADGE_EARNED':
+        return const Color(0xFFFFB800);
+      case 'ITEM_PURCHASE':
+        return AppColors.hot;
+      case 'DAILY_MISSION':
+        return AppColors.accent;
+      case 'LEVEL_UP_BONUS':
+        return const Color(0xFFFFB800);
+      case 'ADMIN_GRANT':
+        return const Color(0xFF74B9FF);
+      default:
+        return AppColors.primary;
     }
   }
 
@@ -101,18 +134,27 @@ class _PointsScreenState extends ConsumerState<PointsScreen> {
                 children: [
                   IconButton(
                     onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                    ),
                   ),
                   const Expanded(
                     child: Text(
                       '포인트',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   PressableScale(
                     onTap: () => context.push('/student/character'),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.tintPurple,
                         borderRadius: BorderRadius.circular(20),
@@ -120,7 +162,11 @@ class _PointsScreenState extends ConsumerState<PointsScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.face_rounded, size: 16, color: AppColors.primary),
+                          const Icon(
+                            Icons.face_rounded,
+                            size: 16,
+                            color: AppColors.primary,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '캐릭터 꾸미기',
@@ -193,12 +239,16 @@ class _PointsScreenState extends ConsumerState<PointsScreen> {
                 children: [
                   Text(
                     '포인트 내역',
-                    style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w700),
+                    style: AppTypography.titleMedium.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const Spacer(),
                   Text(
                     '${_history.length}건',
-                    style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textTertiary,
+                    ),
                   ),
                 ],
               ),
@@ -211,96 +261,106 @@ class _PointsScreenState extends ConsumerState<PointsScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _history.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TossFace('💰', size: 48),
+                          const SizedBox(height: 12),
+                          Text(
+                            '아직 포인트 내역이 없어요',
+                            style: AppTypography.bodyMedium.copyWith(
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '공부하면 포인트가 쌓여요!',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      itemCount: _history.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 2),
+                      itemBuilder: (context, index) {
+                        final tx = _history[index];
+                        final amount = (tx['amount'] as num?)?.toInt() ?? 0;
+                        final source = tx['source'] as String? ?? '';
+                        final isEarn = amount > 0;
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.card(context),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
                             children: [
-                              TossFace('💰', size: 48),
-                              const SizedBox(height: 12),
-                              Text(
-                                '아직 포인트 내역이 없어요',
-                                style: AppTypography.bodyMedium.copyWith(
-                                  color: AppColors.textTertiary,
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: _sourceColor(
+                                    source,
+                                  ).withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  _sourceIcon(source),
+                                  size: 20,
+                                  color: _sourceColor(source),
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      tx['memo'] as String? ??
+                                          _sourceLabel(source),
+                                      style: AppTypography.titleMedium.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      _formatDate(
+                                        tx['createdAt'] as String? ?? '',
+                                      ),
+                                      style: AppTypography.caption.copyWith(
+                                        color: AppColors.textTertiary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                               Text(
-                                '공부하면 포인트가 쌓여요!',
-                                style: AppTypography.bodySmall.copyWith(
-                                  color: AppColors.textTertiary,
+                                '${isEarn ? '+' : ''}${amount}P',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  fontFamily: 'Pretendard',
+                                  color: isEarn
+                                      ? AppColors.accent
+                                      : AppColors.hot,
                                 ),
                               ),
                             ],
                           ),
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                          itemCount: _history.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 2),
-                          itemBuilder: (context, index) {
-                            final tx = _history[index];
-                            final amount = (tx['amount'] as num?)?.toInt() ?? 0;
-                            final source = tx['source'] as String? ?? '';
-                            final isEarn = amount > 0;
-
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              decoration: BoxDecoration(
-                                color: AppColors.card(context),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: _sourceColor(source).withValues(alpha: 0.12),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      _sourceIcon(source),
-                                      size: 20,
-                                      color: _sourceColor(source),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          tx['memo'] as String? ?? _sourceLabel(source),
-                                          style: AppTypography.titleMedium.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          _formatDate(tx['createdAt'] as String? ?? ''),
-                                          style: AppTypography.caption.copyWith(
-                                            color: AppColors.textTertiary,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Text(
-                                    '${isEarn ? '+' : ''}${amount}P',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                      fontFamily: 'Pretendard',
-                                      color: isEarn ? AppColors.accent : AppColors.hot,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),

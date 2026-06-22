@@ -32,6 +32,7 @@ abstract final class ApiConstants {
   static const String studentBadges = '/student/badges';
   static const String studentProfile = '/student/profile';
   static const String studentPreferences = '/student/preferences';
+  static const String studentFocusPolicy = '/student/focus-policy';
   static const String studentNotifications = '/student/notifications';
   static const String studentPoints = '/student/points';
   static const String studentPointsHistory = '/student/points/history';
@@ -39,6 +40,14 @@ abstract final class ApiConstants {
   static const String studentCharacterShop = '/student/character/shop';
   static const String studentCharacterItems = '/student/character/items';
   static const String studentCharacterEquip = '/student/character/equip';
+  static const String studentMedia = '/student/media';
+  static const String studentMotivationDashboard =
+      '/student/motivation-dashboard';
+  static const String studentFocusEvents = '/student/focus-events';
+  static const String studentGoalRoadmap = '/student/goal-roadmap';
+  static const String studentDailyMission = '/student/daily-mission';
+  static const String studentAppEvents = '/student/app-events';
+  static const String studentRpgDashboard = '/student/rpg/dashboard';
 
   // Admin
   static const String adminDashboard = '/admin/dashboard';
@@ -49,6 +58,10 @@ abstract final class ApiConstants {
   static const String adminStudyOverview = '/admin/study-overview';
   static const String adminRankings = '/admin/rankings';
   static const String adminNotifications = '/admin/notifications';
+  static const String adminBadgeRules = '/admin/badge-rules';
+  static const String adminFocusPolicy = '/admin/focus-policy';
+  static const String adminRetentionOverview = '/admin/retention/overview';
+  static const String adminRetentionGoals = '/admin/retention/goals';
   static const String adminGrades = '/admin/grades';
   static const String adminClasses = '/admin/classes';
   static const String adminGroups = '/admin/groups';
@@ -63,6 +76,7 @@ abstract final class ApiConstants {
   static const String displayRankings = '/display/rankings';
   static const String displayStatus = '/display/status';
   static const String displayMotivation = '/display/motivation';
+  static const String displayGoals = '/display/goals';
   static const String displayControl = '/display/control';
 
   // Common

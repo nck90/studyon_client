@@ -37,14 +37,15 @@ class StudyPlanItem {
   String get targetLabel {
     final h = targetMinutes ~/ 60;
     final m = targetMinutes % 60;
-    if (h == 0) return '${m}분';
-    if (m == 0) return '${h}시간';
-    return '${h}시간 ${m}분';
+    if (h == 0) return '$m분';
+    if (m == 0) return '$h시간';
+    return '$h시간 $m분';
   }
 }
 
 class StudyRecord {
   final String date;
+  final String isoDate;
   final String subject;
   final int studyMinutes;
   final int studySeconds;
@@ -53,12 +54,46 @@ class StudyRecord {
 
   const StudyRecord({
     required this.date,
+    this.isoDate = '',
     required this.subject,
     required this.studyMinutes,
     required this.studySeconds,
     required this.goalAchieved,
     required this.goalDetail,
   });
+}
+
+class StudentBadgeItem {
+  final String id;
+  final String code;
+  final String name;
+  final String description;
+  final DateTime? awardedAt;
+
+  const StudentBadgeItem({
+    this.id = '',
+    this.code = '',
+    required this.name,
+    this.description = '',
+    this.awardedAt,
+  });
+
+  String get emoji {
+    final normalized = '$code $name'.toUpperCase().replaceAll(' ', '');
+    if (normalized.contains('STREAK') || normalized.contains('연속')) {
+      return '🔥';
+    }
+    if (normalized.contains('GOAL') || normalized.contains('목표')) {
+      return '🎯';
+    }
+    if (normalized.contains('STUDY') || normalized.contains('시간')) {
+      return '⏱️';
+    }
+    if (normalized.contains('ATTENDANCE') || normalized.contains('출석')) {
+      return '✅';
+    }
+    return '🏅';
+  }
 }
 
 class NotificationItem {
@@ -105,6 +140,94 @@ class StudentRecommendation {
   });
 }
 
+class GoalRoadmapItem {
+  final String id;
+  final String targetName;
+  final DateTime? targetDate;
+  final bool reminderEnabled;
+  final String reminderTime;
+  final int daysLeft;
+  final double progressPercent;
+  final List<RoadmapMilestoneItem> milestones;
+  final RoadmapMissionItem? currentMission;
+
+  const GoalRoadmapItem({
+    required this.id,
+    required this.targetName,
+    this.targetDate,
+    this.reminderEnabled = true,
+    this.reminderTime = '20:00',
+    this.daysLeft = 0,
+    this.progressPercent = 0,
+    this.milestones = const [],
+    this.currentMission,
+  });
+}
+
+class RoadmapMilestoneItem {
+  final String id;
+  final String title;
+  final DateTime? periodStart;
+  final DateTime? periodEnd;
+  final int targetMinutes;
+  final List<String> focusSubjects;
+
+  const RoadmapMilestoneItem({
+    required this.id,
+    required this.title,
+    this.periodStart,
+    this.periodEnd,
+    this.targetMinutes = 0,
+    this.focusSubjects = const [],
+  });
+}
+
+class RoadmapMissionItem {
+  final String id;
+  final String title;
+  final String description;
+  final String status;
+  final int targetMinutes;
+  final List<String> focusSubjects;
+
+  const RoadmapMissionItem({
+    required this.id,
+    required this.title,
+    this.description = '',
+    this.status = 'RECOMMENDED',
+    this.targetMinutes = 0,
+    this.focusSubjects = const [],
+  });
+}
+
+class DailyMissionItem {
+  final String id;
+  final DateTime? missionDate;
+  final String title;
+  final String subjectName;
+  final int targetMinutes;
+  final String status;
+  final String source;
+  final DateTime? completedAt;
+  final bool reminderEnabled;
+  final String reminderTime;
+
+  const DailyMissionItem({
+    required this.id,
+    this.missionDate,
+    this.title = '',
+    this.subjectName = '',
+    this.targetMinutes = 0,
+    this.status = 'ASSIGNED',
+    this.source = 'MIXED',
+    this.completedAt,
+    this.reminderEnabled = true,
+    this.reminderTime = '20:00',
+  });
+
+  bool get isCompleted => status == 'COMPLETED';
+}
+
 // ── Student Session State ──
 
 class StudentState {
@@ -142,7 +265,7 @@ class StudentState {
   final List<StudyRecord> recentRecords;
   final int level; // 1=초보, 2=집중러, 3=숙련자, 4=마스터
   final int totalPoints;
-  final List<String> badges;
+  final List<StudentBadgeItem> badges;
   final bool notificationEnabled;
   final List<NotificationItem> notifications;
   final List<int> hourlyStudyMinutes;
@@ -150,6 +273,16 @@ class StudentState {
   final StudentRecommendation recommendation;
   final bool isDarkMode;
   final bool isStudying;
+  final String targetUniversityName;
+  final String targetUniversityMediaUrl;
+  final String homeBackgroundMediaUrl;
+  final String checkInBackgroundMediaUrl;
+  final String themePreset;
+  final bool focusModeEnabled;
+  final bool tvGoalConsent;
+  final String tvGoalApprovalStatus;
+  final GoalRoadmapItem? goalRoadmap;
+  final DailyMissionItem? dailyMission;
 
   const StudentState({
     this.name = '',
@@ -190,12 +323,39 @@ class StudentState {
     this.notificationEnabled = true,
     this.notifications = const [],
     this.hourlyStudyMinutes = const [
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
     ],
     this.dailySubjectSeconds = const {},
     this.recommendation = const StudentRecommendation(),
     this.isDarkMode = false,
     this.isStudying = false,
+    this.targetUniversityName = '',
+    this.targetUniversityMediaUrl = '',
+    this.homeBackgroundMediaUrl = '',
+    this.checkInBackgroundMediaUrl = '',
+    this.themePreset = 'default',
+    this.focusModeEnabled = false,
+    this.tvGoalConsent = false,
+    this.tvGoalApprovalStatus = 'NOT_REQUESTED',
+    this.goalRoadmap,
+    this.dailyMission,
   });
 
   StudentState copyWith({
@@ -234,7 +394,7 @@ class StudentState {
     List<StudyRecord>? recentRecords,
     int? level,
     int? totalPoints,
-    List<String>? badges,
+    List<StudentBadgeItem>? badges,
     bool? notificationEnabled,
     List<NotificationItem>? notifications,
     List<int>? hourlyStudyMinutes,
@@ -242,6 +402,18 @@ class StudentState {
     StudentRecommendation? recommendation,
     bool? isDarkMode,
     bool? isStudying,
+    String? targetUniversityName,
+    String? targetUniversityMediaUrl,
+    String? homeBackgroundMediaUrl,
+    String? checkInBackgroundMediaUrl,
+    String? themePreset,
+    bool? focusModeEnabled,
+    bool? tvGoalConsent,
+    String? tvGoalApprovalStatus,
+    GoalRoadmapItem? goalRoadmap,
+    bool clearGoalRoadmap = false,
+    DailyMissionItem? dailyMission,
+    bool clearDailyMission = false,
   }) {
     return StudentState(
       name: name ?? this.name,
@@ -261,10 +433,8 @@ class StudentState {
       weeklyStudySeconds: weeklyStudySeconds ?? this.weeklyStudySeconds,
       weeklyTargetMinutes: weeklyTargetMinutes ?? this.weeklyTargetMinutes,
       weeklyAchievedRate: weeklyAchievedRate ?? this.weeklyAchievedRate,
-      weeklyPagesCompleted:
-          weeklyPagesCompleted ?? this.weeklyPagesCompleted,
-      weeklyProblemsSolved:
-          weeklyProblemsSolved ?? this.weeklyProblemsSolved,
+      weeklyPagesCompleted: weeklyPagesCompleted ?? this.weeklyPagesCompleted,
+      weeklyProblemsSolved: weeklyProblemsSolved ?? this.weeklyProblemsSolved,
       monthlyStudyMinutes: monthlyStudyMinutes ?? this.monthlyStudyMinutes,
       monthlyStudySeconds: monthlyStudySeconds ?? this.monthlyStudySeconds,
       monthlyTargetMinutes: monthlyTargetMinutes ?? this.monthlyTargetMinutes,
@@ -291,6 +461,21 @@ class StudentState {
       recommendation: recommendation ?? this.recommendation,
       isDarkMode: isDarkMode ?? this.isDarkMode,
       isStudying: isStudying ?? this.isStudying,
+      targetUniversityName: targetUniversityName ?? this.targetUniversityName,
+      targetUniversityMediaUrl:
+          targetUniversityMediaUrl ?? this.targetUniversityMediaUrl,
+      homeBackgroundMediaUrl:
+          homeBackgroundMediaUrl ?? this.homeBackgroundMediaUrl,
+      checkInBackgroundMediaUrl:
+          checkInBackgroundMediaUrl ?? this.checkInBackgroundMediaUrl,
+      themePreset: themePreset ?? this.themePreset,
+      focusModeEnabled: focusModeEnabled ?? this.focusModeEnabled,
+      tvGoalConsent: tvGoalConsent ?? this.tvGoalConsent,
+      tvGoalApprovalStatus: tvGoalApprovalStatus ?? this.tvGoalApprovalStatus,
+      goalRoadmap: clearGoalRoadmap ? null : (goalRoadmap ?? this.goalRoadmap),
+      dailyMission: clearDailyMission
+          ? null
+          : (dailyMission ?? this.dailyMission),
     );
   }
 
@@ -300,6 +485,8 @@ class StudentState {
     if (h > 0) return '$h시간 $m분';
     return '$m분';
   }
+
+  List<String> get badgeNames => badges.map((badge) => badge.name).toList();
 
   String get levelName {
     switch (level) {
@@ -375,11 +562,15 @@ class StudentNotifier extends StateNotifier<StudentState> {
   }
 
   void addStudyTime(int seconds) {
-    state = state.copyWith(todayStudySeconds: state.todayStudySeconds + seconds);
+    state = state.copyWith(
+      todayStudySeconds: state.todayStudySeconds + seconds,
+    );
   }
 
   void addBreakTime(int seconds) {
-    state = state.copyWith(todayBreakSeconds: state.todayBreakSeconds + seconds);
+    state = state.copyWith(
+      todayBreakSeconds: state.todayBreakSeconds + seconds,
+    );
   }
 
   void setGoal(String subject, String detail, int hours) {
@@ -454,6 +645,7 @@ class StudentNotifier extends StateNotifier<StudentState> {
     final dateStr = '${now.month}월 ${now.day}일';
     final record = StudyRecord(
       date: dateStr,
+      isoDate: now.toIso8601String(),
       subject: subject.isEmpty ? '공부' : subject,
       studyMinutes: studyMinutes,
       studySeconds: studyMinutes * 60,
@@ -506,9 +698,95 @@ class StudentNotifier extends StateNotifier<StudentState> {
     await _repository.updateNotificationPreference(value);
     state = state.copyWith(notificationEnabled: value);
   }
+
+  Future<void> updateMotivationPreferences({
+    String? targetUniversityName,
+    String? targetUniversityImagePath,
+    String? homeBackgroundImagePath,
+    String? checkInBackgroundImagePath,
+    String? themePreset,
+    bool? focusModeEnabled,
+    bool? tvGoalConsent,
+  }) async {
+    await _repository.updateMotivationPreferences(
+      targetUniversityName: targetUniversityName,
+      targetUniversityImagePath: targetUniversityImagePath,
+      homeBackgroundImagePath: homeBackgroundImagePath,
+      checkInBackgroundImagePath: checkInBackgroundImagePath,
+      themePreset: themePreset,
+      focusModeEnabled: focusModeEnabled,
+      tvGoalConsent: tvGoalConsent,
+    );
+    await hydrate();
+  }
+
+  Future<void> recordFocusEvent({
+    String? sessionId,
+    String eventType = 'APP_EXIT',
+    int? durationSeconds,
+  }) async {
+    await _repository.recordFocusEvent(
+      sessionId: sessionId,
+      eventType: eventType,
+      durationSeconds: durationSeconds,
+    );
+  }
+
+  Future<void> saveGoalRoadmap({
+    required String targetName,
+    required DateTime targetDate,
+    bool reminderEnabled = true,
+    String reminderTime = '20:00',
+  }) async {
+    await _repository.saveGoalRoadmap(
+      targetName: targetName,
+      targetDate: targetDate,
+      reminderEnabled: reminderEnabled,
+      reminderTime: reminderTime,
+    );
+    await hydrate();
+  }
+
+  Future<void> generateGoalRoadmap() async {
+    await _repository.generateGoalRoadmap();
+    await hydrate();
+  }
+
+  Future<void> acceptRoadmapMission(String missionId) async {
+    await _repository.acceptRoadmapMission(missionId);
+    await hydrate();
+  }
+
+  Future<void> generateDailyMission() async {
+    await _repository.generateDailyMission();
+    await hydrate();
+  }
+
+  Future<Map<String, dynamic>> completeDailyMission(String missionId) async {
+    final reward = await _repository.completeDailyMission(missionId);
+    await hydrate();
+    return reward;
+  }
+
+  Future<void> updateDailyMissionReminder({
+    required bool enabled,
+    required String time,
+  }) async {
+    final mission = await _repository.updateDailyMissionReminder(
+      enabled: enabled,
+      time: time,
+    );
+    state = state.copyWith(dailyMission: mission);
+  }
+
+  Future<void> recordAppEvent(
+    String eventType, {
+    Map<String, dynamic>? payload,
+  }) {
+    return _repository.recordAppEvent(eventType, payload: payload);
+  }
 }
 
-final studentProvider =
-    StateNotifierProvider<StudentNotifier, StudentState>(
+final studentProvider = StateNotifierProvider<StudentNotifier, StudentState>(
   (ref) => StudentNotifier(ref.read(studentRepositoryProvider)),
 );

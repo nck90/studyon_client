@@ -1,32 +1,39 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { getStudents, getGrades, getClasses, getSeats, createStudent } from '@/lib/api';
-import type { StudentResponse, SeatResponse } from '@/lib/api';
-import { Users, Search, Plus, ChevronRight, X, UserPlus } from 'lucide-react';
-import { PageHeader } from '@/components/page-header';
+"use client";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import {
+  getStudents,
+  getGrades,
+  getClasses,
+  getSeats,
+  createStudent,
+} from "@/lib/api";
+import type { StudentResponse, SeatResponse } from "@/lib/api";
+import { Users, Search, Plus, ChevronRight, X, UserPlus } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 
 export default function StudentsPage() {
   const router = useRouter();
   const [students, setStudents] = useState<StudentResponse[]>([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
   // Registration modal state
   const [showRegister, setShowRegister] = useState(false);
   const [grades, setGrades] = useState<Array<{ id: string; name: string }>>([]);
-  const [classes, setClasses] = useState<Array<{ id: string; name: string; gradeId: string }>>([]);
+  const [classes, setClasses] = useState<
+    Array<{ id: string; name: string; gradeId: string }>
+  >([]);
   const [seats, setSeats] = useState<SeatResponse[]>([]);
-  const [regName, setRegName] = useState('');
-  const [regStudentNo, setRegStudentNo] = useState('');
-  const [regGradeId, setRegGradeId] = useState('');
-  const [regClassId, setRegClassId] = useState('');
-  const [regSeatId, setRegSeatId] = useState('');
-  const [regError, setRegError] = useState('');
+  const [regName, setRegName] = useState("");
+  const [regStudentNo, setRegStudentNo] = useState("");
+  const [regGradeId, setRegGradeId] = useState("");
+  const [regClassId, setRegClassId] = useState("");
+  const [regSeatId, setRegSeatId] = useState("");
+  const [regError, setRegError] = useState("");
   const [regLoading, setRegLoading] = useState(false);
 
-  const loadStudents = async (keyword?: string) => {
-    setLoading(true);
+  const loadStudents = useCallback(async (keyword?: string) => {
     try {
       const data = await getStudents(keyword ? { keyword } : undefined);
       setStudents(data);
@@ -34,25 +41,29 @@ export default function StudentsPage() {
       setStudents([]);
     }
     setLoading(false);
-  };
+  }, []);
 
-  useEffect(() => { loadStudents(); }, []);
+  useEffect(() => {
+    queueMicrotask(() => {
+      void loadStudents();
+    });
+  }, [loadStudents]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       loadStudents(search || undefined);
     }, 300);
     return () => clearTimeout(timeout);
-  }, [search]);
+  }, [loadStudents, search]);
 
   const openRegister = async () => {
     setShowRegister(true);
-    setRegName('');
-    setRegStudentNo('');
-    setRegGradeId('');
-    setRegClassId('');
-    setRegSeatId('');
-    setRegError('');
+    setRegName("");
+    setRegStudentNo("");
+    setRegGradeId("");
+    setRegClassId("");
+    setRegSeatId("");
+    setRegError("");
     try {
       const [g, c, s] = await Promise.all([
         getGrades().catch(() => []),
@@ -61,7 +72,7 @@ export default function StudentsPage() {
       ]);
       setGrades(g);
       setClasses(c);
-      setSeats(s.filter(seat => seat.status === 'AVAILABLE'));
+      setSeats(s.filter((seat) => seat.status === "AVAILABLE"));
     } catch {
       // ignore
     }
@@ -69,10 +80,10 @@ export default function StudentsPage() {
 
   const handleRegister = async () => {
     if (!regName.trim()) {
-      setRegError('이름은 필수입니다.');
+      setRegError("이름은 필수입니다.");
       return;
     }
-    setRegError('');
+    setRegError("");
     setRegLoading(true);
     try {
       const autoNo = `S${Date.now().toString().slice(-8)}`;
@@ -86,13 +97,13 @@ export default function StudentsPage() {
       setShowRegister(false);
       loadStudents();
     } catch (err) {
-      setRegError(err instanceof Error ? err.message : '등록에 실패했습니다.');
+      setRegError(err instanceof Error ? err.message : "등록에 실패했습니다.");
     }
     setRegLoading(false);
   };
 
   const filteredClasses = regGradeId
-    ? classes.filter(c => c.gradeId === regGradeId)
+    ? classes.filter((c) => c.gradeId === regGradeId)
     : classes;
 
   return (
@@ -113,12 +124,15 @@ export default function StudentsPage() {
       />
 
       <div className="mb-5 relative">
-        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary" />
+        <Search
+          size={16}
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary"
+        />
         <input
           type="text"
           placeholder="이름, 학번으로 검색"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
           className="w-full max-w-sm rounded-xl bg-bg border border-card-border pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 placeholder:text-text-tertiary"
         />
       </div>
@@ -134,9 +148,15 @@ export default function StudentsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-divider">
-                  <th className="text-left px-6 py-4 text-[11px] font-bold text-text-tertiary tracking-wide uppercase">이름</th>
-                  <th className="text-left px-6 py-4 text-[11px] font-bold text-text-tertiary tracking-wide uppercase">반</th>
-                  <th className="text-left px-6 py-4 text-[11px] font-bold text-text-tertiary tracking-wide uppercase">상태</th>
+                  <th className="text-left px-6 py-4 text-[11px] font-bold text-text-tertiary tracking-wide uppercase">
+                    이름
+                  </th>
+                  <th className="text-left px-6 py-4 text-[11px] font-bold text-text-tertiary tracking-wide uppercase">
+                    반
+                  </th>
+                  <th className="text-left px-6 py-4 text-[11px] font-bold text-text-tertiary tracking-wide uppercase">
+                    상태
+                  </th>
                   <th className="w-10"></th>
                 </tr>
               </thead>
@@ -145,31 +165,50 @@ export default function StudentsPage() {
                   <tr
                     key={student.id}
                     onClick={() => router.push(`/students/${student.id}`)}
-                    className={`hover:bg-bg/50 transition-colors cursor-pointer group ${idx !== students.length - 1 ? 'border-b border-divider/50' : ''}`}
+                    className={`hover:bg-bg/50 transition-colors cursor-pointer group ${idx !== students.length - 1 ? "border-b border-divider/50" : ""}`}
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary-surface flex items-center justify-center">
-                          <span className="text-xs font-bold text-primary">{student.user.name[0]}</span>
+                          <span className="text-xs font-bold text-primary">
+                            {student.user.name[0]}
+                          </span>
                         </div>
-                        <span className="font-semibold text-text-primary">{student.user.name}</span>
+                        <span className="font-semibold text-text-primary">
+                          {student.user.name}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-text-secondary">{[student.grade?.name, student.class?.name].filter(Boolean).join(' ') || '-'}</td>
+                    <td className="px-6 py-4 text-text-secondary">
+                      {[student.grade?.name, student.class?.name]
+                        .filter(Boolean)
+                        .join(" ") || "-"}
+                    </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                        student.enrollmentStatus === 'ACTIVE'
-                          ? 'bg-accent-light text-accent'
-                          : 'bg-bg text-text-tertiary'
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                          student.enrollmentStatus === 'ACTIVE' ? 'bg-accent' : 'bg-text-tertiary'
-                        }`} />
-                        {student.enrollmentStatus === 'ACTIVE' ? '재학' : '비활성'}
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          student.enrollmentStatus === "ACTIVE"
+                            ? "bg-accent-light text-accent"
+                            : "bg-bg text-text-tertiary"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            student.enrollmentStatus === "ACTIVE"
+                              ? "bg-accent"
+                              : "bg-text-tertiary"
+                          }`}
+                        />
+                        {student.enrollmentStatus === "ACTIVE"
+                          ? "재학"
+                          : "비활성"}
                       </span>
                     </td>
                     <td className="px-2 py-4">
-                      <ChevronRight size={16} className="text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <ChevronRight
+                        size={16}
+                        className="text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity"
+                      />
                     </td>
                   </tr>
                 ))}
@@ -177,14 +216,14 @@ export default function StudentsPage() {
             </table>
             {students.length === 0 && (
               <div className="text-center py-16 text-text-tertiary text-sm">
-                {search ? '검색 결과가 없습니다.' : '등록된 학생이 없습니다.'}
+                {search ? "검색 결과가 없습니다." : "등록된 학생이 없습니다."}
               </div>
             )}
           </div>
 
           {/* Mobile cards */}
           <div className="md:hidden space-y-2">
-            {students.map(student => (
+            {students.map((student) => (
               <div
                 key={student.id}
                 onClick={() => router.push(`/students/${student.id}`)}
@@ -192,11 +231,19 @@ export default function StudentsPage() {
               >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-primary-surface flex items-center justify-center">
-                    <span className="text-xs font-bold text-primary">{student.user.name[0]}</span>
+                    <span className="text-xs font-bold text-primary">
+                      {student.user.name[0]}
+                    </span>
                   </div>
                   <div className="flex-1">
-                    <span className="font-semibold text-text-primary">{student.user.name}</span>
-                    <p className="text-[11px] text-text-tertiary">{[student.grade?.name, student.class?.name].filter(Boolean).join(' ') || '미배정'}</p>
+                    <span className="font-semibold text-text-primary">
+                      {student.user.name}
+                    </span>
+                    <p className="text-[11px] text-text-tertiary">
+                      {[student.grade?.name, student.class?.name]
+                        .filter(Boolean)
+                        .join(" ") || "미배정"}
+                    </p>
                   </div>
                   <ChevronRight size={16} className="text-text-tertiary" />
                 </div>
@@ -204,7 +251,7 @@ export default function StudentsPage() {
             ))}
             {students.length === 0 && (
               <div className="text-center py-16 text-text-tertiary text-sm">
-                {search ? '검색 결과가 없습니다.' : '등록된 학생이 없습니다.'}
+                {search ? "검색 결과가 없습니다." : "등록된 학생이 없습니다."}
               </div>
             )}
           </div>
@@ -219,7 +266,7 @@ export default function StudentsPage() {
         >
           <div
             className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md animate-fade-in"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2.5">
@@ -227,8 +274,12 @@ export default function StudentsPage() {
                   <UserPlus size={18} className="text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-text-primary">학생 등록</h3>
-                  <p className="text-[11px] text-text-tertiary">초기 비밀번호는 자동 생성됩니다</p>
+                  <h3 className="text-base font-bold text-text-primary">
+                    학생 등록
+                  </h3>
+                  <p className="text-[11px] text-text-tertiary">
+                    초기 비밀번호는 자동 생성됩니다
+                  </p>
                 </div>
               </div>
               <button
@@ -248,11 +299,13 @@ export default function StudentsPage() {
             <div className="space-y-4">
               {/* Name */}
               <div>
-                <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">이름 *</label>
+                <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">
+                  이름 *
+                </label>
                 <input
                   type="text"
                   value={regName}
-                  onChange={e => setRegName(e.target.value)}
+                  onChange={(e) => setRegName(e.target.value)}
                   placeholder="홍길동"
                   className="w-full rounded-xl bg-bg border border-card-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 placeholder:text-text-tertiary"
                 />
@@ -261,28 +314,39 @@ export default function StudentsPage() {
               {/* Grade & Class */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">레벨</label>
+                  <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">
+                    레벨
+                  </label>
                   <select
                     value={regGradeId}
-                    onChange={e => { setRegGradeId(e.target.value); setRegClassId(''); }}
+                    onChange={(e) => {
+                      setRegGradeId(e.target.value);
+                      setRegClassId("");
+                    }}
                     className="w-full rounded-xl bg-bg border border-card-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 text-text-primary"
                   >
                     <option value="">선택 안함</option>
-                    {grades.map(g => (
-                      <option key={g.id} value={g.id}>{g.name}</option>
+                    {grades.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.name}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">반</label>
+                  <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">
+                    반
+                  </label>
                   <select
                     value={regClassId}
-                    onChange={e => setRegClassId(e.target.value)}
+                    onChange={(e) => setRegClassId(e.target.value)}
                     className="w-full rounded-xl bg-bg border border-card-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 text-text-primary"
                   >
                     <option value="">선택 안함</option>
-                    {filteredClasses.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                    {filteredClasses.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -290,15 +354,19 @@ export default function StudentsPage() {
 
               {/* Seat */}
               <div>
-                <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">좌석 배정</label>
+                <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">
+                  좌석 배정
+                </label>
                 <select
                   value={regSeatId}
-                  onChange={e => setRegSeatId(e.target.value)}
+                  onChange={(e) => setRegSeatId(e.target.value)}
                   className="w-full rounded-xl bg-bg border border-card-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 text-text-primary"
                 >
                   <option value="">배정 안함</option>
-                  {seats.map(s => (
-                    <option key={s.id} value={s.id}>{s.seatNo} ({s.zone}구역)</option>
+                  {seats.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.seatNo} ({s.zone}구역)
+                    </option>
                   ))}
                 </select>
               </div>

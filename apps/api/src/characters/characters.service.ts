@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ItemCategory, PointSource } from '@prisma/client';
+import { CharacterXpSource, ItemCategory, PointSource } from '@prisma/client';
 import { PrismaService } from '@/database/prisma.service';
 import { PointsService } from '@/points/points.service';
 
@@ -15,14 +15,7 @@ export class CharactersService {
   ) {}
 
   async getMyCharacter(studentId: string) {
-    let character = await this.prisma.studentCharacter.findUnique({
-      where: { studentId },
-    });
-    if (!character) {
-      character = await this.prisma.studentCharacter.create({
-        data: { studentId },
-      });
-    }
+    const character = await this.ensureCharacter(studentId);
 
     // Load equipped items
     const itemIds = [
@@ -40,11 +33,121 @@ export class CharactersService {
           })
         : [];
 
+    const recentXpEvents = await this.prisma.characterXpTransaction.findMany({
+      where: { studentId },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+    });
+
     return {
       success: true,
-      data: { ...character, equippedItems },
+      data: this.serializeCharacter(character, equippedItems, recentXpEvents),
       meta: {},
     };
+  }
+
+  async awardXp(
+    studentId: string,
+    amount: number,
+    source: CharacterXpSource,
+    referenceKey: string,
+    memo?: string,
+    points = 0,
+  ) {
+    const normalizedAmount = Math.floor(amount);
+    if (normalizedAmount <= 0) {
+      return {
+        xp: 0,
+        points,
+        leveledUp: false,
+        levelsGained: 0,
+        level: 1,
+        xpToNext: this.xpRequiredForLevel(1),
+        growthStage: this.growthStageForLevel(1),
+        duplicate: false,
+      };
+    }
+
+    const result = await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.characterXpTransaction.findUnique({
+        where: { studentId_referenceKey: { studentId, referenceKey } },
+      });
+      if (existing) {
+        const current = await tx.studentCharacter.findUnique({
+          where: { studentId },
+        });
+        const level = current?.level ?? 1;
+        return {
+          duplicate: true,
+          points: 0,
+          leveledUp: false,
+          levelsGained: 0,
+          level,
+          xp: current?.xp ?? 0,
+          xpToNext: this.xpRequiredForLevel(level) - (current?.xp ?? 0),
+          growthStage: current?.growthStage ?? this.growthStageForLevel(level),
+        };
+      }
+
+      const character =
+        (await tx.studentCharacter.findUnique({ where: { studentId } })) ??
+        (await tx.studentCharacter.create({ data: { studentId } }));
+
+      const levelBefore = character.level;
+      let level = character.level;
+      let xp = character.xp + normalizedAmount;
+      let levelsGained = 0;
+      while (xp >= this.xpRequiredForLevel(level)) {
+        xp -= this.xpRequiredForLevel(level);
+        level += 1;
+        levelsGained += 1;
+      }
+      const growthStage = this.growthStageForLevel(level);
+      const updated = await tx.studentCharacter.update({
+        where: { studentId },
+        data: {
+          level,
+          xp,
+          growthStage,
+          ...(levelsGained > 0 ? { lastLevelUpAt: new Date() } : {}),
+        },
+      });
+      await tx.characterXpTransaction.create({
+        data: {
+          studentId,
+          source,
+          amount: normalizedAmount,
+          points,
+          levelBefore,
+          levelAfter: updated.level,
+          xpAfter: updated.xp,
+          balanceAfter: xp,
+          referenceKey,
+          memo,
+        },
+      });
+      return {
+        duplicate: false,
+        points: levelsGained * 20,
+        leveledUp: levelsGained > 0,
+        levelsGained,
+        level: updated.level,
+        xp: updated.xp,
+        xpToNext: this.xpRequiredForLevel(updated.level) - updated.xp,
+        growthStage: updated.growthStage,
+      };
+    });
+
+    if (result.points > 0) {
+      await this.pointsService.earn(
+        studentId,
+        result.points,
+        PointSource.LEVEL_UP_BONUS,
+        `Lv.${result.level} 성장 보너스`,
+      );
+    }
+
+    return result;
   }
 
   async getShop(studentId: string, category?: ItemCategory) {
@@ -147,5 +250,50 @@ export class CharactersService {
       orderBy: { purchasedAt: 'desc' },
     });
     return { success: true, data: items.map((si) => si.item), meta: {} };
+  }
+
+  private ensureCharacter(studentId: string) {
+    return this.prisma.studentCharacter.upsert({
+      where: { studentId },
+      create: { studentId },
+      update: {},
+    });
+  }
+
+  private serializeCharacter(
+    character: Awaited<ReturnType<CharactersService['ensureCharacter']>>,
+    equippedItems: unknown[],
+    recentXpEvents: unknown[] = [],
+  ) {
+    return {
+      ...character,
+      equippedItems,
+      stageAssetKey: character.growthStage,
+      xpToNext: this.xpRequiredForLevel(character.level) - character.xp,
+      xpProgress:
+        character.xp / Math.max(1, this.xpRequiredForLevel(character.level)),
+      growthStageLabel: this.growthStageLabel(character.level),
+      recentXpEvents,
+    };
+  }
+
+  private xpRequiredForLevel(level: number) {
+    return 100 + (Math.max(1, level) - 1) * 50;
+  }
+
+  private growthStageForLevel(level: number) {
+    if (level >= 15) return 'stage_05';
+    if (level >= 10) return 'stage_04';
+    if (level >= 6) return 'stage_03';
+    if (level >= 3) return 'stage_02';
+    return 'stage_01';
+  }
+
+  private growthStageLabel(level: number) {
+    if (level >= 15) return '마스터';
+    if (level >= 10) return '도전가';
+    if (level >= 6) return '집중러';
+    if (level >= 3) return '루틴러';
+    return '입문자';
   }
 }

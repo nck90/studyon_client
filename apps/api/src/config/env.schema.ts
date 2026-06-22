@@ -9,7 +9,7 @@ export const envSchema = z.object({
   APP_URL: z.string().url().default('http://localhost:3000'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
   DATABASE_URL: z.string().min(1),
-  REDIS_URL: z.string().min(1),
+  REDIS_URL: z.string().min(1).optional(),
   JWT_ACCESS_SECRET: z.string().min(16),
   JWT_REFRESH_SECRET: z.string().min(16),
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
@@ -23,6 +23,7 @@ export const envSchema = z.object({
   PARENT_PORTAL_SECRET: z.string().min(16).default('parent-portal-secret-key'),
   DEFAULT_ADMIN_EMAIL: z.string().email().default('admin@studyon.local'),
   DEFAULT_ADMIN_PASSWORD: z.string().min(8).default('ChangeMe123!'),
+  MEDIA_UPLOAD_DIR: z.string().min(1).default('uploads/student-media'),
 });
 
 export type Env = z.infer<typeof envSchema>;

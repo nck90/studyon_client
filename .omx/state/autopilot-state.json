@@ -1,0 +1,9 @@
+{
+  "active": false,
+  "current_phase": "complete",
+  "task_description": "Implement daily mission + local notification retention loop for app and admin web",
+  "started_at": "2026-05-23T00:00:00+09:00",
+  "run_outcome": "finish",
+  "completed_at": "2026-05-23T00:00:00+09:00",
+  "lifecycle_outcome": "finished"
+}

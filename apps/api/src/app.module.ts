@@ -29,6 +29,7 @@ import { MetricsModule } from '@/metrics/metrics.module';
 import { ParentModule } from '@/parent/parent.module';
 import { PointsModule } from '@/points/points.module';
 import { CharactersModule } from '@/characters/characters.module';
+import { MediaModule } from '@/media/media.module';
 
 @Module({
   imports: [
@@ -81,6 +82,7 @@ import { CharactersModule } from '@/characters/characters.module';
     ParentModule,
     PointsModule,
     CharactersModule,
+    MediaModule,
     AdminModule,
   ],
 })

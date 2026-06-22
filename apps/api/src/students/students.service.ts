@@ -1,11 +1,66 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { AttendanceStatus, StudySessionStatus } from '@prisma/client';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  AppEventType,
+  AttendanceStatus,
+  CharacterXpSource,
+  DailyMissionSource,
+  FocusEventType,
+  MediaAssetKind,
+  PointSource,
+  Prisma,
+  StudySessionStatus,
+} from '@prisma/client';
+import { CharactersService } from '@/characters/characters.service';
 import { PrismaService } from '@/database/prisma.service';
-import { dateOnly } from '@/common/utils/date.util';
+import { dateOnly, weekStart } from '@/common/utils/date.util';
+import { EventsService } from '@/events/events.service';
+import { MediaService } from '@/media/media.service';
+import { PointsService } from '@/points/points.service';
+
+type StudentPreferenceInput = {
+  notificationEnabled?: boolean;
+  targetUniversityName?: string | null;
+  targetUniversityMediaId?: string | null;
+  homeBackgroundMediaId?: string | null;
+  checkInBackgroundMediaId?: string | null;
+  themePreset?: string | null;
+  focusModeEnabled?: boolean;
+  tvGoalConsent?: boolean;
+};
+
+type RoadmapInput = {
+  targetName?: string;
+  targetDate?: string;
+  reminderEnabled?: boolean;
+  reminderTime?: string;
+};
+
+type ReminderInput = {
+  reminderEnabled?: boolean;
+  reminderTime?: string;
+};
+
+type FocusEventInput = {
+  sessionId?: string | null;
+  studySessionId?: string | null;
+  eventType?: string;
+  occurredAt?: string;
+  durationSeconds?: number | null;
+};
 
 @Injectable()
 export class StudentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly events: EventsService,
+    private readonly mediaService: MediaService,
+    private readonly pointsService: PointsService,
+    private readonly charactersService: CharactersService,
+  ) {}
 
   async getStudentHome(studentId: string) {
     const today = dateOnly();
@@ -220,15 +275,74 @@ export class StudentsService {
     return { success: true, data, meta: {} };
   }
 
-  async updatePreferences(
-    studentId: string,
-    input: { notificationEnabled?: boolean },
-  ) {
+  async getFocusPolicy() {
+    const policy = await this.prisma.focusPolicy.findFirst({
+      orderBy: { createdAt: 'asc' },
+    });
+    return {
+      success: true,
+      data: policy ?? {
+        id: null,
+        policyName: '기본 집중모드 정책',
+        mode: 'SOFT_LOCK',
+        isEnabled: false,
+        blockedPackages: [],
+        allowedPackages: [],
+        graceSeconds: 15,
+        opsQueueThreshold: 2,
+        parentReportThreshold: 3,
+      },
+      meta: {},
+    };
+  }
+
+  async updatePreferences(studentId: string, input: StudentPreferenceInput) {
     const current = await this.getStudentPreferences(studentId);
     const next = {
       notificationEnabled:
         input.notificationEnabled ?? current.notificationEnabled,
+      targetUniversityName:
+        input.targetUniversityName === undefined
+          ? current.targetUniversityName
+          : input.targetUniversityName,
+      targetUniversityMediaId:
+        input.targetUniversityMediaId === undefined
+          ? current.targetUniversityMediaId
+          : input.targetUniversityMediaId,
+      homeBackgroundMediaId:
+        input.homeBackgroundMediaId === undefined
+          ? current.homeBackgroundMediaId
+          : input.homeBackgroundMediaId,
+      checkInBackgroundMediaId:
+        input.checkInBackgroundMediaId === undefined
+          ? current.checkInBackgroundMediaId
+          : input.checkInBackgroundMediaId,
+      themePreset:
+        input.themePreset === undefined
+          ? current.themePreset
+          : input.themePreset,
+      focusModeEnabled: input.focusModeEnabled ?? current.focusModeEnabled,
+      tvGoalConsent: input.tvGoalConsent ?? current.tvGoalConsent,
+      tvGoalApprovalStatus:
+        input.tvGoalConsent === false
+          ? 'NOT_REQUESTED'
+          : input.targetUniversityName !== undefined ||
+              input.targetUniversityMediaId !== undefined
+            ? 'PENDING'
+            : current.tvGoalApprovalStatus,
+      tvGoalReviewedAt:
+        input.tvGoalConsent === false ? null : current.tvGoalReviewedAt,
+      tvGoalReviewedBy:
+        input.tvGoalConsent === false ? null : current.tvGoalReviewedBy,
+      tvGoalReviewMemo:
+        input.tvGoalConsent === false ? null : current.tvGoalReviewMemo,
     };
+
+    await this.assertOwnedMedia(studentId, [
+      [next.targetUniversityMediaId, MediaAssetKind.TARGET_UNIVERSITY],
+      [next.homeBackgroundMediaId, MediaAssetKind.HOME_BACKGROUND],
+      [next.checkInBackgroundMediaId, MediaAssetKind.CHECKIN_BACKGROUND],
+    ]);
 
     const key = this.preferenceKey(studentId);
     const existing = await this.prisma.appSetting.findUnique({
@@ -244,7 +358,363 @@ export class StudentsService {
           data: { settingKey: key, settingValue: next },
         }));
 
+    await this.deleteReplacedMedia(studentId, current, next);
+
     return { success: true, data: next, meta: {} };
+  }
+
+  async getMotivationDashboard(studentId: string) {
+    const today = dateOnly();
+    const preferences = await this.getStudentPreferences(studentId);
+    const [dailyMetric, weeklyMetric, monthlyMetric, badges, plans] =
+      await Promise.all([
+        this.prisma.dailyStudentMetric.findUnique({
+          where: { studentId_metricDate: { studentId, metricDate: today } },
+        }),
+        this.prisma.weeklyStudentMetric.findFirst({
+          where: { studentId },
+          orderBy: { weekStartDate: 'desc' },
+        }),
+        this.prisma.monthlyStudentMetric.findFirst({
+          where: { studentId },
+          orderBy: { monthKey: 'desc' },
+        }),
+        this.prisma.studentBadge.findMany({
+          where: { studentId },
+          include: { badge: true },
+          orderBy: { awardedAt: 'desc' },
+          take: 8,
+        }),
+        this.prisma.studyPlan.findMany({
+          where: { studentId, planDate: today },
+          orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
+        }),
+      ]);
+
+    return {
+      success: true,
+      data: {
+        preferences,
+        today: {
+          studyMinutes: dailyMetric?.studyMinutes ?? 0,
+          targetMinutes: dailyMetric?.targetMinutes ?? 0,
+          achievedRate: Number(dailyMetric?.achievedRate ?? 0),
+          pagesCompleted: dailyMetric?.pagesCompleted ?? 0,
+          problemsSolved: dailyMetric?.problemsSolved ?? 0,
+          streakDays: dailyMetric?.streakDays ?? 0,
+        },
+        week: {
+          studyMinutes: weeklyMetric?.studyMinutes ?? 0,
+          targetMinutes: weeklyMetric?.targetMinutes ?? 0,
+          achievedRate: Number(weeklyMetric?.achievedRate ?? 0),
+        },
+        month: {
+          studyMinutes: monthlyMetric?.studyMinutes ?? 0,
+          targetMinutes: monthlyMetric?.targetMinutes ?? 0,
+          achievedRate: Number(monthlyMetric?.achievedRate ?? 0),
+        },
+        badges,
+        plans,
+      },
+      meta: {},
+    };
+  }
+
+  async getGoalRoadmap(studentId: string) {
+    const roadmap = await this.activeRoadmap(studentId);
+    if (!roadmap) {
+      return {
+        success: true,
+        data: {
+          roadmap: null,
+          milestones: [],
+          currentMission: null,
+          daysLeft: null,
+          progressPercent: 0,
+        },
+        meta: {},
+      };
+    }
+    await this.syncMissionStatus(studentId, roadmap.id);
+    const refreshed = await this.activeRoadmap(studentId);
+    return { success: true, data: this.serializeRoadmap(refreshed), meta: {} };
+  }
+
+  async saveGoalRoadmap(studentId: string, input: RoadmapInput) {
+    const targetName = input.targetName?.trim();
+    if (!targetName) {
+      throw new BadRequestException('목표 이름이 필요합니다.');
+    }
+    const targetDate = dateOnly(input.targetDate);
+    if (Number.isNaN(targetDate.getTime())) {
+      throw new BadRequestException('목표 날짜가 올바르지 않습니다.');
+    }
+    const today = dateOnly();
+    if (targetDate <= today) {
+      throw new BadRequestException('목표 날짜는 오늘 이후여야 합니다.');
+    }
+    const reminderTime = this.normalizeReminderTime(input.reminderTime);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.studentGoalRoadmap.updateMany({
+        where: { studentId, status: 'ACTIVE' },
+        data: { status: 'ARCHIVED' },
+      });
+      await tx.studentGoalRoadmap.create({
+        data: {
+          studentId,
+          targetName,
+          targetDate,
+          reminderEnabled: input.reminderEnabled ?? true,
+          reminderTime,
+        },
+      });
+    });
+    return this.generateGoalRoadmap(studentId);
+  }
+
+  async generateGoalRoadmap(studentId: string) {
+    const roadmap = await this.ensureActiveRoadmap(studentId);
+    const recommendation = await this.roadmapRecommendation(studentId);
+    const now = dateOnly();
+    const milestones = this.buildMilestones(
+      roadmap.id,
+      now,
+      roadmap.targetDate,
+      recommendation.targetMinutes,
+      recommendation.focusSubjects,
+    );
+    const currentWeek = weekStart(now);
+    const mission = {
+      roadmapId: roadmap.id,
+      studentId,
+      weekStartDate: currentWeek,
+      title: `${recommendation.focusSubjects.slice(0, 2).join('·')} 주간 루틴`,
+      description: '이번 주 추천 공부 계획을 수락하면 오늘 계획에 반영됩니다.',
+      focusSubjects: recommendation.focusSubjects as Prisma.InputJsonValue,
+      targetMinutes: recommendation.targetMinutes,
+    };
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.roadmapMilestone.deleteMany({
+        where: { roadmapId: roadmap.id },
+      });
+      await tx.roadmapMilestone.createMany({ data: milestones });
+      await tx.roadmapMission.upsert({
+        where: {
+          studentId_weekStartDate: { studentId, weekStartDate: currentWeek },
+        },
+        create: mission,
+        update: {
+          title: mission.title,
+          description: mission.description,
+          focusSubjects: mission.focusSubjects,
+          targetMinutes: mission.targetMinutes,
+        },
+      });
+    });
+
+    const refreshed = await this.activeRoadmap(studentId);
+    return { success: true, data: this.serializeRoadmap(refreshed), meta: {} };
+  }
+
+  async acceptRoadmapMission(studentId: string, missionId: string) {
+    const mission = await this.prisma.roadmapMission.findFirst({
+      where: { id: missionId, studentId },
+    });
+    if (!mission) {
+      throw new NotFoundException('로드맵 미션을 찾을 수 없습니다.');
+    }
+    if (mission.status === 'EXPIRED') {
+      throw new BadRequestException('만료된 미션입니다.');
+    }
+    const subjects = this.stringArray(mission.focusSubjects);
+    const planDate = dateOnly();
+    const perPlanMinutes = Math.max(
+      30,
+      Math.floor(mission.targetMinutes / Math.max(subjects.length, 1)),
+    );
+    await this.prisma.$transaction(async (tx) => {
+      await tx.roadmapMission.update({
+        where: { id: mission.id },
+        data: { status: 'ACCEPTED', acceptedAt: new Date() },
+      });
+      await tx.studyPlan.createMany({
+        data: subjects.slice(0, 3).map((subject, index) => ({
+          studentId,
+          planDate,
+          subjectName: subject,
+          title: `${mission.title} ${index + 1}`,
+          targetMinutes: perPlanMinutes,
+          priority: index === 0 ? 'HIGH' : 'MEDIUM',
+        })),
+        skipDuplicates: true,
+      });
+    });
+    const refreshed = await this.activeRoadmap(studentId);
+    return { success: true, data: this.serializeRoadmap(refreshed), meta: {} };
+  }
+
+  async getTodayDailyMission(studentId: string) {
+    const mission = await this.ensureTodayDailyMission(studentId);
+    const synced = await this.syncDailyMissionCompletion(mission.id, studentId);
+    const preferences = await this.getStudentPreferences(studentId);
+    await this.recordAppEvent(studentId, {
+      eventType: AppEventType.DAILY_MISSION_VIEW,
+      payload: { missionId: synced.id },
+    });
+    return {
+      success: true,
+      data: this.serializeDailyMission(synced, preferences),
+      meta: {},
+    };
+  }
+
+  async getRpgDashboard(studentId: string) {
+    const [character, dailyMission, points, home] = await Promise.all([
+      this.charactersService.getMyCharacter(studentId),
+      this.getTodayDailyMission(studentId),
+      this.pointsService.getBalance(studentId),
+      this.getStudentHome(studentId),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        title: '자습ON Quest',
+        character: character.data,
+        dailyMission: dailyMission.data,
+        points: points.data,
+        streakDays: home.data.streakDays,
+        todayStudySeconds: (home.data.study?.studyMinutes ?? 0) * 60,
+        todayTargetMinutes: home.data.plans?.targetMinutes ?? 0,
+      },
+      meta: {},
+    };
+  }
+
+  async generateTodayDailyMission(studentId: string) {
+    const mission = await this.createOrRefreshTodayDailyMission(studentId);
+    const preferences = await this.getStudentPreferences(studentId);
+    return {
+      success: true,
+      data: this.serializeDailyMission(mission, preferences),
+      meta: {},
+    };
+  }
+
+  async completeDailyMission(
+    studentId: string,
+    missionId: string,
+    completionMethod = 'MANUAL',
+  ) {
+    const mission = await this.prisma.studentDailyMission.findFirst({
+      where: { id: missionId, studentId },
+      include: { template: true },
+    });
+    if (!mission) {
+      throw new NotFoundException('오늘 미션을 찾을 수 없습니다.');
+    }
+    const updated = await this.prisma.studentDailyMission.update({
+      where: { id: mission.id },
+      data: {
+        status: 'COMPLETED',
+        completedAt: mission.completedAt ?? new Date(),
+        completionMethod: completionMethod.slice(0, 40),
+      },
+      include: { template: true },
+    });
+    await this.recordAppEvent(studentId, {
+      eventType: AppEventType.DAILY_MISSION_COMPLETE,
+      payload: { missionId: updated.id, completionMethod },
+    });
+    const rewardReference = `daily-mission:${updated.id}`;
+    const xpReward = await this.charactersService.awardXp(
+      studentId,
+      25,
+      CharacterXpSource.DAILY_MISSION,
+      rewardReference,
+      '오늘 퀘스트 완료',
+      50,
+    );
+    if (!xpReward.duplicate) {
+      await this.pointsService.earn(
+        studentId,
+        50,
+        PointSource.DAILY_MISSION,
+        `[${rewardReference}] 오늘 퀘스트 완료`,
+      );
+    }
+    const preferences = await this.getStudentPreferences(studentId);
+    return {
+      success: true,
+      data: {
+        ...this.serializeDailyMission(updated, preferences),
+        reward: {
+          points: xpReward.duplicate ? 0 : 50,
+          xp: xpReward.duplicate ? 0 : 25,
+          leveledUp: xpReward.leveledUp,
+          level: xpReward.level,
+          xpToNext: xpReward.xpToNext,
+        },
+      },
+      meta: {},
+    };
+  }
+
+  async updateDailyMissionReminder(studentId: string, input: ReminderInput) {
+    const current = await this.getStudentPreferences(studentId);
+    const next = {
+      ...current,
+      dailyMissionReminderEnabled:
+        input.reminderEnabled ?? current.dailyMissionReminderEnabled,
+      dailyMissionReminderTime: this.normalizeReminderTime(
+        input.reminderTime ?? current.dailyMissionReminderTime,
+      ),
+    };
+    const key = this.preferenceKey(studentId);
+    const existing = await this.prisma.appSetting.findUnique({
+      where: { settingKey: key },
+    });
+    await (existing
+      ? this.prisma.appSetting.update({
+          where: { settingKey: key },
+          data: { settingValue: next },
+        })
+      : this.prisma.appSetting.create({
+          data: { settingKey: key, settingValue: next },
+        }));
+    return { success: true, data: next, meta: {} };
+  }
+
+  async recordAppEvent(
+    studentId: string,
+    input: {
+      eventType?: AppEventType;
+      occurredAt?: string;
+      payload?: Record<string, unknown>;
+    },
+  ) {
+    const eventType = input.eventType ?? AppEventType.APP_OPEN;
+    if (!Object.values(AppEventType).includes(eventType)) {
+      throw new BadRequestException('지원하지 않는 앱 이벤트입니다.');
+    }
+    const occurredAt = input.occurredAt
+      ? new Date(input.occurredAt)
+      : new Date();
+    const eventAt = Number.isNaN(occurredAt.getTime())
+      ? new Date()
+      : occurredAt;
+    const data = await this.prisma.studentAppEvent.create({
+      data: {
+        studentId,
+        eventType,
+        occurredAt: eventAt,
+        eventDate: dateOnly(eventAt),
+        payload: (input.payload ?? {}) as Prisma.InputJsonValue,
+      },
+    });
+    return { success: true, data, meta: {} };
   }
 
   private async getStudentPreferences(studentId: string) {
@@ -254,12 +724,602 @@ export class StudentsService {
     const value =
       (setting?.settingValue as Record<string, unknown> | undefined) ?? {};
 
+    const targetUniversityMediaId =
+      typeof value.targetUniversityMediaId === 'string'
+        ? value.targetUniversityMediaId
+        : null;
+    const homeBackgroundMediaId =
+      typeof value.homeBackgroundMediaId === 'string'
+        ? value.homeBackgroundMediaId
+        : null;
+    const checkInBackgroundMediaId =
+      typeof value.checkInBackgroundMediaId === 'string'
+        ? value.checkInBackgroundMediaId
+        : null;
+    const mediaIds = [
+      targetUniversityMediaId,
+      homeBackgroundMediaId,
+      checkInBackgroundMediaId,
+    ].filter((id): id is string => Boolean(id));
+    const media = mediaIds.length
+      ? await this.prisma.mediaAsset.findMany({
+          where: { studentId, id: { in: mediaIds } },
+        })
+      : [];
+    const mediaById = new Map(media.map((item) => [item.id, item]));
+
     return {
       notificationEnabled: value.notificationEnabled !== false,
+      targetUniversityName:
+        typeof value.targetUniversityName === 'string'
+          ? value.targetUniversityName
+          : '',
+      targetUniversityMediaId,
+      targetUniversityMedia: targetUniversityMediaId
+        ? (mediaById.get(targetUniversityMediaId) ?? null)
+        : null,
+      homeBackgroundMediaId,
+      homeBackgroundMedia: homeBackgroundMediaId
+        ? (mediaById.get(homeBackgroundMediaId) ?? null)
+        : null,
+      checkInBackgroundMediaId,
+      checkInBackgroundMedia: checkInBackgroundMediaId
+        ? (mediaById.get(checkInBackgroundMediaId) ?? null)
+        : null,
+      themePreset:
+        typeof value.themePreset === 'string' ? value.themePreset : 'default',
+      focusModeEnabled: value.focusModeEnabled === true,
+      tvGoalConsent: value.tvGoalConsent === true,
+      tvGoalApprovalStatus:
+        typeof value.tvGoalApprovalStatus === 'string'
+          ? value.tvGoalApprovalStatus
+          : 'NOT_REQUESTED',
+      tvGoalReviewedAt:
+        typeof value.tvGoalReviewedAt === 'string'
+          ? value.tvGoalReviewedAt
+          : null,
+      tvGoalReviewedBy:
+        typeof value.tvGoalReviewedBy === 'string'
+          ? value.tvGoalReviewedBy
+          : null,
+      tvGoalReviewMemo:
+        typeof value.tvGoalReviewMemo === 'string'
+          ? value.tvGoalReviewMemo
+          : null,
+      dailyMissionReminderEnabled: value.dailyMissionReminderEnabled !== false,
+      dailyMissionReminderTime:
+        typeof value.dailyMissionReminderTime === 'string'
+          ? value.dailyMissionReminderTime
+          : '20:00',
     };
+  }
+
+  private async ensureTodayDailyMission(studentId: string) {
+    const today = dateOnly();
+    const existing = await this.prisma.studentDailyMission.findUnique({
+      where: { studentId_missionDate: { studentId, missionDate: today } },
+      include: { template: true },
+    });
+    if (existing) return existing;
+    return this.createOrRefreshTodayDailyMission(studentId);
+  }
+
+  private async createOrRefreshTodayDailyMission(studentId: string) {
+    const today = dateOnly();
+    const student = await this.prisma.student.findUnique({
+      where: { id: studentId },
+      include: { grade: true, class: true },
+    });
+    if (!student) {
+      throw new NotFoundException('학생을 찾을 수 없습니다.');
+    }
+    const [roadmap, template] = await Promise.all([
+      this.activeRoadmap(studentId),
+      this.findDailyMissionTemplate(student.gradeId, student.classId),
+    ]);
+    const currentRoadmapMission =
+      roadmap?.missions.find(
+        (mission) =>
+          mission.weekStartDate.getTime() === weekStart(today).getTime(),
+      ) ??
+      roadmap?.missions[0] ??
+      null;
+    const roadmapSubjects = this.stringArray(
+      currentRoadmapMission?.focusSubjects,
+    );
+    const subjectName = roadmapSubjects[0] ?? template?.subjectName ?? '공부';
+    const targetMinutes = Math.max(
+      30,
+      Math.min(
+        240,
+        Math.round(
+          (currentRoadmapMission?.targetMinutes ??
+            template?.targetMinutes ??
+            60) / (roadmapSubjects.length > 1 ? roadmapSubjects.length : 1),
+        ),
+      ),
+    );
+    const source: DailyMissionSource =
+      currentRoadmapMission && template
+        ? DailyMissionSource.MIXED
+        : currentRoadmapMission
+          ? DailyMissionSource.ROADMAP
+          : DailyMissionSource.TEMPLATE;
+    const title =
+      template?.title ??
+      (currentRoadmapMission
+        ? `${subjectName} ${targetMinutes}분 집중`
+        : '오늘 공부 루틴 완료');
+
+    return this.prisma.studentDailyMission.upsert({
+      where: { studentId_missionDate: { studentId, missionDate: today } },
+      create: {
+        studentId,
+        missionDate: today,
+        title,
+        subjectName,
+        targetMinutes,
+        source,
+        templateId: template?.id ?? null,
+        roadmapMissionId: currentRoadmapMission?.id ?? null,
+      },
+      update: {
+        title,
+        subjectName,
+        targetMinutes,
+        source,
+        templateId: template?.id ?? null,
+        roadmapMissionId: currentRoadmapMission?.id ?? null,
+      },
+      include: { template: true },
+    });
+  }
+
+  private async findDailyMissionTemplate(
+    gradeId?: string | null,
+    classId?: string | null,
+  ) {
+    const scope: Prisma.DailyMissionTemplateWhereInput[] = [
+      { gradeId: null, classId: null },
+    ];
+    if (gradeId) scope.unshift({ gradeId, classId: null });
+    if (classId) scope.unshift({ classId });
+    return this.prisma.dailyMissionTemplate.findFirst({
+      where: {
+        isActive: true,
+        OR: scope,
+      },
+      orderBy: [
+        { classId: 'desc' },
+        { gradeId: 'desc' },
+        { sortOrder: 'asc' },
+        { createdAt: 'asc' },
+      ],
+    });
+  }
+
+  private async syncDailyMissionCompletion(
+    missionId: string,
+    studentId: string,
+  ) {
+    const mission = await this.prisma.studentDailyMission.findFirst({
+      where: { id: missionId, studentId },
+      include: { template: true },
+    });
+    if (!mission || mission.status === 'COMPLETED') {
+      return mission!;
+    }
+    if (mission.missionDate < dateOnly()) {
+      return this.prisma.studentDailyMission.update({
+        where: { id: mission.id },
+        data: { status: 'EXPIRED' },
+        include: { template: true },
+      });
+    }
+    const [metric, completedPlan] = await Promise.all([
+      this.prisma.dailyStudentMetric.findUnique({
+        where: {
+          studentId_metricDate: {
+            studentId,
+            metricDate: mission.missionDate,
+          },
+        },
+      }),
+      this.prisma.studyPlan.findFirst({
+        where: {
+          studentId,
+          planDate: mission.missionDate,
+          subjectName: mission.subjectName,
+          status: 'COMPLETED',
+        },
+      }),
+    ]);
+    if ((metric?.studyMinutes ?? 0) >= mission.targetMinutes || completedPlan) {
+      return this.prisma.studentDailyMission.update({
+        where: { id: mission.id },
+        data: {
+          status: 'COMPLETED',
+          completedAt: new Date(),
+          completionMethod: completedPlan ? 'PLAN_AUTO' : 'STUDY_TIME_AUTO',
+        },
+        include: { template: true },
+      });
+    }
+    return mission;
+  }
+
+  private serializeDailyMission(
+    mission: Awaited<ReturnType<StudentsService['ensureTodayDailyMission']>>,
+    preferences: Awaited<ReturnType<StudentsService['getStudentPreferences']>>,
+  ) {
+    return {
+      id: mission.id,
+      missionDate: mission.missionDate.toISOString(),
+      title: mission.title,
+      subjectName: mission.subjectName,
+      targetMinutes: mission.targetMinutes,
+      status: mission.status,
+      source: mission.source,
+      completedAt: mission.completedAt?.toISOString() ?? null,
+      completionMethod: mission.completionMethod,
+      template: mission.template
+        ? {
+            id: mission.template.id,
+            title: mission.template.title,
+            subjectName: mission.template.subjectName,
+          }
+        : null,
+      reminder: {
+        enabled: preferences.dailyMissionReminderEnabled,
+        time: preferences.dailyMissionReminderTime,
+      },
+    };
+  }
+
+  private async activeRoadmap(studentId: string) {
+    return this.prisma.studentGoalRoadmap.findFirst({
+      where: { studentId, status: 'ACTIVE' },
+      include: {
+        milestones: { orderBy: { sortOrder: 'asc' } },
+        missions: { orderBy: { weekStartDate: 'desc' }, take: 8 },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  private async ensureActiveRoadmap(studentId: string) {
+    const existing = await this.activeRoadmap(studentId);
+    if (existing) return existing;
+    const preferences = await this.getStudentPreferences(studentId);
+    return this.prisma.studentGoalRoadmap.create({
+      data: {
+        studentId,
+        targetName: preferences.targetUniversityName || '목표',
+        targetDate: dateOnly(new Date(Date.now() + 100 * 24 * 60 * 60 * 1000)),
+      },
+      include: {
+        milestones: { orderBy: { sortOrder: 'asc' } },
+        missions: { orderBy: { weekStartDate: 'desc' }, take: 8 },
+      },
+    });
+  }
+
+  private serializeRoadmap(
+    roadmap: Awaited<ReturnType<StudentsService['activeRoadmap']>>,
+  ) {
+    if (!roadmap) {
+      return {
+        roadmap: null,
+        milestones: [],
+        currentMission: null,
+        daysLeft: null,
+        progressPercent: 0,
+      };
+    }
+    const today = dateOnly();
+    const totalMs = roadmap.targetDate.getTime() - roadmap.createdAt.getTime();
+    const leftMs = roadmap.targetDate.getTime() - today.getTime();
+    const progressPercent =
+      totalMs <= 0
+        ? 0
+        : Math.max(
+            0,
+            Math.min(
+              100,
+              Number((((totalMs - leftMs) / totalMs) * 100).toFixed(1)),
+            ),
+          );
+    const currentWeek = weekStart(today);
+    const currentMission =
+      roadmap.missions.find(
+        (mission) => mission.weekStartDate.getTime() === currentWeek.getTime(),
+      ) ??
+      roadmap.missions[0] ??
+      null;
+    return {
+      roadmap: {
+        id: roadmap.id,
+        targetName: roadmap.targetName,
+        targetDate: roadmap.targetDate.toISOString(),
+        status: roadmap.status,
+        reminderEnabled: roadmap.reminderEnabled,
+        reminderTime: roadmap.reminderTime,
+      },
+      milestones: roadmap.milestones.map((item) => ({
+        id: item.id,
+        title: item.title,
+        periodStart: item.periodStart.toISOString(),
+        periodEnd: item.periodEnd.toISOString(),
+        targetMinutes: item.targetMinutes,
+        focusSubjects: this.stringArray(item.focusSubjects),
+      })),
+      currentMission: currentMission
+        ? {
+            id: currentMission.id,
+            title: currentMission.title,
+            description: currentMission.description,
+            weekStartDate: currentMission.weekStartDate.toISOString(),
+            targetMinutes: currentMission.targetMinutes,
+            status: currentMission.status,
+            focusSubjects: this.stringArray(currentMission.focusSubjects),
+          }
+        : null,
+      daysLeft: Math.ceil(Math.max(0, leftMs) / (24 * 60 * 60 * 1000)),
+      progressPercent,
+    };
+  }
+
+  private async syncMissionStatus(studentId: string, roadmapId: string) {
+    const currentWeek = weekStart();
+    const weeklyMetric = await this.prisma.weeklyStudentMetric.findFirst({
+      where: { studentId, weekStartDate: currentWeek },
+    });
+    const missions = await this.prisma.roadmapMission.findMany({
+      where: {
+        studentId,
+        roadmapId,
+        status: { in: ['ACCEPTED', 'RECOMMENDED'] },
+      },
+    });
+    await Promise.all(
+      missions.map((mission) => {
+        if (
+          mission.status === 'ACCEPTED' &&
+          weeklyMetric &&
+          weeklyMetric.studyMinutes >= mission.targetMinutes
+        ) {
+          return this.prisma.roadmapMission.update({
+            where: { id: mission.id },
+            data: { status: 'COMPLETED', completedAt: new Date() },
+          });
+        }
+        if (mission.weekStartDate < currentWeek) {
+          return this.prisma.roadmapMission.update({
+            where: { id: mission.id },
+            data: { status: 'EXPIRED' },
+          });
+        }
+        return Promise.resolve(null);
+      }),
+    );
+  }
+
+  private async roadmapRecommendation(studentId: string) {
+    const [logs, dailyMetrics] = await Promise.all([
+      this.prisma.studyLog.groupBy({
+        by: ['subjectName'],
+        where: { studentId },
+        _sum: { studyMinutes: true },
+        orderBy: { _sum: { studyMinutes: 'asc' } },
+        take: 3,
+      }),
+      this.prisma.dailyStudentMetric.findMany({
+        where: { studentId },
+        orderBy: { metricDate: 'desc' },
+        take: 7,
+      }),
+    ]);
+    const focusSubjects = logs
+      .map((item) => item.subjectName)
+      .filter(Boolean)
+      .slice(0, 3);
+    while (focusSubjects.length < 3) {
+      focusSubjects.push(['국어', '수학', '영어'][focusSubjects.length]);
+    }
+    const avgMinutes =
+      dailyMetrics.length === 0
+        ? 180
+        : Math.round(
+            dailyMetrics.reduce((sum, item) => sum + item.studyMinutes, 0) /
+              dailyMetrics.length,
+          );
+    return {
+      focusSubjects,
+      targetMinutes: Math.min(
+        480,
+        Math.max(180, Math.round(avgMinutes * 1.15)),
+      ),
+    };
+  }
+
+  private buildMilestones(
+    roadmapId: string,
+    start: Date,
+    target: Date,
+    targetMinutes: number,
+    focusSubjects: string[],
+  ) {
+    const items: Prisma.RoadmapMilestoneCreateManyInput[] = [];
+    const cursor = new Date(start);
+    cursor.setUTCDate(1);
+    let order = 0;
+    while (cursor <= target && order < 12) {
+      const periodStart = order === 0 ? start : dateOnly(cursor);
+      const periodEnd = dateOnly(
+        new Date(
+          Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 0),
+        ),
+      );
+      items.push({
+        roadmapId,
+        title: `${cursor.getUTCMonth() + 1}월 집중 구간`,
+        periodStart,
+        periodEnd: periodEnd > target ? target : periodEnd,
+        targetMinutes: targetMinutes * 6,
+        focusSubjects: focusSubjects as Prisma.InputJsonValue,
+        sortOrder: order,
+      });
+      cursor.setUTCMonth(cursor.getUTCMonth() + 1);
+      order += 1;
+    }
+    return items;
+  }
+
+  private normalizeReminderTime(value?: string) {
+    if (!value) return '20:00';
+    return /^([01]\d|2[0-3]):[0-5]\d$/.test(value) ? value : '20:00';
+  }
+
+  private stringArray(value: unknown): string[] {
+    return Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === 'string')
+      : [];
+  }
+
+  async recordFocusEvent(studentId: string, input: FocusEventInput) {
+    const occurredAt = input.occurredAt
+      ? new Date(input.occurredAt)
+      : new Date();
+    const eventAt = Number.isNaN(occurredAt.getTime())
+      ? new Date()
+      : occurredAt;
+    const metricDate = dateOnly(eventAt);
+    const eventType = this.normalizeFocusEventType(input.eventType);
+    const studySessionId = input.studySessionId ?? input.sessionId ?? null;
+    const durationSeconds = this.normalizeDurationSeconds(
+      input.durationSeconds,
+    );
+
+    const data = await this.prisma.studentFocusEvent.create({
+      data: {
+        studentId,
+        studySessionId,
+        eventType,
+        eventDate: metricDate,
+        occurredAt: eventAt,
+        durationSeconds,
+      },
+    });
+
+    const isExit = eventType === FocusEventType.APP_EXIT;
+    const isReturn = eventType === FocusEventType.APP_RETURN;
+    const awaySeconds = isReturn ? (durationSeconds ?? 0) : 0;
+
+    const metric = await this.prisma.studentFocusMetric.upsert({
+      where: { studentId_metricDate: { studentId, metricDate } },
+      create: {
+        studentId,
+        metricDate,
+        eventCount: isExit ? 1 : 0,
+        returnCount: isReturn ? 1 : 0,
+        totalAwaySeconds: awaySeconds,
+        longestAwaySeconds: awaySeconds,
+        lastEventAt: eventAt,
+        lastSessionId: studySessionId,
+      },
+      update: {
+        eventCount: isExit ? { increment: 1 } : undefined,
+        returnCount: isReturn ? { increment: 1 } : undefined,
+        totalAwaySeconds: isReturn ? { increment: awaySeconds } : undefined,
+        longestAwaySeconds: isReturn ? { increment: 0 } : undefined,
+        lastEventAt: eventAt,
+        lastSessionId: studySessionId,
+      },
+    });
+    if (isReturn && awaySeconds > metric.longestAwaySeconds) {
+      await this.prisma.studentFocusMetric.update({
+        where: { id: metric.id },
+        data: { longestAwaySeconds: awaySeconds },
+      });
+    }
+    this.events.emit({
+      channel: 'focus',
+      event: 'focus.changed',
+      payload: {
+        studentId,
+        eventType,
+        metricDate: metricDate.toISOString(),
+        eventCount: metric.eventCount,
+      },
+    });
+    return { success: true, data, meta: {} };
+  }
+
+  private normalizeFocusEventType(value?: FocusEventInput['eventType']) {
+    return value &&
+      Object.values(FocusEventType).includes(value as FocusEventType)
+      ? (value as FocusEventType)
+      : FocusEventType.APP_EXIT;
+  }
+
+  private normalizeDurationSeconds(value: unknown) {
+    if (!Number.isFinite(value)) return null;
+    return Math.max(0, Math.min(86_400, Math.floor(value as number)));
+  }
+
+  private async assertOwnedMedia(
+    studentId: string,
+    refs: [string | null, MediaAssetKind][],
+  ) {
+    const ids = refs
+      .map(([id]) => id)
+      .filter((id): id is string => Boolean(id));
+    if (ids.length === 0) return;
+    const assets = await this.prisma.mediaAsset.findMany({
+      where: { studentId, id: { in: ids } },
+    });
+    const byId = new Map(assets.map((asset) => [asset.id, asset.kind]));
+    for (const [id, kind] of refs) {
+      if (!id) continue;
+      if (byId.get(id) !== kind) {
+        throw new NotFoundException('선택한 미디어를 찾을 수 없습니다.');
+      }
+    }
   }
 
   private preferenceKey(studentId: string) {
     return `student:${studentId}:preferences`;
+  }
+
+  private async deleteReplacedMedia(
+    studentId: string,
+    current: {
+      targetUniversityMediaId: string | null;
+      homeBackgroundMediaId: string | null;
+      checkInBackgroundMediaId: string | null;
+    },
+    next: {
+      targetUniversityMediaId: string | null;
+      homeBackgroundMediaId: string | null;
+      checkInBackgroundMediaId: string | null;
+    },
+  ) {
+    const currentIds = [
+      current.targetUniversityMediaId,
+      current.homeBackgroundMediaId,
+      current.checkInBackgroundMediaId,
+    ].filter((id): id is string => Boolean(id));
+    const nextIds = new Set(
+      [
+        next.targetUniversityMediaId,
+        next.homeBackgroundMediaId,
+        next.checkInBackgroundMediaId,
+      ].filter((id): id is string => Boolean(id)),
+    );
+    await Promise.all(
+      currentIds
+        .filter((id) => !nextIds.has(id))
+        .map((id) => this.mediaService.deleteStudentMediaQuiet(studentId, id)),
+    );
   }
 }

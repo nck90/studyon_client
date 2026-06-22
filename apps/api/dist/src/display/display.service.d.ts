@@ -10,41 +10,26 @@ export declare class DisplayService {
     current(): Promise<{
         success: boolean;
         data: {
-            id: string;
-            createdAt: Date;
-            updatedAt: Date;
-            activeScreen: import("@prisma/client").$Enums.DisplayScreen;
+            activeScreen: string;
             rotationEnabled: boolean;
             rotationIntervalSeconds: number;
-            displayOptions: import("@prisma/client/runtime/library").JsonValue;
-            updatedById: string | null;
-        } | null;
+            enabledScreens: string[];
+            message: string;
+            rankingType: string;
+            periodType: string;
+            updatedAt: string | null;
+        };
         meta: {};
     }>;
     rankings(periodType?: RankingPeriodType, rankingType?: RankingType): Promise<{
         success: boolean;
         data: {
-            snapshot: {
-                id: string;
-                createdAt: Date;
-                rankingType: import("@prisma/client").$Enums.RankingType;
-                periodType: import("@prisma/client").$Enums.RankingPeriodType;
-                periodKey: string;
-                generatedAt: Date;
-            };
-            items: ({
+            items: {
+                displayName: string;
                 student: {
                     user: {
-                        id: string;
                         name: string;
-                        createdAt: Date;
-                        status: import("@prisma/client").$Enums.UserStatus;
-                        updatedAt: Date;
-                        role: import("@prisma/client").$Enums.UserRole;
-                        phone: string | null;
-                        lastLoginAt: Date | null;
                     };
-                } & {
                     id: string;
                     createdAt: Date;
                     gradeId: string | null;
@@ -61,7 +46,6 @@ export declare class DisplayService {
                     memo: string | null;
                     pointBalance: number;
                 };
-            } & {
                 id: string;
                 createdAt: Date;
                 score: import("@prisma/client/runtime/library").Decimal;
@@ -70,8 +54,31 @@ export declare class DisplayService {
                 studentId: string;
                 rankingSnapshotId: string;
                 rankNo: number;
-            })[];
+            }[];
+            snapshot: {
+                id: string;
+                createdAt: Date;
+                rankingType: import("@prisma/client").$Enums.RankingType;
+                periodType: import("@prisma/client").$Enums.RankingPeriodType;
+                periodKey: string;
+                generatedAt: Date;
+            };
         };
+        meta: {};
+    }>;
+    seats(): Promise<{
+        success: boolean;
+        data: {
+            id: string;
+            seatNo: string;
+            zone: string | null;
+            status: import("@prisma/client").$Enums.SeatStatus;
+            uiStatus: string;
+            currentStudent: {
+                id: string;
+                displayName: string;
+            } | null;
+        }[];
         meta: {};
     }>;
     status(): Promise<{
@@ -89,11 +96,40 @@ export declare class DisplayService {
         data: {
             message: string;
             topStudent: {
-                name: string;
+                displayName: string;
                 rankNo: number;
                 score: number;
             } | null;
             challenge: string;
+        };
+        meta: {};
+    }>;
+    goals(): Promise<{
+        success: boolean;
+        data: {
+            goals: {
+                studentId: string;
+                displayName: string;
+                targetUniversityName: unknown;
+                targetUniversityMedia: {
+                    id: string;
+                    createdAt: Date;
+                    studentId: string;
+                    kind: import("@prisma/client").$Enums.MediaAssetKind;
+                    originalName: string;
+                    mimeType: string;
+                    byteSize: number;
+                    storageKey: string;
+                    publicUrl: string;
+                } | {
+                    id: string;
+                } | null;
+            }[];
+            achievers: {
+                displayName: string;
+                achievedRate: number;
+                studyMinutes: number;
+            }[];
         };
         meta: {};
     }>;
@@ -111,4 +147,9 @@ export declare class DisplayService {
         };
         meta: {};
     }>;
+    private normalizeSettings;
+    private normalizeScreen;
+    private studentIdFromPreferenceKey;
+    private toSeatUiStatus;
+    private maskName;
 }

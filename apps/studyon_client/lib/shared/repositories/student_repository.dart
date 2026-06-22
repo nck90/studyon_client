@@ -4,6 +4,7 @@ import 'package:studyon_auth/studyon_auth.dart';
 import 'package:studyon_models/studyon_models.dart';
 
 import '../providers/student_providers.dart';
+import '../services/local_mission_notification_service.dart';
 
 class StudentRepository {
   StudentRepository({
@@ -61,32 +62,22 @@ class StudentRepository {
           'studyMinutes': 0,
           'breakMinutes': 0,
         },
-        'plans': {
-          'totalCount': 0,
-          'completedCount': 0,
-          'targetMinutes': 0,
-        },
+        'plans': {'totalCount': 0, 'completedCount': 0, 'targetMinutes': 0},
         'notifications': [],
         'streakDays': 0,
-        'student': {
-          'id': '',
-          'name': '',
-          'studentNo': '',
-          'className': null,
-        },
+        'student': {'id': '', 'name': '', 'studentNo': '', 'className': null},
       },
     );
     final dailyReport = await _safeAsync(
       () => studentApi.getDailyReport(),
-      fallback: const DailyReport(
-        date: '',
-        attendanceStatus: 'NOT_CHECKED_IN',
-      ),
+      fallback: const DailyReport(date: '', attendanceStatus: 'NOT_CHECKED_IN'),
     );
     final profile = await _safeAsync<Map<String, dynamic>>(
       () => studentApi.getProfile(),
       fallback: const {},
     );
+    final preferences =
+        (profile['preferences'] as Map<String, dynamic>?) ?? const {};
     final plans = await _safeAsync<List<StudyPlan>>(
       () => studentApi.getStudyPlans(),
       fallback: const [],
@@ -100,18 +91,13 @@ class StudentRepository {
         periodType: 'DAILY',
         rankingType: 'STUDY_TIME',
       ),
-      fallback: const RankingResponse(
-        myRank: MyRank(rankNo: 0, score: 0),
-      ),
+      fallback: const RankingResponse(myRank: MyRank(rankNo: 0, score: 0)),
     );
     final notifications = await _safeAsync<List<Map<String, dynamic>>>(
       () => studentApi.getNotifications(),
       fallback: const [],
     );
-    final badges = await _safeListData(
-      '/student/badges',
-      fallback: const [],
-    );
+    final badges = await _safeListData('/student/badges', fallback: const []);
     final weeklyData = await _safeMapData(
       '/student/reports/weekly',
       fallback: const {},
@@ -124,12 +110,17 @@ class StudentRepository {
       '/student/insights/recommendation',
       fallback: const {},
     );
+    final roadmapData = await _safeAsync<Map<String, dynamic>>(
+      () => studentApi.getGoalRoadmap(),
+      fallback: const {},
+    );
+    final dailyMissionData = await _safeAsync<Map<String, dynamic>>(
+      () => studentApi.getTodayDailyMission(),
+      fallback: const {},
+    );
     final sessionPayloads = await _safeListData(
       '/student/study-sessions',
-      queryParameters: {
-        'startDate': todayIso,
-        'endDate': todayIso,
-      },
+      queryParameters: {'startDate': todayIso, 'endDate': todayIso},
       fallback: const [],
     );
 
@@ -137,24 +128,34 @@ class StudentRepository {
     final seatNo =
         home.seat?.seatNo ??
         ((profile['assignedSeat'] as Map<String, dynamic>?)?['seatNo']
-                as String?) ??
+            as String?) ??
         '';
 
     final studySeconds = sessionPayloads.fold<int>(
       0,
-      (sum, item) =>
-          sum + ((item['studySeconds'] as num?)?.toInt() ?? 0),
+      (sum, item) => sum + ((item['studySeconds'] as num?)?.toInt() ?? 0),
     );
     final breakSeconds = sessionPayloads.fold<int>(
       0,
-      (sum, item) =>
-          sum + ((item['breakSeconds'] as num?)?.toInt() ?? 0),
+      (sum, item) => sum + ((item['breakSeconds'] as num?)?.toInt() ?? 0),
     );
-    final studyMinutes =
-        studySeconds > 0 ? studySeconds ~/ 60 : home.study?.studyMinutes ?? 0;
+    final studyMinutes = studySeconds > 0
+        ? studySeconds ~/ 60
+        : home.study?.studyMinutes ?? 0;
     final targetMinutes = home.plans?.targetMinutes ?? 0;
     final effectiveTargetMinutes = targetMinutes > 0 ? targetMinutes : 180;
     final firstPlan = plans.isNotEmpty ? plans.first : null;
+
+    final dailyMission = _mapDailyMission(dailyMissionData);
+    if (dailyMission != null) {
+      await LocalMissionNotificationService.instance.scheduleDailyMission(
+        enabled: dailyMission.reminderEnabled,
+        reminderTime: dailyMission.reminderTime,
+        title: dailyMission.title.isEmpty ? '오늘 미션' : dailyMission.title,
+        body:
+            '${dailyMission.subjectName} ${dailyMission.targetMinutes}분 루틴을 이어가세요.',
+      );
+    }
 
     return StudentState(
       name: profile['user']?['name'] as String? ?? '',
@@ -164,58 +165,51 @@ class StudentRepository {
       seatNo: seatNo,
       isCheckedIn: (home.todayAttendance?.status ?? '') == 'CHECKED_IN',
       checkInTime: _parseDateTime(home.todayAttendance?.checkInAt),
-      todayStudySeconds:
-          studySeconds > 0 ? studySeconds : dailyReport.studySeconds,
-      todayBreakSeconds:
-          breakSeconds > 0
-              ? breakSeconds
-              : (dailyReport.breakSeconds > 0
-                    ? dailyReport.breakSeconds
-                    : (home.study?.breakMinutes ?? 0) * 60),
+      todayStudySeconds: studySeconds > 0
+          ? studySeconds
+          : dailyReport.studySeconds,
+      todayBreakSeconds: breakSeconds > 0
+          ? breakSeconds
+          : (dailyReport.breakSeconds > 0
+                ? dailyReport.breakSeconds
+                : (home.study?.breakMinutes ?? 0) * 60),
       todayTargetMinutes: dailyReport.targetMinutes,
       todayAttendanceMinutes: dailyReport.attendanceMinutes,
       dailyAchievedRate: dailyReport.achievedRate,
       weeklyStudyMinutes: (weeklyData['studyMinutes'] as num?)?.toInt() ?? 0,
       weeklyStudySeconds: (weeklyData['studySeconds'] as num?)?.toInt() ?? 0,
-      weeklyTargetMinutes:
-          (weeklyData['targetMinutes'] as num?)?.toInt() ?? 0,
-      weeklyAchievedRate:
-          _toDouble(weeklyData['achievedRate'] ?? 0),
+      weeklyTargetMinutes: (weeklyData['targetMinutes'] as num?)?.toInt() ?? 0,
+      weeklyAchievedRate: _toDouble(weeklyData['achievedRate'] ?? 0),
       weeklyPagesCompleted:
           (weeklyData['pagesCompleted'] as num?)?.toInt() ?? 0,
       weeklyProblemsSolved:
           (weeklyData['problemsSolved'] as num?)?.toInt() ?? 0,
       monthlyStudyMinutes: (monthlyData['studyMinutes'] as num?)?.toInt() ?? 0,
-      monthlyStudySeconds:
-          (monthlyData['studySeconds'] as num?)?.toInt() ?? 0,
+      monthlyStudySeconds: (monthlyData['studySeconds'] as num?)?.toInt() ?? 0,
       monthlyTargetMinutes:
           (monthlyData['targetMinutes'] as num?)?.toInt() ?? 0,
-      monthlyAchievedRate:
-          _toDouble(monthlyData['achievedRate'] ?? 0),
+      monthlyAchievedRate: _toDouble(monthlyData['achievedRate'] ?? 0),
       monthlyPagesCompleted:
           (monthlyData['pagesCompleted'] as num?)?.toInt() ?? 0,
       monthlyProblemsSolved:
           (monthlyData['problemsSolved'] as num?)?.toInt() ?? 0,
       streakDays: homeRaw['streakDays'] as int? ?? 0,
       todayRank: rankings.myRank.rankNo,
-      goalProgress:
-          (studyMinutes / effectiveTargetMinutes).clamp(0.0, 1.0),
+      goalProgress: (studyMinutes / effectiveTargetMinutes).clamp(0.0, 1.0),
       goalSubject: firstPlan?.subjectName ?? '',
       goalDetail: firstPlan?.title ?? '',
       goalHours: ((firstPlan?.targetMinutes ?? 0) / 60).ceil(),
       plans: plans.map(_mapPlan).toList()
         ..sort((a, b) => b.priorityStars.compareTo(a.priorityStars)),
       recentRecords: logPayloads.take(20).map(_mapLogPayload).toList(),
-      level:
-          (profile['profileStats']?['level'] as num?)?.toInt() ?? 1,
+      level: (profile['profileStats']?['level'] as num?)?.toInt() ?? 1,
       totalPoints:
           (profile['profileStats']?['totalPoints'] as num?)?.toInt() ?? 0,
       badges: badges
-          .map((item) => item['badge']?['name'] as String? ?? '')
-          .where((item) => item.isNotEmpty)
+          .map(_mapBadge)
+          .where((item) => item.name.isNotEmpty)
           .toList(),
-      notificationEnabled:
-          profile['preferences']?['notificationEnabled'] != false,
+      notificationEnabled: preferences['notificationEnabled'] != false,
       notifications: notifications.map(_mapNotification).toList(),
       hourlyStudyMinutes: _buildHourlyStudyMinutes(sessionPayloads),
       dailySubjectSeconds: {
@@ -224,8 +218,23 @@ class StudentRepository {
       },
       recommendation: _mapRecommendation(recommendationData),
       isDarkMode: isDarkMode,
-      isStudying: (home.study?.sessionStatus ?? '') == 'ACTIVE' ||
+      isStudying:
+          (home.study?.sessionStatus ?? '') == 'ACTIVE' ||
           (home.study?.sessionStatus ?? '') == 'PAUSED',
+      targetUniversityName:
+          preferences['targetUniversityName'] as String? ?? '',
+      targetUniversityMediaUrl: _mediaUrl(preferences['targetUniversityMedia']),
+      homeBackgroundMediaUrl: _mediaUrl(preferences['homeBackgroundMedia']),
+      checkInBackgroundMediaUrl: _mediaUrl(
+        preferences['checkInBackgroundMedia'],
+      ),
+      themePreset: preferences['themePreset'] as String? ?? 'default',
+      focusModeEnabled: preferences['focusModeEnabled'] == true,
+      tvGoalConsent: preferences['tvGoalConsent'] == true,
+      tvGoalApprovalStatus:
+          preferences['tvGoalApprovalStatus'] as String? ?? 'NOT_REQUESTED',
+      goalRoadmap: _mapGoalRoadmap(roadmapData),
+      dailyMission: dailyMission,
     );
   }
 
@@ -309,6 +318,10 @@ class StudentRepository {
     return studentApi.endSession(sessionId);
   }
 
+  Future<Map<String, dynamic>> endSessionPayload(String sessionId) {
+    return studentApi.endSessionPayload(sessionId);
+  }
+
   Future<StudyLog> createStudyLog({
     required String subjectName,
     String? planId,
@@ -363,16 +376,145 @@ class StudentRepository {
     return studentApi.updatePreferences(notificationEnabled: value);
   }
 
+  Future<void> updateMotivationPreferences({
+    String? targetUniversityName,
+    String? targetUniversityImagePath,
+    String? homeBackgroundImagePath,
+    String? checkInBackgroundImagePath,
+    String? themePreset,
+    bool? focusModeEnabled,
+    bool? tvGoalConsent,
+  }) async {
+    String? targetUniversityMediaId;
+    String? homeBackgroundMediaId;
+    String? checkInBackgroundMediaId;
+    if (targetUniversityImagePath != null &&
+        targetUniversityImagePath.isNotEmpty) {
+      final media = await studentApi.uploadMedia(
+        path: targetUniversityImagePath,
+        kind: 'TARGET_UNIVERSITY',
+      );
+      targetUniversityMediaId = media['id'] as String?;
+    }
+    if (homeBackgroundImagePath != null && homeBackgroundImagePath.isNotEmpty) {
+      final media = await studentApi.uploadMedia(
+        path: homeBackgroundImagePath,
+        kind: 'HOME_BACKGROUND',
+      );
+      homeBackgroundMediaId = media['id'] as String?;
+    }
+    if (checkInBackgroundImagePath != null &&
+        checkInBackgroundImagePath.isNotEmpty) {
+      final media = await studentApi.uploadMedia(
+        path: checkInBackgroundImagePath,
+        kind: 'CHECKIN_BACKGROUND',
+      );
+      checkInBackgroundMediaId = media['id'] as String?;
+    }
+
+    await studentApi.updatePreferences(
+      targetUniversityName: targetUniversityName,
+      targetUniversityMediaId: targetUniversityMediaId,
+      homeBackgroundMediaId: homeBackgroundMediaId,
+      checkInBackgroundMediaId: checkInBackgroundMediaId,
+      themePreset: themePreset,
+      focusModeEnabled: focusModeEnabled,
+      tvGoalConsent: tvGoalConsent,
+    );
+  }
+
+  Future<Map<String, dynamic>> getFocusPolicy() {
+    return studentApi.getFocusPolicy();
+  }
+
+  Future<void> recordFocusEvent({
+    String? sessionId,
+    String eventType = 'APP_EXIT',
+    int? durationSeconds,
+  }) {
+    return studentApi
+        .recordFocusEvent(
+          sessionId: sessionId,
+          eventType: eventType,
+          durationSeconds: durationSeconds,
+        )
+        .then((_) {});
+  }
+
+  Future<void> saveGoalRoadmap({
+    required String targetName,
+    required DateTime targetDate,
+    bool reminderEnabled = true,
+    String reminderTime = '20:00',
+  }) {
+    return studentApi
+        .saveGoalRoadmap(
+          targetName: targetName,
+          targetDate: targetDate.toIso8601String(),
+          reminderEnabled: reminderEnabled,
+          reminderTime: reminderTime,
+        )
+        .then((_) {});
+  }
+
+  Future<void> generateGoalRoadmap() {
+    return studentApi.generateGoalRoadmap().then((_) {});
+  }
+
+  Future<void> acceptRoadmapMission(String missionId) {
+    return studentApi.acceptRoadmapMission(missionId).then((_) {});
+  }
+
+  Future<void> generateDailyMission() {
+    return studentApi.generateDailyMission().then((_) {});
+  }
+
+  Future<Map<String, dynamic>> completeDailyMission(String missionId) {
+    return studentApi.completeDailyMission(missionId);
+  }
+
+  Future<Map<String, dynamic>> getRpgDashboard() {
+    return studentApi.getRpgDashboard();
+  }
+
+  Future<DailyMissionItem> updateDailyMissionReminder({
+    required bool enabled,
+    required String time,
+  }) async {
+    await studentApi.updateDailyMissionReminder(
+      reminderEnabled: enabled,
+      reminderTime: time,
+    );
+    final raw = await studentApi.getTodayDailyMission();
+    final mission = _mapDailyMission(raw);
+    if (mission == null) {
+      throw StateError('오늘 미션을 불러올 수 없습니다.');
+    }
+    await LocalMissionNotificationService.instance.scheduleDailyMission(
+      enabled: mission.reminderEnabled,
+      reminderTime: mission.reminderTime,
+      title: mission.title,
+      body: '${mission.subjectName} ${mission.targetMinutes}분 루틴을 이어가세요.',
+    );
+    return mission;
+  }
+
+  Future<void> recordAppEvent(
+    String eventType, {
+    Map<String, dynamic>? payload,
+  }) {
+    return studentApi
+        .recordAppEvent(eventType: eventType, payload: payload)
+        .then((_) {});
+  }
+
   Future<List<Map<String, dynamic>>> getSeatMap() {
     return studentApi.getSeatMap();
   }
 
   Future<({int checkedInStudentCount, int totalActiveStudents})>
-      getCheckInLobbyStats() async {
-    final data = await _safeMapData(
-      '/student/home',
-      fallback: const {},
-    );
+  getCheckInLobbyStats() async {
+    final data = await _safeMapData('/student/home', fallback: const {});
     final community = data['community'] as Map<String, dynamic>?;
     return (
       checkedInStudentCount:
@@ -388,10 +530,7 @@ class StudentRepository {
     return list.map((item) => item.toString()).toList();
   }
 
-  Future<void> requestSeatChange({
-    required String toSeatId,
-    String? reason,
-  }) {
+  Future<void> requestSeatChange({required String toSeatId, String? reason}) {
     return studentApi.requestSeatChange(toSeatId: toSeatId, reason: reason);
   }
 
@@ -416,7 +555,10 @@ class StudentRepository {
         .toList();
   }
 
-  Future<T> _safeAsync<T>(Future<T> Function() action, {required T fallback}) async {
+  Future<T> _safeAsync<T>(
+    Future<T> Function() action, {
+    required T fallback,
+  }) async {
     try {
       return await action();
     } catch (_) {
@@ -477,13 +619,91 @@ class StudentRepository {
 
     return StudyRecord(
       date: displayDate,
+      isoDate: logDate,
       subject: raw['subjectName'] as String? ?? '',
       studyMinutes: studyMinutes,
       studySeconds: studySeconds,
       goalAchieved: raw['isCompleted'] == true,
       goalDetail: (memo?.isNotEmpty ?? false)
           ? memo!
-          : (raw['plan']?['title'] as String? ?? raw['subjectName'] as String? ?? ''),
+          : (raw['plan']?['title'] as String? ??
+                raw['subjectName'] as String? ??
+                ''),
+    );
+  }
+
+  GoalRoadmapItem? _mapGoalRoadmap(Map<String, dynamic> raw) {
+    final roadmap = raw['roadmap'];
+    if (roadmap is! Map) return null;
+    final roadmapMap = Map<String, dynamic>.from(roadmap);
+    final milestonesRaw = raw['milestones'] as List? ?? const [];
+    final missionRaw = raw['currentMission'];
+    return GoalRoadmapItem(
+      id: roadmapMap['id'] as String? ?? '',
+      targetName: roadmapMap['targetName'] as String? ?? '',
+      targetDate: _parseDateTime(roadmapMap['targetDate'] as String?),
+      reminderEnabled: roadmapMap['reminderEnabled'] != false,
+      reminderTime: roadmapMap['reminderTime'] as String? ?? '20:00',
+      daysLeft: (raw['daysLeft'] as num?)?.toInt() ?? 0,
+      progressPercent: _toDouble(raw['progressPercent']),
+      milestones: milestonesRaw.whereType<Map>().map((item) {
+        final map = Map<String, dynamic>.from(item);
+        return RoadmapMilestoneItem(
+          id: map['id'] as String? ?? '',
+          title: map['title'] as String? ?? '',
+          periodStart: _parseDateTime(map['periodStart'] as String?),
+          periodEnd: _parseDateTime(map['periodEnd'] as String?),
+          targetMinutes: (map['targetMinutes'] as num?)?.toInt() ?? 0,
+          focusSubjects: _stringList(map['focusSubjects']),
+        );
+      }).toList(),
+      currentMission: missionRaw is Map
+          ? _mapRoadmapMission(Map<String, dynamic>.from(missionRaw))
+          : null,
+    );
+  }
+
+  RoadmapMissionItem _mapRoadmapMission(Map<String, dynamic> raw) {
+    return RoadmapMissionItem(
+      id: raw['id'] as String? ?? '',
+      title: raw['title'] as String? ?? '',
+      description: raw['description'] as String? ?? '',
+      status: raw['status'] as String? ?? 'RECOMMENDED',
+      targetMinutes: (raw['targetMinutes'] as num?)?.toInt() ?? 0,
+      focusSubjects: _stringList(raw['focusSubjects']),
+    );
+  }
+
+  DailyMissionItem? _mapDailyMission(Map<String, dynamic> raw) {
+    if (raw['id'] is! String) return null;
+    final reminder = raw['reminder'] as Map<String, dynamic>? ?? const {};
+    return DailyMissionItem(
+      id: raw['id'] as String,
+      missionDate: _parseDateTime(raw['missionDate'] as String?),
+      title: raw['title'] as String? ?? '',
+      subjectName: raw['subjectName'] as String? ?? '',
+      targetMinutes: (raw['targetMinutes'] as num?)?.toInt() ?? 0,
+      status: raw['status'] as String? ?? 'ASSIGNED',
+      source: raw['source'] as String? ?? 'MIXED',
+      completedAt: _parseDateTime(raw['completedAt'] as String?),
+      reminderEnabled: reminder['enabled'] != false,
+      reminderTime: reminder['time'] as String? ?? '20:00',
+    );
+  }
+
+  List<String> _stringList(dynamic value) {
+    if (value is! List) return const [];
+    return value.whereType<String>().toList();
+  }
+
+  StudentBadgeItem _mapBadge(Map<String, dynamic> raw) {
+    final badge = raw['badge'] as Map<String, dynamic>? ?? raw;
+    return StudentBadgeItem(
+      id: raw['id'] as String? ?? '',
+      code: badge['code'] as String? ?? '',
+      name: badge['name'] as String? ?? '',
+      description: badge['description'] as String? ?? '',
+      awardedAt: _parseDateTime(raw['awardedAt'] as String?),
     );
   }
 
@@ -529,6 +749,15 @@ class StudentRepository {
     );
   }
 
+  String _mediaUrl(Object? value) {
+    if (value is! Map) return '';
+    final raw = value['publicUrl'] as String?;
+    if (raw == null || raw.isEmpty) return '';
+    if (raw.startsWith('http')) return raw;
+    final origin = dio.options.baseUrl.replaceFirst(RegExp(r'/api/v1$'), '');
+    return '$origin$raw';
+  }
+
   String _starsToApi(int stars) {
     if (stars >= 4) return 'HIGH';
     if (stars <= 2) return 'LOW';
@@ -562,15 +791,21 @@ class StudentRepository {
 
     for (final session in sessions) {
       final startedAt = _parseDateTime(session['startedAt'] as String?);
-      final endedAt = _parseDateTime(session['endedAt'] as String?) ?? DateTime.now();
+      final endedAt =
+          _parseDateTime(session['endedAt'] as String?) ?? DateTime.now();
       if (startedAt == null || !endedAt.isAfter(startedAt)) continue;
 
-      final breaks = ((session['studyBreaks'] as List?) ?? const [])
-          .whereType<Map>()
-          .map((item) => Map<String, dynamic>.from(item))
-          .toList()
-        ..sort((a, b) => (_parseDateTime(a['startedAt'] as String?) ?? startedAt)
-            .compareTo(_parseDateTime(b['startedAt'] as String?) ?? startedAt));
+      final breaks =
+          ((session['studyBreaks'] as List?) ?? const [])
+              .whereType<Map>()
+              .map((item) => Map<String, dynamic>.from(item))
+              .toList()
+            ..sort(
+              (a, b) => (_parseDateTime(a['startedAt'] as String?) ?? startedAt)
+                  .compareTo(
+                    _parseDateTime(b['startedAt'] as String?) ?? startedAt,
+                  ),
+            );
 
       var cursor = startedAt;
       for (final item in breaks) {

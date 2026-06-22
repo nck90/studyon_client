@@ -37,6 +37,12 @@ let ParentController = class ParentController {
     studyReport(authorization, startDate, endDate) {
         return this.parentService.getStudyReport(authorization, startDate, endDate);
     }
+    actionReport(authorization, token) {
+        return this.parentService.getActionReport(authorization, token);
+    }
+    consultationReport(token) {
+        return this.parentService.getConsultationReport(token);
+    }
 };
 exports.ParentController = ParentController;
 __decorate([
@@ -78,6 +84,23 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
 ], ParentController.prototype, "studyReport", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Get)('parent/action-report'),
+    __param(0, (0, common_1.Headers)('authorization')),
+    __param(1, (0, common_1.Query)('token')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], ParentController.prototype, "actionReport", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Get)('parent/consultation-report'),
+    __param(0, (0, common_1.Query)('token')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ParentController.prototype, "consultationReport", null);
 exports.ParentController = ParentController = __decorate([
     (0, swagger_1.ApiTags)('parent'),
     (0, common_1.Controller)({ version: '1' }),

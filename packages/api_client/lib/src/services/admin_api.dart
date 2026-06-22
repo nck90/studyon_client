@@ -104,4 +104,22 @@ class AdminApi {
   Future<void> sendNotification(Map<String, dynamic> data) async {
     await _dio.post(ApiConstants.adminNotifications, data: data);
   }
+
+  Future<List<dynamic>> getBadgeRules() async {
+    final response = await _dio.get(ApiConstants.adminBadgeRules);
+    return response.data['data'] as List;
+  }
+
+  Future<void> updateBadgeRules(List<Map<String, dynamic>> rules) async {
+    await _dio.patch(ApiConstants.adminBadgeRules, data: {'rules': rules});
+  }
+
+  Future<Map<String, dynamic>> getFocusPolicy() async {
+    final response = await _dio.get(ApiConstants.adminFocusPolicy);
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> updateFocusPolicy(Map<String, dynamic> data) async {
+    await _dio.patch(ApiConstants.adminFocusPolicy, data: data);
+  }
 }

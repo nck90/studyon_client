@@ -26,14 +26,15 @@ jobs:
         run: flutter pub get
 
       - name: Analyze
-        run: |
-          cd apps/studyon_client
-          flutter analyze --no-fatal-infos
+        run: dart analyze apps/studyon_client packages/api_client packages/core
 
       - name: Run tests
-        run: |
-          cd apps/studyon_client
-          flutter test
+        run: flutter test
+        working-directory: apps/studyon_client
+
+      - name: Build Android debug APK
+        run: flutter build apk --debug
+        working-directory: apps/studyon_client
 
   build-ios:
     runs-on: macos-latest

@@ -5,7 +5,9 @@ import 'package:studyon_design_system/studyon_design_system.dart';
 import 'package:studyon_client/shared/providers/student_providers.dart';
 
 class StudySummaryScreen extends ConsumerStatefulWidget {
-  const StudySummaryScreen({super.key});
+  const StudySummaryScreen({super.key, this.reward});
+
+  final Map<String, dynamic>? reward;
 
   @override
   ConsumerState<StudySummaryScreen> createState() => _StudySummaryScreenState();
@@ -18,7 +20,10 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1200))..forward();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..forward();
   }
 
   @override
@@ -61,7 +66,14 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
                   // Hero
                   Center(
                     child: ScaleTransition(
-                      scale: CurvedAnimation(parent: _ctrl, curve: const Interval(0.0, 0.5, curve: Curves.elasticOut)),
+                      scale: CurvedAnimation(
+                        parent: _ctrl,
+                        curve: const Interval(
+                          0.0,
+                          0.5,
+                          curve: Curves.elasticOut,
+                        ),
+                      ),
                       child: Container(
                         width: 80,
                         height: 80,
@@ -83,14 +95,18 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
                   Center(
                     child: Text(
                       achieved ? '목표를 달성했어요!' : '공부를 마쳤어요',
-                      style: AppTypography.headlineLarge.copyWith(fontWeight: FontWeight.w800),
+                      style: AppTypography.headlineLarge.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 6),
                   Center(
                     child: Text(
                       achieved ? '오늘 목표를 모두 채웠어요. 대단해요!' : '오늘 기록을 정리했어요.',
-                      style: AppTypography.bodyMedium.copyWith(color: AppColors.textTertiary),
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: AppColors.textTertiary,
+                      ),
                     ),
                   ),
 
@@ -102,19 +118,23 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
                     start: 0.2,
                     child: Row(
                       children: [
-                        Expanded(child: _StatTile(
-                          emoji: '⏱️',
-                          label: '공부 시간',
-                          value: student.todayStudyFormatted,
-                          color: AppColors.primary,
-                        )),
+                        Expanded(
+                          child: _StatTile(
+                            emoji: '⏱️',
+                            label: '공부 시간',
+                            value: student.todayStudyFormatted,
+                            color: AppColors.primary,
+                          ),
+                        ),
                         const SizedBox(width: 10),
-                        Expanded(child: _StatTile(
-                          emoji: '🎯',
-                          label: '달성률',
-                          value: '$achieveRate%',
-                          color: AppColors.accent,
-                        )),
+                        Expanded(
+                          child: _StatTile(
+                            emoji: '🎯',
+                            label: '달성률',
+                            value: '$achieveRate%',
+                            color: AppColors.accent,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -124,19 +144,25 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
                     start: 0.3,
                     child: Row(
                       children: [
-                        Expanded(child: _StatTile(
-                          emoji: '🔥',
-                          label: '연속 학습',
-                          value: '${student.streakDays}일',
-                          color: AppColors.hot,
-                        )),
+                        Expanded(
+                          child: _StatTile(
+                            emoji: '🔥',
+                            label: '연속 학습',
+                            value: '${student.streakDays}일',
+                            color: AppColors.hot,
+                          ),
+                        ),
                         const SizedBox(width: 10),
-                        Expanded(child: _StatTile(
-                          emoji: '🏆',
-                          label: '오늘 순위',
-                          value: student.todayRank > 0 ? '#${student.todayRank}' : '-',
-                          color: const Color(0xFFFFB800),
-                        )),
+                        Expanded(
+                          child: _StatTile(
+                            emoji: '🏆',
+                            label: '오늘 순위',
+                            value: student.todayRank > 0
+                                ? '#${student.todayRank}'
+                                : '-',
+                            color: const Color(0xFFFFB800),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -149,6 +175,15 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
                       ctrl: _ctrl,
                       start: 0.4,
                       child: _WeekChart(records: records),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  if (widget.reward != null) ...[
+                    _AnimatedCard(
+                      ctrl: _ctrl,
+                      start: 0.45,
+                      child: _StudyRewardCard(reward: widget.reward!),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -183,7 +218,9 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
               decoration: BoxDecoration(
                 color: AppColors.bg(context),
-                border: const Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
+                border: const Border(
+                  top: BorderSide(color: AppColors.divider, width: 0.5),
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -195,15 +232,27 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
                       height: AppSpacing.buttonHeight,
                       decoration: BoxDecoration(
                         color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.buttonRadius,
+                        ),
                       ),
                       alignment: Alignment.center,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.home_rounded, color: Colors.white, size: 20),
+                          const Icon(
+                            Icons.home_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
-                          Text('홈으로', style: AppTypography.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+                          Text(
+                            '홈으로',
+                            style: AppTypography.titleLarge.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -212,7 +261,7 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
                   PressableScale(
                     onTap: () async {
                       await ref.read(studentProvider.notifier).checkOut();
-                      if (!mounted) return;
+                      if (!context.mounted) return;
                       context.go('/login');
                     },
                     child: Container(
@@ -221,7 +270,10 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
                       alignment: Alignment.center,
                       child: Text(
                         '퇴실하기',
-                        style: AppTypography.titleMedium.copyWith(color: AppColors.textTertiary, fontWeight: FontWeight.w600),
+                        style: AppTypography.titleMedium.copyWith(
+                          color: AppColors.textTertiary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
@@ -237,7 +289,11 @@ class _StudySummaryScreenState extends ConsumerState<StudySummaryScreen>
 
 // ─── Animated wrapper ───
 class _AnimatedCard extends StatelessWidget {
-  const _AnimatedCard({required this.ctrl, required this.start, required this.child});
+  const _AnimatedCard({
+    required this.ctrl,
+    required this.start,
+    required this.child,
+  });
   final AnimationController ctrl;
   final double start;
   final Widget child;
@@ -246,12 +302,19 @@ class _AnimatedCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final anim = CurvedAnimation(
       parent: ctrl,
-      curve: Interval(start, (start + 0.25).clamp(0.0, 1.0), curve: Curves.easeOut),
+      curve: Interval(
+        start,
+        (start + 0.25).clamp(0.0, 1.0),
+        curve: Curves.easeOut,
+      ),
     );
     return FadeTransition(
       opacity: anim,
       child: SlideTransition(
-        position: Tween(begin: const Offset(0, 0.1), end: Offset.zero).animate(anim),
+        position: Tween(
+          begin: const Offset(0, 0.1),
+          end: Offset.zero,
+        ).animate(anim),
         child: child,
       ),
     );
@@ -260,7 +323,12 @@ class _AnimatedCard extends StatelessWidget {
 
 // ─── Stat tile (emoji based) ───
 class _StatTile extends StatelessWidget {
-  const _StatTile({required this.emoji, required this.label, required this.value, required this.color});
+  const _StatTile({
+    required this.emoji,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
   final String emoji;
   final String label;
   final String value;
@@ -290,7 +358,76 @@ class _StatTile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 2),
-          Text(label, style: AppTypography.labelSmall.copyWith(color: AppColors.textTertiary)),
+          Text(
+            label,
+            style: AppTypography.labelSmall.copyWith(
+              color: AppColors.textTertiary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StudyRewardCard extends StatelessWidget {
+  const _StudyRewardCard({required this.reward});
+
+  final Map<String, dynamic> reward;
+
+  @override
+  Widget build(BuildContext context) {
+    final xp = (reward['xp'] as num?)?.toInt() ?? 0;
+    final points = (reward['points'] as num?)?.toInt() ?? 0;
+    final level = (reward['level'] as num?)?.toInt() ?? 1;
+    final leveledUp = reward['leveledUp'] == true;
+    final xpToNext = (reward['xpToNext'] as num?)?.toInt() ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.card(context),
+        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.14)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 54,
+            height: 54,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Icon(
+              leveledUp ? Icons.auto_awesome_rounded : Icons.bolt_rounded,
+              color: AppColors.primary,
+              size: 30,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  leveledUp ? '캐릭터 Lv.$level 달성' : '캐릭터 성장 보상',
+                  style: AppTypography.titleMedium.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  '+$xp XP${points > 0 ? ' · +$points P' : ''} · 다음 레벨까지 ${xpToNext}XP',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textTertiary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -316,12 +453,21 @@ class _WeekChart extends StatelessWidget {
       final d = int.tryParse(match.group(2)!);
       if (m == null || d == null) continue;
       final date = DateTime(now.year, m, d);
-      final diff = date.difference(DateTime(start.year, start.month, start.day)).inDays;
+      final diff = date
+          .difference(DateTime(start.year, start.month, start.day))
+          .inDays;
       if (diff < 0 || diff > 6) continue;
-      minutes.update(diff, (v) => v + r.studyMinutes, ifAbsent: () => r.studyMinutes);
+      minutes.update(
+        diff,
+        (v) => v + r.studyMinutes,
+        ifAbsent: () => r.studyMinutes,
+      );
     }
 
-    final data = List.generate(7, (i) => (labels[i], (minutes[i] ?? 0).toDouble()));
+    final data = List.generate(
+      7,
+      (i) => (labels[i], (minutes[i] ?? 0).toDouble()),
+    );
     final max = data.fold<double>(1, (best, e) => e.$2 > best ? e.$2 : best);
     final total = data.fold<double>(0, (sum, e) => sum + e.$2) / 60;
     final todayIdx = now.weekday - 1;
@@ -339,7 +485,13 @@ class _WeekChart extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('이번 주', style: AppTypography.headlineSmall),
-              Text('${total.toStringAsFixed(1)}시간', style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700)),
+              Text(
+                '${total.toStringAsFixed(1)}시간',
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -360,16 +512,24 @@ class _WeekChart extends StatelessWidget {
                           duration: const Duration(milliseconds: 400),
                           height: h > 0 ? h : 4,
                           decoration: BoxDecoration(
-                            color: isToday ? AppColors.primary : AppColors.primary.withValues(alpha: 0.15),
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
+                            color: isToday
+                                ? AppColors.primary
+                                : AppColors.primary.withValues(alpha: 0.15),
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(5),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           data[i].$1,
                           style: AppTypography.caption.copyWith(
-                            color: isToday ? AppColors.primary : AppColors.textTertiary,
-                            fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
+                            color: isToday
+                                ? AppColors.primary
+                                : AppColors.textTertiary,
+                            fontWeight: isToday
+                                ? FontWeight.w700
+                                : FontWeight.w400,
                           ),
                         ),
                       ],
@@ -387,7 +547,11 @@ class _WeekChart extends StatelessWidget {
 
 // ─── Comparison card ───
 class _ComparisonCard extends StatelessWidget {
-  const _ComparisonCard({required this.todayMinutes, required this.records, required this.fmtMin});
+  const _ComparisonCard({
+    required this.todayMinutes,
+    required this.records,
+    required this.fmtMin,
+  });
   final int todayMinutes;
   final List<StudyRecord> records;
   final String Function(int) fmtMin;
@@ -397,7 +561,9 @@ class _ComparisonCard extends StatelessWidget {
     final hasPrev = records.length > 1;
     final prevMin = hasPrev ? records[1].studyMinutes : 0;
     final delta = todayMinutes - prevMin;
-    final avg = records.isEmpty ? 0 : records.fold<int>(0, (s, r) => s + r.studyMinutes) ~/ records.length;
+    final avg = records.isEmpty
+        ? 0
+        : records.fold<int>(0, (s, r) => s + r.studyMinutes) ~/ records.length;
     final avgDelta = todayMinutes - avg;
 
     return Container(
@@ -411,7 +577,11 @@ class _ComparisonCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.compare_arrows_rounded, size: 16, color: AppColors.accent),
+              const Icon(
+                Icons.compare_arrows_rounded,
+                size: 16,
+                color: AppColors.accent,
+              ),
               const SizedBox(width: 8),
               Text('기록 비교', style: AppTypography.headlineSmall),
             ],
@@ -420,15 +590,23 @@ class _ComparisonCard extends StatelessWidget {
           _CompRow(
             icon: Icons.history_rounded,
             text: hasPrev ? '어제 대비' : '비교할 어제 기록이 없어요',
-            value: hasPrev ? '${delta >= 0 ? '+' : ''}${fmtMin(delta.abs())}' : '-',
-            color: hasPrev ? (delta >= 0 ? AppColors.accent : AppColors.hot) : AppColors.textTertiary,
+            value: hasPrev
+                ? '${delta >= 0 ? '+' : ''}${fmtMin(delta.abs())}'
+                : '-',
+            color: hasPrev
+                ? (delta >= 0 ? AppColors.accent : AppColors.hot)
+                : AppColors.textTertiary,
           ),
           const SizedBox(height: 10),
           _CompRow(
             icon: Icons.bar_chart_rounded,
             text: records.isNotEmpty ? '최근 평균 대비' : '기록 수집 중',
-            value: records.isNotEmpty ? '${avgDelta >= 0 ? '+' : ''}${fmtMin(avgDelta.abs())}' : '-',
-            color: records.isNotEmpty ? (avgDelta >= 0 ? AppColors.primary : AppColors.hot) : AppColors.textTertiary,
+            value: records.isNotEmpty
+                ? '${avgDelta >= 0 ? '+' : ''}${fmtMin(avgDelta.abs())}'
+                : '-',
+            color: records.isNotEmpty
+                ? (avgDelta >= 0 ? AppColors.primary : AppColors.hot)
+                : AppColors.textTertiary,
           ),
         ],
       ),
@@ -437,7 +615,12 @@ class _ComparisonCard extends StatelessWidget {
 }
 
 class _CompRow extends StatelessWidget {
-  const _CompRow({required this.icon, required this.text, required this.value, required this.color});
+  const _CompRow({
+    required this.icon,
+    required this.text,
+    required this.value,
+    required this.color,
+  });
   final IconData icon;
   final String text;
   final String value;
@@ -449,9 +632,20 @@ class _CompRow extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: color),
         const SizedBox(width: 8),
-        Text(text, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
+        Text(
+          text,
+          style: AppTypography.bodySmall.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
         const Spacer(),
-        Text(value, style: AppTypography.titleMedium.copyWith(color: color, fontWeight: FontWeight.w800)),
+        Text(
+          value,
+          style: AppTypography.titleMedium.copyWith(
+            color: color,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ],
     );
   }
@@ -481,7 +675,11 @@ class _NextGoalCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.lightbulb_outline_rounded, size: 16, color: AppColors.primary),
+              const Icon(
+                Icons.lightbulb_outline_rounded,
+                size: 16,
+                color: AppColors.primary,
+              ),
               const SizedBox(width: 8),
               Text('다음 목표', style: AppTypography.headlineSmall),
             ],
@@ -501,13 +699,17 @@ class _NextGoalCard extends StatelessWidget {
                   remaining > 0
                       ? '내일은 ${fmtMin(remaining)} 더 채워보세요'
                       : '내일도 같은 흐름을 이어가세요',
-                  style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.w600),
+                  style: AppTypography.titleMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 if (student.goalDetail.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
                     '목표: ${student.goalDetail}',
-                    style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textTertiary,
+                    ),
                   ),
                 ],
               ],

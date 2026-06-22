@@ -1,0 +1,25 @@
+{
+  "animated": [],
+  "marqueeCandidates": [
+    {
+      "tag": "div",
+      "className": "swiper-wrapper marquee-track",
+      "width": 4998
+    },
+    {
+      "tag": "div",
+      "className": "swiper-wrapper marquee-track",
+      "width": 5118
+    },
+    {
+      "tag": "div",
+      "className": "swiper-wrapper marquee-track",
+      "width": 0
+    },
+    {
+      "tag": "div",
+      "className": "swiper-wrapper marquee-track",
+      "width": 0
+    }
+  ]
+}

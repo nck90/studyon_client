@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studyon_core/studyon_core.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
 import 'router/app_router.dart';
+import 'capture/capture_showcase_app.dart';
 import 'shared/providers/student_providers.dart';
+import 'shared/services/local_mission_notification_service.dart';
 
 String _resolveApiBaseUrl() {
   const override = String.fromEnvironment('API_BASE_URL', defaultValue: '');
@@ -29,8 +31,13 @@ String _resolveApiBaseUrl() {
   }
 }
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  const captureMode = bool.fromEnvironment('DEMO_CAPTURE');
+  if (captureMode) {
+    runApp(const CaptureShowcaseApp());
+    return;
+  }
   const environmentValue = String.fromEnvironment(
     'APP_ENV',
     defaultValue: 'dev',
@@ -52,6 +59,7 @@ void main() {
       defaultValue: 'studyon_client',
     ),
   );
+  await LocalMissionNotificationService.instance.initialize();
   runApp(const ProviderScope(child: StudyOnApp()));
 }
 
@@ -60,11 +68,14 @@ class StudyOnApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = ref.watch(studentProvider).isDarkMode;
+    final student = ref.watch(studentProvider);
     return MaterialApp.router(
       title: '자습ON',
       debugShowCheckedModeBanner: false,
-      theme: isDark ? AppTheme.dark : AppTheme.light,
+      theme: AppTheme.byPreset(
+        preset: student.themePreset,
+        darkMode: student.isDarkMode,
+      ),
       routerConfig: appRouter,
     );
   }

@@ -61,7 +61,10 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     });
     try {
       if (_isToday) {
-        await ref.read(studentProvider.notifier).hydrate();
+        final snapshot = ref.read(studentProvider);
+        if (snapshot.name.isNotEmpty || snapshot.isCheckedIn) {
+          await ref.read(studentProvider.notifier).hydrate();
+        }
         if (mounted) setState(() => _datePlans = null);
       } else {
         final iso = _toIso(date).split('T').first;
@@ -100,10 +103,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       enableDrag: true,
       showDragHandle: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _PlanFormSheet(
-        editing: editing,
-        subjects: subjects,
-      ),
+      builder: (_) => _PlanFormSheet(editing: editing, subjects: subjects),
     );
 
     if (!mounted || item == null) return;
@@ -186,7 +186,9 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     final isIPad = MediaQuery.of(context).size.shortestSide >= 600;
     final hPad = isIPad ? 32.0 : 20.0;
     final livePlans = ref.watch(studentProvider).plans;
-    final plans = _isToday ? livePlans : (_datePlans ?? const <StudyPlanItem>[]);
+    final plans = _isToday
+        ? livePlans
+        : (_datePlans ?? const <StudyPlanItem>[]);
 
     return Scaffold(
       backgroundColor: AppColors.bg(context),
@@ -247,8 +249,11 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                         ? null
                         : () {
                             final now = DateTime.now();
-                            final today =
-                                DateTime(now.year, now.month, now.day);
+                            final today = DateTime(
+                              now.year,
+                              now.month,
+                              now.day,
+                            );
                             setState(() => _selectedDate = today);
                             _loadDate(today);
                           },
@@ -259,48 +264,54 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                   child: _loadingDate
                       ? const Center(child: CircularProgressIndicator())
                       : (plans.isEmpty
-                          ? _EmptyState(
-                              isToday: _isToday,
-                              isFuture: _selectedDate.isAfter(DateTime.now()),
-                              onAdd: _isSaving ? null : () => _showAddSheet(),
-                            )
-                          : ListView.separated(
-                              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 32),
-                              itemCount: plans.length,
-                              separatorBuilder: (_, index) =>
-                                  const SizedBox(height: 12),
-                              itemBuilder: (_, i) {
-                                final item = plans[i];
-                                return Dismissible(
-                                  key: Key(item.id),
-                                  direction: _isSaving
-                                      ? DismissDirection.none
-                                      : DismissDirection.endToStart,
-                                  background: Container(
-                                    alignment: Alignment.centerRight,
-                                    padding: const EdgeInsets.only(right: 20),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.hot.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(16),
+                            ? _EmptyState(
+                                isToday: _isToday,
+                                isFuture: _selectedDate.isAfter(DateTime.now()),
+                                onAdd: _isSaving ? null : () => _showAddSheet(),
+                              )
+                            : ListView.separated(
+                                padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 32),
+                                itemCount: plans.length,
+                                separatorBuilder: (_, index) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (_, i) {
+                                  final item = plans[i];
+                                  return Dismissible(
+                                    key: Key(item.id),
+                                    direction: _isSaving
+                                        ? DismissDirection.none
+                                        : DismissDirection.endToStart,
+                                    background: Container(
+                                      alignment: Alignment.centerRight,
+                                      padding: const EdgeInsets.only(right: 20),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.hot.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: const Icon(
+                                        Icons.delete_rounded,
+                                        color: AppColors.hot,
+                                      ),
                                     ),
-                                    child: const Icon(Icons.delete_rounded,
-                                        color: AppColors.hot),
-                                  ),
-                                  onDismissed: (_) => _delete(item),
-                                  child: _PlanCard(
-                                    item: item,
-                                    starColor: _starColor(item.priorityStars),
-                                    onDelete:
-                                        _isSaving ? null : () => _delete(item),
-                                    onTap: _isSaving
-                                        ? null
-                                        : () => _showAddSheet(editing: item),
-                                    onToggle:
-                                        _isSaving ? null : () => _toggle(item),
-                                  ),
-                                );
-                              },
-                            )),
+                                    onDismissed: (_) => _delete(item),
+                                    child: _PlanCard(
+                                      item: item,
+                                      starColor: _starColor(item.priorityStars),
+                                      onDelete: _isSaving
+                                          ? null
+                                          : () => _delete(item),
+                                      onTap: _isSaving
+                                          ? null
+                                          : () => _showAddSheet(editing: item),
+                                      onToggle: _isSaving
+                                          ? null
+                                          : () => _toggle(item),
+                                    ),
+                                  );
+                                },
+                              )),
                 ),
               ],
             ),
@@ -440,19 +451,23 @@ class _PlanCard extends StatelessWidget {
                           : Colors.transparent,
                     ),
                     child: item.progress >= 1.0
-                        ? const Icon(Icons.check_rounded,
-                            size: 13, color: Colors.white)
+                        ? const Icon(
+                            Icons.check_rounded,
+                            size: 13,
+                            color: Colors.white,
+                          )
                         : null,
                   ),
                 ),
                 const SizedBox(width: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.subjectTint(item.subject),
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusFull),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
                   ),
                   child: Text(
                     item.subject,
@@ -496,8 +511,11 @@ class _PlanCard extends StatelessWidget {
                       color: AppColors.tintCoral,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.close_rounded,
-                        size: 16, color: AppColors.hot),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      size: 16,
+                      color: AppColors.hot,
+                    ),
                   ),
                 ),
               ],
@@ -513,7 +531,8 @@ class _PlanCard extends StatelessWidget {
                       minHeight: 8,
                       backgroundColor: AppColors.bg(context),
                       valueColor: const AlwaysStoppedAnimation<Color>(
-                          AppColors.primary),
+                        AppColors.primary,
+                      ),
                     ),
                   ),
                 ),
@@ -587,10 +606,7 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _PlanFormSheet extends StatefulWidget {
-  const _PlanFormSheet({
-    required this.subjects,
-    this.editing,
-  });
+  const _PlanFormSheet({required this.subjects, this.editing});
 
   final List<String> subjects;
   final StudyPlanItem? editing;
@@ -609,8 +625,9 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
   static const int _maxMinutes = 12 * 60;
 
   List<String> get _availableSubjects {
-    final items =
-        widget.subjects.where((item) => item.trim().isNotEmpty).toList();
+    final items = widget.subjects
+        .where((item) => item.trim().isNotEmpty)
+        .toList();
     if (widget.editing != null && !items.contains(widget.editing!.subject)) {
       items.insert(0, widget.editing!.subject);
     }
@@ -626,8 +643,10 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
     final subjects = _availableSubjects;
     _subject = widget.editing?.subject ?? subjects.first;
     final minutes = widget.editing?.targetMinutes ?? 60;
-    _targetMinutes = ((minutes / _stepMinutes).round() * _stepMinutes)
-        .clamp(_stepMinutes, _maxMinutes);
+    _targetMinutes = ((minutes / _stepMinutes).round() * _stepMinutes).clamp(
+      _stepMinutes,
+      _maxMinutes,
+    );
     _priorityStars = widget.editing?.priorityStars ?? 3;
     _detailCtrl = TextEditingController(text: widget.editing?.detail ?? '');
   }
@@ -641,9 +660,9 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
   String _formatMinutes(int minutes) {
     final h = minutes ~/ 60;
     final m = minutes % 60;
-    if (h == 0) return '${m}분';
-    if (m == 0) return '${h}시간';
-    return '${h}시간 ${m}분';
+    if (h == 0) return '$m분';
+    if (m == 0) return '$h시간';
+    return '$h시간 $m분';
   }
 
   void _save() {
@@ -690,27 +709,31 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
             const SizedBox(height: 20),
             Text(
               widget.editing != null ? '계획 수정' : '계획 추가',
-              style: AppTypography.headlineSmall
-                  .copyWith(color: AppColors.text(context)),
+              style: AppTypography.headlineSmall.copyWith(
+                color: AppColors.text(context),
+              ),
             ),
             const SizedBox(height: 24),
-            Text('과목',
-                style: AppTypography.labelLarge
-                    .copyWith(color: AppColors.textSub(context))),
+            Text(
+              '과목',
+              style: AppTypography.labelLarge.copyWith(
+                color: AppColors.textSub(context),
+              ),
+            ),
             const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
                 color: AppColors.bg(context),
-                borderRadius:
-                    BorderRadius.circular(AppSpacing.inputRadius),
+                borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: _subject,
                   isExpanded: true,
-                  style: AppTypography.bodyMedium
-                      .copyWith(color: AppColors.text(context)),
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.text(context),
+                  ),
                   dropdownColor: AppColors.card(context),
                   items: subjects
                       .map((s) => DropdownMenuItem(value: s, child: Text(s)))
@@ -720,51 +743,61 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('내용',
-                style: AppTypography.labelLarge
-                    .copyWith(color: AppColors.textSub(context))),
+            Text(
+              '내용',
+              style: AppTypography.labelLarge.copyWith(
+                color: AppColors.textSub(context),
+              ),
+            ),
             const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
                 color: AppColors.bg(context),
-                borderRadius:
-                    BorderRadius.circular(AppSpacing.inputRadius),
+                borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
               ),
               child: TextField(
                 controller: _detailCtrl,
-                style: AppTypography.bodyMedium
-                    .copyWith(color: AppColors.text(context)),
+                style: AppTypography.bodyMedium.copyWith(
+                  color: AppColors.text(context),
+                ),
                 decoration: InputDecoration(
                   hintText: '학습 내용을 입력하세요',
-                  hintStyle: AppTypography.bodyMedium
-                      .copyWith(color: AppColors.textTertiary),
+                  hintStyle: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textTertiary,
+                  ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                Text('목표 시간',
-                    style: AppTypography.labelLarge
-                        .copyWith(color: AppColors.textSub(context))),
+                Text(
+                  '목표 시간',
+                  style: AppTypography.labelLarge.copyWith(
+                    color: AppColors.textSub(context),
+                  ),
+                ),
                 const Spacer(),
-                Text('30분 단위',
-                    style: AppTypography.labelSmall
-                        .copyWith(color: AppColors.textTertiary)),
+                Text(
+                  '30분 단위',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.textTertiary,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Container(
               decoration: BoxDecoration(
                 color: AppColors.bg(context),
-                borderRadius:
-                    BorderRadius.circular(AppSpacing.inputRadius),
+                borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
               ),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Row(
                 children: [
                   GestureDetector(
@@ -779,11 +812,15 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
                       decoration: BoxDecoration(
                         color: AppColors.card(context),
                         borderRadius: BorderRadius.circular(10),
-                        border:
-                            Border.all(color: AppColors.borderColor(context)),
+                        border: Border.all(
+                          color: AppColors.borderColor(context),
+                        ),
                       ),
-                      child: Icon(Icons.remove_rounded,
-                          size: 18, color: AppColors.textSub(context)),
+                      child: Icon(
+                        Icons.remove_rounded,
+                        size: 18,
+                        color: AppColors.textSub(context),
+                      ),
                     ),
                   ),
                   Expanded(
@@ -791,8 +828,9 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
                       _formatMinutes(_targetMinutes),
                       textAlign: TextAlign.center,
                       style: AppTypography.titleLarge.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.text(context)),
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.text(context),
+                      ),
                     ),
                   ),
                   GestureDetector(
@@ -807,11 +845,15 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
                       decoration: BoxDecoration(
                         color: AppColors.card(context),
                         borderRadius: BorderRadius.circular(10),
-                        border:
-                            Border.all(color: AppColors.borderColor(context)),
+                        border: Border.all(
+                          color: AppColors.borderColor(context),
+                        ),
                       ),
-                      child: Icon(Icons.add_rounded,
-                          size: 18, color: AppColors.textSub(context)),
+                      child: Icon(
+                        Icons.add_rounded,
+                        size: 18,
+                        color: AppColors.textSub(context),
+                      ),
                     ),
                   ),
                 ],
@@ -823,7 +865,7 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: 8,
-                separatorBuilder: (_, __) => const SizedBox(width: 6),
+                separatorBuilder: (_, _) => const SizedBox(width: 6),
                 itemBuilder: (_, i) {
                   final mins = (i + 1) * _stepMinutes;
                   final selected = mins == _targetMinutes;
@@ -831,7 +873,9 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
                     onTap: () => setState(() => _targetMinutes = mins),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: selected
                             ? AppColors.tintPurple
@@ -864,23 +908,27 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Text('우선순위',
-                    style: AppTypography.labelLarge
-                        .copyWith(color: AppColors.textSub(context))),
+                Text(
+                  '우선순위',
+                  style: AppTypography.labelLarge.copyWith(
+                    color: AppColors.textSub(context),
+                  ),
+                ),
                 const Spacer(),
-                Text('별이 많을수록 우선',
-                    style: AppTypography.labelSmall
-                        .copyWith(color: AppColors.textTertiary)),
+                Text(
+                  '별이 많을수록 우선',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.textTertiary,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.bg(context),
-                borderRadius:
-                    BorderRadius.circular(AppSpacing.inputRadius),
+                borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -899,10 +947,10 @@ class _PlanFormSheetState extends State<_PlanFormSheet> {
                         size: 32,
                         color: filled
                             ? (_priorityStars >= 4
-                                ? AppColors.hot
-                                : (_priorityStars == 3
-                                    ? AppColors.warm
-                                    : AppColors.accent))
+                                  ? AppColors.hot
+                                  : (_priorityStars == 3
+                                        ? AppColors.warm
+                                        : AppColors.accent))
                             : AppColors.textTertiary,
                       ),
                     ),

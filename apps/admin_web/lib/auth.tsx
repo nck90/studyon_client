@@ -1,6 +1,11 @@
-'use client';
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { login as apiLogin, signup as apiSignup, logout as apiLogout, clearTokens } from './api';
+"use client";
+import { createContext, useContext, useState, useCallback } from "react";
+import {
+  login as apiLogin,
+  signup as apiSignup,
+  logout as apiLogout,
+  clearTokens,
+} from "./api";
 
 interface User {
   id: string;
@@ -26,32 +31,31 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Restore user from localStorage on mount
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === "undefined") return null;
     try {
-      const stored = localStorage.getItem('user');
-      const token = localStorage.getItem('accessToken');
-      if (stored && token) {
-        setUser(JSON.parse(stored));
-      }
+      const stored = localStorage.getItem("user");
+      const token = localStorage.getItem("accessToken");
+      return stored && token ? (JSON.parse(stored) as User) : null;
     } catch {
       clearTokens();
+      return null;
     }
-    setIsLoading(false);
-  }, []);
+  });
+  const [isLoading] = useState(false);
 
   const login = useCallback(async (email: string, password: string) => {
     const result = await apiLogin(email, password);
     setUser(result.user);
   }, []);
 
-  const signup = useCallback(async (name: string, email: string, password: string) => {
-    const result = await apiSignup(name, email, password);
-    setUser(result.user);
-  }, []);
+  const signup = useCallback(
+    async (name: string, email: string, password: string) => {
+      const result = await apiSignup(name, email, password);
+      setUser(result.user);
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     await apiLogout();

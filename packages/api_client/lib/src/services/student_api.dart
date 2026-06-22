@@ -17,25 +17,181 @@ class StudentApi {
     return response.data['data'] as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> getFocusPolicy() async {
+    final response = await _dio.get(ApiConstants.studentFocusPolicy);
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
   Future<Map<String, dynamic>> updatePreferences({
     bool? notificationEnabled,
+    String? targetUniversityName,
+    String? targetUniversityMediaId,
+    String? homeBackgroundMediaId,
+    String? checkInBackgroundMediaId,
+    String? themePreset,
+    bool? focusModeEnabled,
+    bool? tvGoalConsent,
   }) async {
     final response = await _dio.patch(
       ApiConstants.studentPreferences,
       data: {
         if (notificationEnabled != null)
           'notificationEnabled': notificationEnabled,
+        if (targetUniversityName != null)
+          'targetUniversityName': targetUniversityName,
+        if (targetUniversityMediaId != null)
+          'targetUniversityMediaId': targetUniversityMediaId,
+        if (homeBackgroundMediaId != null)
+          'homeBackgroundMediaId': homeBackgroundMediaId,
+        if (checkInBackgroundMediaId != null)
+          'checkInBackgroundMediaId': checkInBackgroundMediaId,
+        if (themePreset != null) 'themePreset': themePreset,
+        if (focusModeEnabled != null) 'focusModeEnabled': focusModeEnabled,
+        if (tvGoalConsent != null) 'tvGoalConsent': tvGoalConsent,
       },
     );
     return response.data['data'] as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> recordFocusEvent({
+    String? sessionId,
+    String? studySessionId,
+    String eventType = 'APP_EXIT',
+    DateTime? occurredAt,
+    int? durationSeconds,
+  }) async {
+    final response = await _dio.post(
+      ApiConstants.studentFocusEvents,
+      data: {
+        if (sessionId != null) 'sessionId': sessionId,
+        if (studySessionId != null) 'studySessionId': studySessionId,
+        'eventType': eventType,
+        'occurredAt': (occurredAt ?? DateTime.now()).toIso8601String(),
+        if (durationSeconds != null) 'durationSeconds': durationSeconds,
+      },
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getMotivationDashboard() async {
+    final response = await _dio.get(ApiConstants.studentMotivationDashboard);
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getGoalRoadmap() async {
+    final response = await _dio.get(ApiConstants.studentGoalRoadmap);
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> saveGoalRoadmap({
+    required String targetName,
+    required String targetDate,
+    bool reminderEnabled = true,
+    String reminderTime = '20:00',
+  }) async {
+    final response = await _dio.put(
+      ApiConstants.studentGoalRoadmap,
+      data: {
+        'targetName': targetName,
+        'targetDate': targetDate,
+        'reminderEnabled': reminderEnabled,
+        'reminderTime': reminderTime,
+      },
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> generateGoalRoadmap() async {
+    final response = await _dio.post(
+      '${ApiConstants.studentGoalRoadmap}/generate',
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> acceptRoadmapMission(String missionId) async {
+    final response = await _dio.post(
+      '${ApiConstants.studentGoalRoadmap}/missions/$missionId/accept',
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getTodayDailyMission() async {
+    final response = await _dio.get(
+      '${ApiConstants.studentDailyMission}/today',
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> generateDailyMission() async {
+    final response = await _dio.post(
+      '${ApiConstants.studentDailyMission}/generate',
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> completeDailyMission(String missionId) async {
+    final response = await _dio.post(
+      '${ApiConstants.studentDailyMission}/$missionId/complete',
+      data: {'completionMethod': 'MANUAL'},
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> updateDailyMissionReminder({
+    required bool reminderEnabled,
+    required String reminderTime,
+  }) async {
+    final response = await _dio.patch(
+      '${ApiConstants.studentDailyMission}/reminder',
+      data: {'reminderEnabled': reminderEnabled, 'reminderTime': reminderTime},
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> recordAppEvent({
+    required String eventType,
+    Map<String, dynamic>? payload,
+    DateTime? occurredAt,
+  }) async {
+    final response = await _dio.post(
+      ApiConstants.studentAppEvents,
+      data: {
+        'eventType': eventType,
+        'occurredAt': (occurredAt ?? DateTime.now()).toIso8601String(),
+        if (payload != null) 'payload': payload,
+      },
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> getRpgDashboard() async {
+    final response = await _dio.get(ApiConstants.studentRpgDashboard);
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> uploadMedia({
+    required String path,
+    required String kind,
+  }) async {
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(path),
+    });
+    final response = await _dio.post(
+      ApiConstants.studentMedia,
+      queryParameters: {'kind': kind},
+      data: formData,
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<void> deleteMedia(String mediaId) async {
+    await _dio.delete('${ApiConstants.studentMedia}/$mediaId');
+  }
+
   // Home
   Future<StudentHome> getHome() async {
     final response = await _dio.get(ApiConstants.studentHome);
-    return StudentHome.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    return StudentHome.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   // Attendance
@@ -51,9 +207,7 @@ class StudentApi {
       ApiConstants.studentCheckIn,
       data: seatId != null ? {'seatId': seatId} : null,
     );
-    return Attendance.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    return Attendance.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   Future<Attendance> checkOut({bool forceCloseStudySession = true}) async {
@@ -61,9 +215,7 @@ class StudentApi {
       ApiConstants.studentCheckOut,
       data: {'forceCloseStudySession': forceCloseStudySession},
     );
-    return Attendance.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    return Attendance.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   // Seat
@@ -122,20 +274,18 @@ class StudentApi {
       ApiConstants.studentStudyPlans,
       data: request.toJson(),
     );
-    return StudyPlan.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    return StudyPlan.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   Future<StudyPlan> updateStudyPlan(
-      String planId, Map<String, dynamic> data) async {
+    String planId,
+    Map<String, dynamic> data,
+  ) async {
     final response = await _dio.patch(
       '${ApiConstants.studentStudyPlans}/$planId',
       data: data,
     );
-    return StudyPlan.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    return StudyPlan.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   Future<void> deleteStudyPlan(String planId) async {
@@ -159,36 +309,33 @@ class StudentApi {
       ApiConstants.studentStudySessionStart,
       data: linkedPlanId != null ? {'linkedPlanId': linkedPlanId} : null,
     );
-    return StudySession.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    return StudySession.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   Future<StudySession> pauseSession(String sessionId) async {
     final response = await _dio.post(
       '${ApiConstants.studentStudySessionActive.replaceAll('/active', '')}/$sessionId/pause',
     );
-    return StudySession.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    return StudySession.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   Future<StudySession> resumeSession(String sessionId) async {
     final response = await _dio.post(
       '${ApiConstants.studentStudySessionActive.replaceAll('/active', '')}/$sessionId/resume',
     );
-    return StudySession.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    return StudySession.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   Future<StudySession> endSession(String sessionId) async {
+    final data = await endSessionPayload(sessionId);
+    return StudySession.fromJson(data);
+  }
+
+  Future<Map<String, dynamic>> endSessionPayload(String sessionId) async {
     final response = await _dio.post(
       '${ApiConstants.studentStudySessionActive.replaceAll('/active', '')}/$sessionId/end',
     );
-    return StudySession.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    return response.data['data'] as Map<String, dynamic>;
   }
 
   // Study Logs
@@ -197,9 +344,7 @@ class StudentApi {
       ApiConstants.studentStudyLogs,
       data: request.toJson(),
     );
-    return StudyLog.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    return StudyLog.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   Future<List<StudyLog>> getStudyLogs({String? date}) async {
@@ -219,9 +364,7 @@ class StudentApi {
       ApiConstants.studentReportsDaily,
       queryParameters: date != null ? {'date': date} : null,
     );
-    return DailyReport.fromJson(
-      response.data['data'] as Map<String, dynamic>,
-    );
+    return DailyReport.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   // Rankings
@@ -231,10 +374,7 @@ class StudentApi {
   }) async {
     final response = await _dio.get(
       ApiConstants.studentRankings,
-      queryParameters: {
-        'periodType': periodType,
-        'rankingType': rankingType,
-      },
+      queryParameters: {'periodType': periodType, 'rankingType': rankingType},
     );
     return RankingResponse.fromJson(
       response.data['data'] as Map<String, dynamic>,
@@ -257,7 +397,10 @@ class StudentApi {
     return response.data['data'] as Map<String, dynamic>;
   }
 
-  Future<List<Map<String, dynamic>>> getPointHistory({int take = 50, int skip = 0}) async {
+  Future<List<Map<String, dynamic>>> getPointHistory({
+    int take = 50,
+    int skip = 0,
+  }) async {
     final response = await _dio.get(
       ApiConstants.studentPointsHistory,
       queryParameters: {'take': take, 'skip': skip},
@@ -272,7 +415,9 @@ class StudentApi {
     return response.data['data'] as Map<String, dynamic>;
   }
 
-  Future<List<Map<String, dynamic>>> getCharacterShop({String? category}) async {
+  Future<List<Map<String, dynamic>>> getCharacterShop({
+    String? category,
+  }) async {
     final response = await _dio.get(
       ApiConstants.studentCharacterShop,
       queryParameters: category != null ? {'category': category} : null,
@@ -282,7 +427,9 @@ class StudentApi {
   }
 
   Future<Map<String, dynamic>> buyCharacterItem(String itemId) async {
-    final response = await _dio.post('${ApiConstants.studentCharacter}/buy/$itemId');
+    final response = await _dio.post(
+      '${ApiConstants.studentCharacter}/buy/$itemId',
+    );
     return response.data['data'] as Map<String, dynamic>;
   }
 
@@ -302,6 +449,16 @@ class StudentApi {
         if (bgItemId != null) 'bgItemId': bgItemId,
         if (expressionItemId != null) 'expressionItemId': expressionItemId,
       },
+    );
+    return response.data['data'] as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> patchEquippedCharacterItems(
+    Map<String, String?> slots,
+  ) async {
+    final response = await _dio.post(
+      ApiConstants.studentCharacterEquip,
+      data: slots,
     );
     return response.data['data'] as Map<String, dynamic>;
   }

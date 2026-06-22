@@ -225,6 +225,7 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
     final swipeProgress = (_dragOffset / 200).clamp(0.0, 1.0);
     final widgetWidth = isIPad ? 170.0 : 148.0;
     final widgetHeight = isIPad ? 92.0 : 82.0;
+    final syncedBackgroundUrl = student.checkInBackgroundMediaUrl;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -238,10 +239,21 @@ class _CheckInScreenState extends ConsumerState<CheckInScreen>
               // Background image
               Positioned.fill(
                 child: _backgroundPath == null
-                    ? Image.asset(
-                        'assets/images/lockscreen_bg.jpg',
-                        fit: BoxFit.cover,
-                      )
+                    ? (syncedBackgroundUrl.isEmpty
+                        ? Image.asset(
+                            'assets/images/lockscreen_bg.jpg',
+                            fit: BoxFit.cover,
+                          )
+                        : Image.network(
+                            syncedBackgroundUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/lockscreen_bg.jpg',
+                                fit: BoxFit.cover,
+                              );
+                            },
+                          ))
                     : Image.file(
                         File(_backgroundPath!),
                         fit: BoxFit.cover,

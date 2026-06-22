@@ -1,39 +1,55 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { getNotifications, createNotification, sendNotification } from '@/lib/api';
-import type { NotificationResponse } from '@/lib/api';
-import { Bell, Plus, X, Megaphone, Send } from 'lucide-react';
-import { PageHeader } from '@/components/page-header';
+"use client";
+import { useState, useEffect, useCallback } from "react";
+import {
+  getNotifications,
+  createNotification,
+  sendNotification,
+} from "@/lib/api";
+import type { NotificationResponse } from "@/lib/api";
+import { Bell, Plus, X, Megaphone, Send } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 
 function formatTime(iso: string): string {
   try {
     const d = new Date(iso);
-    return d.toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleString("ko-KR", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   } catch {
     return iso;
   }
 }
 
-const statusLabel: Record<string, { text: string; color: string; bg: string }> = {
-  DRAFT: { text: '임시저장', color: 'text-text-tertiary', bg: 'bg-bg' },
-  SENT: { text: '발송됨', color: 'text-accent', bg: 'bg-accent-light' },
-  SCHEDULED: { text: '예약', color: 'text-warm', bg: 'bg-warm-light' },
-};
+const statusLabel: Record<string, { text: string; color: string; bg: string }> =
+  {
+    DRAFT: { text: "임시저장", color: "text-text-tertiary", bg: "bg-bg" },
+    SENT: { text: "발송됨", color: "text-accent", bg: "bg-accent-light" },
+    SCHEDULED: { text: "예약", color: "text-warm", bg: "bg-warm-light" },
+  };
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
+  const [notifications, setNotifications] = useState<NotificationResponse[]>(
+    [],
+  );
   const [showCompose, setShowCompose] = useState(false);
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
-  const load = () => {
-    setLoading(true);
-    getNotifications().then(setNotifications).catch(() => setNotifications([])).finally(() => setLoading(false));
-  };
+  const load = useCallback(() => {
+    getNotifications()
+      .then(setNotifications)
+      .catch(() => setNotifications([]))
+      .finally(() => setLoading(false));
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleCreate = async () => {
     if (!title.trim()) return;
@@ -41,12 +57,12 @@ export default function NotificationsPage() {
     try {
       const notif = await createNotification({ title, body });
       await sendNotification(notif.id);
-      setTitle('');
-      setBody('');
+      setTitle("");
+      setBody("");
       setShowCompose(false);
       load();
     } catch (err) {
-      alert(err instanceof Error ? err.message : '발송에 실패했습니다.');
+      alert(err instanceof Error ? err.message : "발송에 실패했습니다.");
     }
     setSending(false);
   };
@@ -79,7 +95,7 @@ export default function NotificationsPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {notifications.map(notif => {
+          {notifications.map((notif) => {
             const st = statusLabel[notif.status] ?? statusLabel.DRAFT;
             return (
               <div
@@ -92,13 +108,23 @@ export default function NotificationsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2 mb-0.5">
-                      <p className="text-sm font-semibold text-text-primary truncate">{notif.title}</p>
+                      <p className="text-sm font-semibold text-text-primary truncate">
+                        {notif.title}
+                      </p>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${st.bg} ${st.color}`}>{st.text}</span>
-                        <span className="text-[11px] text-text-tertiary tabular-nums font-medium">{formatTime(notif.createdAt)}</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${st.bg} ${st.color}`}
+                        >
+                          {st.text}
+                        </span>
+                        <span className="text-[11px] text-text-tertiary tabular-nums font-medium">
+                          {formatTime(notif.createdAt)}
+                        </span>
                       </div>
                     </div>
-                    <p className="text-sm text-text-secondary leading-relaxed truncate">{notif.body}</p>
+                    <p className="text-sm text-text-secondary leading-relaxed truncate">
+                      {notif.body}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -115,14 +141,16 @@ export default function NotificationsPage() {
         >
           <div
             className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md animate-fade-in"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-xl bg-primary-surface flex items-center justify-center">
                   <Megaphone size={16} className="text-primary" />
                 </div>
-                <h3 className="text-base font-bold text-text-primary">공지 작성</h3>
+                <h3 className="text-base font-bold text-text-primary">
+                  공지 작성
+                </h3>
               </div>
               <button
                 onClick={() => setShowCompose(false)}
@@ -133,20 +161,24 @@ export default function NotificationsPage() {
             </div>
             <div className="space-y-3">
               <div>
-                <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">제목</label>
+                <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">
+                  제목
+                </label>
                 <input
                   type="text"
                   value={title}
-                  onChange={e => setTitle(e.target.value)}
+                  onChange={(e) => setTitle(e.target.value)}
                   placeholder="공지 제목을 입력하세요"
                   className="w-full rounded-xl bg-bg border border-card-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 placeholder:text-text-tertiary"
                 />
               </div>
               <div>
-                <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">내용</label>
+                <label className="text-[11px] font-bold text-text-tertiary mb-1.5 block tracking-wide uppercase">
+                  내용
+                </label>
                 <textarea
                   value={body}
-                  onChange={e => setBody(e.target.value)}
+                  onChange={(e) => setBody(e.target.value)}
                   placeholder="공지 내용을 입력하세요"
                   rows={4}
                   className="w-full rounded-xl bg-bg border border-card-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 placeholder:text-text-tertiary resize-none"

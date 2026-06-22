@@ -10,7 +10,7 @@ export declare const envSchema: z.ZodObject<{
     APP_URL: z.ZodDefault<z.ZodString>;
     CORS_ORIGIN: z.ZodDefault<z.ZodString>;
     DATABASE_URL: z.ZodString;
-    REDIS_URL: z.ZodString;
+    REDIS_URL: z.ZodOptional<z.ZodString>;
     JWT_ACCESS_SECRET: z.ZodString;
     JWT_REFRESH_SECRET: z.ZodString;
     JWT_ACCESS_EXPIRES_IN: z.ZodDefault<z.ZodString>;
@@ -24,5 +24,6 @@ export declare const envSchema: z.ZodObject<{
     PARENT_PORTAL_SECRET: z.ZodDefault<z.ZodString>;
     DEFAULT_ADMIN_EMAIL: z.ZodDefault<z.ZodString>;
     DEFAULT_ADMIN_PASSWORD: z.ZodDefault<z.ZodString>;
+    MEDIA_UPLOAD_DIR: z.ZodDefault<z.ZodString>;
 }, z.core.$strip>;
 export type Env = z.infer<typeof envSchema>;

@@ -347,8 +347,8 @@ let AuthService = class AuthService {
     }
     async refresh(refreshToken) {
         const payload = await this.verifyToken(refreshToken, 'refresh');
-        const saved = await this.redis.client.get(this.refreshTokenKey(payload.sessionId));
-        if (!saved || saved !== refreshToken) {
+        const saved = await this.redis.get(this.refreshTokenKey(payload.sessionId));
+        if (saved !== undefined && (!saved || saved !== refreshToken)) {
             throw new common_1.UnauthorizedException('세션이 만료되었습니다.');
         }
         const session = await this.prisma.authSession.findUnique({
@@ -394,8 +394,8 @@ let AuthService = class AuthService {
             where: { id: sessionId },
             data: { sessionStatus: client_1.SessionStatus.LOGGED_OUT, endedAt: new Date() },
         });
-        await this.redis.client.del(this.refreshTokenKey(sessionId));
-        await this.redis.client.set(this.blacklistTokenKey(refreshToken), '1', 'EX', 60 * 60 * 24 * 30);
+        await this.redis.del(this.refreshTokenKey(sessionId));
+        await this.redis.set(this.blacklistTokenKey(refreshToken), '1', 60 * 60 * 24 * 30);
         return {
             success: true,
             data: { sessionId, loggedOut: true },
@@ -522,11 +522,11 @@ let AuthService = class AuthService {
                 expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
             }),
         ]);
-        await this.redis.client.set(this.refreshTokenKey(payload.sessionId), refreshToken, 'EX', 60 * 60 * 24 * 30);
+        await this.redis.set(this.refreshTokenKey(payload.sessionId), refreshToken, 60 * 60 * 24 * 30);
         return { accessToken, refreshToken };
     }
     async verifyToken(token, tokenType) {
-        const blacklistExists = await this.redis.client.get(this.blacklistTokenKey(token));
+        const blacklistExists = await this.redis.get(this.blacklistTokenKey(token));
         if (blacklistExists) {
             throw new common_1.UnauthorizedException('토큰이 만료되었습니다.');
         }
@@ -558,7 +558,7 @@ let AuthService = class AuthService {
                 duplicateReplaced: true,
             },
         });
-        await Promise.all(existing.map((session) => this.redis.client.del(this.refreshTokenKey(session.id))));
+        await Promise.all(existing.map((session) => this.redis.del(this.refreshTokenKey(session.id))));
     }
     refreshTokenKey(sessionId) {
         return `auth:refresh:${sessionId}`;

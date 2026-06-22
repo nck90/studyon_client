@@ -11,7 +11,7 @@ exports.envSchema = zod_1.z.object({
     APP_URL: zod_1.z.string().url().default('http://localhost:3000'),
     CORS_ORIGIN: zod_1.z.string().default('http://localhost:3000'),
     DATABASE_URL: zod_1.z.string().min(1),
-    REDIS_URL: zod_1.z.string().min(1),
+    REDIS_URL: zod_1.z.string().min(1).optional(),
     JWT_ACCESS_SECRET: zod_1.z.string().min(16),
     JWT_REFRESH_SECRET: zod_1.z.string().min(16),
     JWT_ACCESS_EXPIRES_IN: zod_1.z.string().default('15m'),
@@ -25,5 +25,6 @@ exports.envSchema = zod_1.z.object({
     PARENT_PORTAL_SECRET: zod_1.z.string().min(16).default('parent-portal-secret-key'),
     DEFAULT_ADMIN_EMAIL: zod_1.z.string().email().default('admin@studyon.local'),
     DEFAULT_ADMIN_PASSWORD: zod_1.z.string().min(8).default('ChangeMe123!'),
+    MEDIA_UPLOAD_DIR: zod_1.z.string().min(1).default('uploads/student-media'),
 });
 //# sourceMappingURL=env.schema.js.map

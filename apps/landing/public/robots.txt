@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://studyon-landing.hyphen.it.com/sitemap.xml

@@ -170,70 +170,214 @@ enum DisplayScreen {
   RANKING
   STATUS
   MOTIVATION
+  SEAT_MAP
+  MESSAGE
+  CLOCK
+  GOAL_WALL
+}
+
+enum GoalRoadmapStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum RoadmapMissionStatus {
+  RECOMMENDED
+  ACCEPTED
+  COMPLETED
+  EXPIRED
+}
+
+enum InterventionReasonType {
+  STREAK_BROKEN
+  TARGET_SHORTFALL
+  FOCUS_INTERRUPTION
+  MISSION_NOT_ACCEPTED
+}
+
+enum InterventionSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum InterventionQueueStatus {
+  OPEN
+  RESOLVED
+  EXPIRED
+}
+
+enum InterventionActionType {
+  MESSAGE_SENT
+  PLAN_RECOMMENDED
+}
+
+enum DailyMissionStatus {
+  ASSIGNED
+  COMPLETED
+  EXPIRED
+}
+
+enum DailyMissionSource {
+  ROADMAP
+  TEMPLATE
+  MIXED
+}
+
+enum AppEventType {
+  APP_OPEN
+  NOTIFICATION_OPEN
+  DAILY_MISSION_VIEW
+  DAILY_MISSION_COMPLETE
+}
+
+enum FocusEventType {
+  FOCUS_STARTED
+  APP_EXIT
+  APP_RETURN
+  FOCUS_PAUSED
+  FOCUS_RESUMED
+  FOCUS_ENDED
+}
+
+enum OpsTaskReasonType {
+  NOT_CHECKED_IN
+  EARLY_LEAVE
+  DAILY_MISSION_INCOMPLETE
+  TARGET_SHORTFALL
+  FOCUS_INTERRUPTION
+}
+
+enum OpsTaskSeverity {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum OpsTaskStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+enum OpsTaskActionType {
+  STUDENT_MESSAGE_SENT
+  PARENT_REPORT_CREATED
+  RESOLVED
+  DISMISSED
+}
+
+enum GuardianRelation {
+  MOTHER
+  FATHER
+  GRANDPARENT
+  GUARDIAN
+  OTHER
+}
+
+enum ConsultationContactType {
+  CALL
+  SMS
+  KAKAO
+  IN_PERSON
+  LINK
+  OTHER
+}
+
+enum ConsultationDirection {
+  OUTBOUND
+  INBOUND
+}
+
+enum ParentFollowUpStatus {
+  OPEN
+  DONE
+  DISMISSED
 }
 
 model User {
-  id                   String                @id @default(uuid()) @db.Uuid
-  role                 UserRole
-  status               UserStatus            @default(ACTIVE)
-  name                 String                @db.VarChar(100)
-  phone                String?               @db.VarChar(30)
-  lastLoginAt          DateTime?
-  createdAt            DateTime              @default(now())
-  updatedAt            DateTime              @updatedAt
-  student              Student?
-  adminUser            AdminUser?
-  authSessions         AuthSession[]
-  notifications        NotificationReceipt[]
-  createdAttendance    Attendance[]          @relation("AttendanceCreatedBy")
-  auditLogs            AdminAuditLog[]       @relation("AuditActor")
-  createdSettings      AppSetting[]          @relation("AppSettingUpdatedBy")
-  attendancePolicies   AttendancePolicy[]    @relation("AttendancePolicyCreatedBy")
-  rankingPolicies      RankingPolicy[]       @relation("RankingPolicyCreatedBy")
-  tvDisplaySettings    TvDisplaySetting[]    @relation("TvDisplaySettingUpdatedBy")
-  createdNotifications Notification[]        @relation("NotificationCreatedBy")
+  id                         String                  @id @default(uuid()) @db.Uuid
+  role                       UserRole
+  status                     UserStatus              @default(ACTIVE)
+  name                       String                  @db.VarChar(100)
+  phone                      String?                 @db.VarChar(30)
+  lastLoginAt                DateTime?
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
+  student                    Student?
+  adminUser                  AdminUser?
+  authSessions               AuthSession[]
+  notifications              NotificationReceipt[]
+  createdAttendance          Attendance[]            @relation("AttendanceCreatedBy")
+  auditLogs                  AdminAuditLog[]         @relation("AuditActor")
+  createdSettings            AppSetting[]            @relation("AppSettingUpdatedBy")
+  attendancePolicies         AttendancePolicy[]      @relation("AttendancePolicyCreatedBy")
+  rankingPolicies            RankingPolicy[]         @relation("RankingPolicyCreatedBy")
+  tvDisplaySettings          TvDisplaySetting[]      @relation("TvDisplaySettingUpdatedBy")
+  createdNotifications       Notification[]          @relation("NotificationCreatedBy")
+  resolvedInterventions      InterventionQueueItem[] @relation("InterventionResolvedBy")
+  createdMissionTemplates    DailyMissionTemplate[]  @relation("DailyMissionTemplateCreatedBy")
+  opsTaskActions             OpsTaskAction[]         @relation("OpsTaskActionActor")
+  resolvedOpsTasks           OpsTask[]               @relation("OpsTaskResolvedBy")
+  createdParentConsultations ParentConsultation[]    @relation("ParentConsultationCreatedBy")
+  assignedParentFollowUps    ParentFollowUpTask[]    @relation("ParentFollowUpAssignedTo")
 
   @@map("users")
 }
 
 model Student {
-  id                 String                 @id @default(uuid()) @db.Uuid
-  userId             String                 @unique @db.Uuid
-  studentNo          String                 @unique @db.VarChar(50)
-  loginId            String                 @unique @db.VarChar(50)
-  passwordHash       String                 @db.VarChar(255)
-  gradeId            String?                @db.Uuid
-  classId            String?                @db.Uuid
-  groupId            String?                @db.Uuid
-  assignedSeatId     String?                @db.Uuid
-  enrollmentStatus   EnrollmentStatus       @default(ACTIVE)
-  joinedAt           DateTime?
-  memo               String?
-  createdAt          DateTime               @default(now())
-  updatedAt          DateTime               @updatedAt
-  user               User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  grade              Grade?                 @relation(fields: [gradeId], references: [id])
-  class              Class?                 @relation(fields: [classId], references: [id])
-  group              Group?                 @relation(fields: [groupId], references: [id])
-  assignedSeat       Seat?                  @relation("StudentAssignedSeat", fields: [assignedSeatId], references: [id])
-  currentSeatUsage   Seat[]                 @relation("SeatCurrentStudent")
-  authSessions       AuthSession[]
-  qrLoginTokens      QrLoginToken[]
-  attendances        Attendance[]
-  seatAssignments    SeatAssignment[]
-  seatChangeRequests SeatChangeRequest[]
-  studyPlans         StudyPlan[]
-  studySessions      StudySession[]
-  studyLogs          StudyLog[]
-  dailyMetrics       DailyStudentMetric[]
-  weeklyMetrics      WeeklyStudentMetric[]
-  monthlyMetrics     MonthlyStudentMetric[]
-  rankingItems       RankingSnapshotItem[]
-  studentBadges      StudentBadge[]
-  pointBalance       Int                    @default(0)
-  pointTransactions  PointTransaction[]
-  ownedItems         StudentItem[]
-  character          StudentCharacter?
+  id                        String                     @id @default(uuid()) @db.Uuid
+  userId                    String                     @unique @db.Uuid
+  studentNo                 String                     @unique @db.VarChar(50)
+  loginId                   String                     @unique @db.VarChar(50)
+  passwordHash              String                     @db.VarChar(255)
+  gradeId                   String?                    @db.Uuid
+  classId                   String?                    @db.Uuid
+  groupId                   String?                    @db.Uuid
+  assignedSeatId            String?                    @db.Uuid
+  enrollmentStatus          EnrollmentStatus           @default(ACTIVE)
+  joinedAt                  DateTime?
+  memo                      String?
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
+  user                      User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grade                     Grade?                     @relation(fields: [gradeId], references: [id])
+  class                     Class?                     @relation(fields: [classId], references: [id])
+  group                     Group?                     @relation(fields: [groupId], references: [id])
+  assignedSeat              Seat?                      @relation("StudentAssignedSeat", fields: [assignedSeatId], references: [id])
+  currentSeatUsage          Seat[]                     @relation("SeatCurrentStudent")
+  authSessions              AuthSession[]
+  qrLoginTokens             QrLoginToken[]
+  attendances               Attendance[]
+  seatAssignments           SeatAssignment[]
+  seatChangeRequests        SeatChangeRequest[]
+  studyPlans                StudyPlan[]
+  studySessions             StudySession[]
+  studyLogs                 StudyLog[]
+  dailyMetrics              DailyStudentMetric[]
+  weeklyMetrics             WeeklyStudentMetric[]
+  monthlyMetrics            MonthlyStudentMetric[]
+  rankingItems              RankingSnapshotItem[]
+  studentBadges             StudentBadge[]
+  pointBalance              Int                        @default(0)
+  pointTransactions         PointTransaction[]
+  ownedItems                StudentItem[]
+  character                 StudentCharacter?
+  characterXpTransactions   CharacterXpTransaction[]
+  mediaAssets               MediaAsset[]
+  focusMetrics              StudentFocusMetric[]
+  focusEvents               StudentFocusEvent[]
+  goalRoadmaps              StudentGoalRoadmap[]
+  roadmapMissions           RoadmapMission[]
+  interventionQueueItems    InterventionQueueItem[]
+  dailyMissions             StudentDailyMission[]
+  appEvents                 StudentAppEvent[]
+  opsTasks                  OpsTask[]
+  parentActionReports       ParentActionReport[]
+  guardians                 Guardian[]
+  parentConsultations       ParentConsultation[]
+  parentFollowUps           ParentFollowUpTask[]
+  parentConsultationReports ParentConsultationReport[]
 
   @@index([classId])
   @@index([groupId])
@@ -256,25 +400,27 @@ model AdminUser {
 }
 
 model Grade {
-  id        String    @id @default(uuid()) @db.Uuid
-  name      String    @db.VarChar(50)
-  sortOrder Int
-  createdAt DateTime  @default(now())
-  classes   Class[]
-  students  Student[]
+  id                    String                 @id @default(uuid()) @db.Uuid
+  name                  String                 @db.VarChar(50)
+  sortOrder             Int
+  createdAt             DateTime               @default(now())
+  classes               Class[]
+  students              Student[]
+  dailyMissionTemplates DailyMissionTemplate[]
 
   @@map("grades")
 }
 
 model Class {
-  id        String    @id @default(uuid()) @db.Uuid
-  gradeId   String?   @db.Uuid
-  name      String    @db.VarChar(100)
-  sortOrder Int
-  createdAt DateTime  @default(now())
-  grade     Grade?    @relation(fields: [gradeId], references: [id])
-  groups    Group[]
-  students  Student[]
+  id                    String                 @id @default(uuid()) @db.Uuid
+  gradeId               String?                @db.Uuid
+  name                  String                 @db.VarChar(100)
+  sortOrder             Int
+  createdAt             DateTime               @default(now())
+  grade                 Grade?                 @relation(fields: [gradeId], references: [id])
+  groups                Group[]
+  students              Student[]
+  dailyMissionTemplates DailyMissionTemplate[]
 
   @@index([gradeId])
   @@map("classes")
@@ -456,26 +602,27 @@ model StudyPlan {
 }
 
 model StudySession {
-  id               String             @id @default(uuid()) @db.Uuid
-  studentId        String             @db.Uuid
-  attendanceId     String?            @db.Uuid
-  linkedPlanId     String?            @db.Uuid
-  sessionDate      DateTime           @db.Date
-  status           StudySessionStatus @default(READY)
+  id               String              @id @default(uuid()) @db.Uuid
+  studentId        String              @db.Uuid
+  attendanceId     String?             @db.Uuid
+  linkedPlanId     String?             @db.Uuid
+  sessionDate      DateTime            @db.Date
+  status           StudySessionStatus  @default(READY)
   startedAt        DateTime?
   endedAt          DateTime?
-  studyMinutes     Int                @default(0)
-  studySeconds     Int                @default(0)
-  breakMinutes     Int                @default(0)
-  breakSeconds     Int                @default(0)
-  autoClosedReason String?            @db.VarChar(50)
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  student          Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  attendance       Attendance?        @relation(fields: [attendanceId], references: [id])
-  linkedPlan       StudyPlan?         @relation(fields: [linkedPlanId], references: [id])
+  studyMinutes     Int                 @default(0)
+  studySeconds     Int                 @default(0)
+  breakMinutes     Int                 @default(0)
+  breakSeconds     Int                 @default(0)
+  autoClosedReason String?             @db.VarChar(50)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  student          Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  attendance       Attendance?         @relation(fields: [attendanceId], references: [id])
+  linkedPlan       StudyPlan?          @relation(fields: [linkedPlanId], references: [id])
   studyBreaks      StudyBreak[]
   studyLogs        StudyLog[]
+  focusEvents      StudentFocusEvent[]
 
   @@index([studentId, sessionDate])
   @@index([attendanceId])
@@ -584,6 +731,335 @@ model MonthlyStudentMetric {
   @@map("monthly_student_metrics")
 }
 
+model StudentFocusMetric {
+  id                 String    @id @default(uuid()) @db.Uuid
+  studentId          String    @db.Uuid
+  metricDate         DateTime  @db.Date
+  eventCount         Int       @default(0)
+  returnCount        Int       @default(0)
+  totalAwaySeconds   Int       @default(0)
+  longestAwaySeconds Int       @default(0)
+  lastEventAt        DateTime?
+  lastSessionId      String?   @db.Uuid
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  student            Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, metricDate])
+  @@index([metricDate])
+  @@index([studentId])
+  @@map("student_focus_metrics")
+}
+
+model StudentFocusEvent {
+  id              String         @id @default(uuid()) @db.Uuid
+  studentId       String         @db.Uuid
+  studySessionId  String?        @db.Uuid
+  eventType       FocusEventType
+  eventDate       DateTime       @db.Date
+  occurredAt      DateTime       @default(now())
+  durationSeconds Int?
+  createdAt       DateTime       @default(now())
+  student         Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studySession    StudySession?  @relation(fields: [studySessionId], references: [id], onDelete: SetNull)
+
+  @@index([eventDate, eventType])
+  @@index([studentId, occurredAt])
+  @@index([studySessionId])
+  @@map("student_focus_events")
+}
+
+model StudentGoalRoadmap {
+  id              String             @id @default(uuid()) @db.Uuid
+  studentId       String             @db.Uuid
+  targetName      String             @db.VarChar(120)
+  targetDate      DateTime           @db.Date
+  targetType      String             @default("CUSTOM") @db.VarChar(40)
+  status          GoalRoadmapStatus  @default(ACTIVE)
+  reminderEnabled Boolean            @default(true)
+  reminderTime    String             @default("20:00") @db.VarChar(5)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  student         Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  milestones      RoadmapMilestone[]
+  missions        RoadmapMission[]
+
+  @@index([studentId, status])
+  @@index([targetDate])
+  @@map("student_goal_roadmaps")
+}
+
+model RoadmapMilestone {
+  id            String             @id @default(uuid()) @db.Uuid
+  roadmapId     String             @db.Uuid
+  title         String             @db.VarChar(160)
+  periodStart   DateTime           @db.Date
+  periodEnd     DateTime           @db.Date
+  targetMinutes Int                @default(0)
+  focusSubjects Json               @default("[]")
+  sortOrder     Int                @default(0)
+  createdAt     DateTime           @default(now())
+  roadmap       StudentGoalRoadmap @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+
+  @@index([roadmapId, sortOrder])
+  @@map("roadmap_milestones")
+}
+
+model RoadmapMission {
+  id            String               @id @default(uuid()) @db.Uuid
+  roadmapId     String               @db.Uuid
+  studentId     String               @db.Uuid
+  weekStartDate DateTime             @db.Date
+  title         String               @db.VarChar(180)
+  description   String?
+  focusSubjects Json                 @default("[]")
+  targetMinutes Int                  @default(0)
+  status        RoadmapMissionStatus @default(RECOMMENDED)
+  acceptedAt    DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  roadmap       StudentGoalRoadmap   @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  student       Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, weekStartDate])
+  @@index([roadmapId])
+  @@index([status])
+  @@map("roadmap_missions")
+}
+
+model InterventionQueueItem {
+  id           String                  @id @default(uuid()) @db.Uuid
+  studentId    String                  @db.Uuid
+  reasonType   InterventionReasonType
+  reasonDate   DateTime                @db.Date
+  severity     InterventionSeverity    @default(MEDIUM)
+  status       InterventionQueueStatus @default(OPEN)
+  message      String                  @db.VarChar(255)
+  actionType   InterventionActionType?
+  resolvedById String?                 @db.Uuid
+  resolvedAt   DateTime?
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+  student      Student                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resolvedBy   User?                   @relation("InterventionResolvedBy", fields: [resolvedById], references: [id])
+
+  @@unique([studentId, reasonType, reasonDate])
+  @@index([status, reasonDate])
+  @@index([studentId])
+  @@map("intervention_queue_items")
+}
+
+model DailyMissionTemplate {
+  id            String                @id @default(uuid()) @db.Uuid
+  gradeId       String?               @db.Uuid
+  classId       String?               @db.Uuid
+  title         String                @db.VarChar(160)
+  subjectName   String                @db.VarChar(80)
+  targetMinutes Int                   @default(60)
+  isActive      Boolean               @default(true)
+  sortOrder     Int                   @default(0)
+  createdById   String?               @db.Uuid
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  grade         Grade?                @relation(fields: [gradeId], references: [id], onDelete: SetNull)
+  class         Class?                @relation(fields: [classId], references: [id], onDelete: SetNull)
+  createdBy     User?                 @relation("DailyMissionTemplateCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  dailyMissions StudentDailyMission[]
+
+  @@index([gradeId, classId, isActive])
+  @@index([isActive, sortOrder])
+  @@map("daily_mission_templates")
+}
+
+model StudentDailyMission {
+  id               String                @id @default(uuid()) @db.Uuid
+  studentId        String                @db.Uuid
+  missionDate      DateTime              @db.Date
+  title            String                @db.VarChar(180)
+  subjectName      String                @db.VarChar(80)
+  targetMinutes    Int                   @default(60)
+  status           DailyMissionStatus    @default(ASSIGNED)
+  source           DailyMissionSource    @default(MIXED)
+  templateId       String?               @db.Uuid
+  roadmapMissionId String?               @db.Uuid
+  completedAt      DateTime?
+  completionMethod String?               @db.VarChar(40)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  student          Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  template         DailyMissionTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, missionDate])
+  @@index([missionDate, status])
+  @@index([templateId])
+  @@map("student_daily_missions")
+}
+
+model StudentAppEvent {
+  id         String       @id @default(uuid()) @db.Uuid
+  studentId  String       @db.Uuid
+  eventType  AppEventType
+  eventDate  DateTime     @db.Date
+  occurredAt DateTime     @default(now())
+  payload    Json?
+  student    Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([eventDate, eventType])
+  @@index([studentId, occurredAt])
+  @@map("student_app_events")
+}
+
+model OpsTask {
+  id              String               @id @default(uuid()) @db.Uuid
+  studentId       String               @db.Uuid
+  taskDate        DateTime             @db.Date
+  reasonType      OpsTaskReasonType
+  severity        OpsTaskSeverity      @default(MEDIUM)
+  status          OpsTaskStatus        @default(OPEN)
+  message         String               @db.VarChar(255)
+  sourceSnapshot  Json                 @default("{}")
+  resolvedById    String?              @db.Uuid
+  resolvedAt      DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  student         Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  resolvedBy      User?                @relation("OpsTaskResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+  actions         OpsTaskAction[]
+  parentReports   ParentActionReport[]
+  parentFollowUps ParentFollowUpTask[]
+
+  @@unique([studentId, taskDate, reasonType])
+  @@index([taskDate, status])
+  @@index([reasonType, severity])
+  @@map("ops_tasks")
+}
+
+model OpsTaskAction {
+  id          String            @id @default(uuid()) @db.Uuid
+  taskId      String            @db.Uuid
+  actorUserId String?           @db.Uuid
+  actionType  OpsTaskActionType
+  payload     Json              @default("{}")
+  createdAt   DateTime          @default(now())
+  task        OpsTask           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  actor       User?             @relation("OpsTaskActionActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([taskId, createdAt])
+  @@index([actionType])
+  @@map("ops_task_actions")
+}
+
+model ParentActionReport {
+  id        String    @id @default(uuid()) @db.Uuid
+  taskId    String    @db.Uuid
+  studentId String    @db.Uuid
+  tokenId   String    @unique @db.VarChar(64)
+  message   String    @db.VarChar(500)
+  expiresAt DateTime
+  viewedAt  DateTime?
+  createdAt DateTime  @default(now())
+  task      OpsTask   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  student   Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
+  @@index([expiresAt])
+  @@map("parent_action_reports")
+}
+
+model Guardian {
+  id                  String                     @id @default(uuid()) @db.Uuid
+  studentId           String                     @db.Uuid
+  name                String                     @db.VarChar(100)
+  relation            GuardianRelation           @default(GUARDIAN)
+  phone               String?                    @db.VarChar(30)
+  email               String?                    @db.VarChar(255)
+  isPrimary           Boolean                    @default(false)
+  memo                String?
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+  student             Student                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  consultations       ParentConsultation[]
+  followUps           ParentFollowUpTask[]
+  consultationReports ParentConsultationReport[]
+
+  @@index([studentId])
+  @@index([phone])
+  @@map("guardians")
+}
+
+model ParentConsultation {
+  id             String                     @id @default(uuid()) @db.Uuid
+  studentId      String                     @db.Uuid
+  guardianId     String?                    @db.Uuid
+  createdById    String?                    @db.Uuid
+  contactType    ConsultationContactType    @default(CALL)
+  direction      ConsultationDirection      @default(OUTBOUND)
+  occurredAt     DateTime                   @default(now())
+  summary        String                     @db.VarChar(255)
+  detail         String?
+  promisedAction String?                    @db.VarChar(500)
+  createdAt      DateTime                   @default(now())
+  updatedAt      DateTime                   @updatedAt
+  student        Student                    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guardian       Guardian?                  @relation(fields: [guardianId], references: [id], onDelete: SetNull)
+  createdBy      User?                      @relation("ParentConsultationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  followUps      ParentFollowUpTask[]
+  reports        ParentConsultationReport[]
+
+  @@index([studentId, occurredAt])
+  @@index([guardianId])
+  @@index([createdById])
+  @@map("parent_consultations")
+}
+
+model ParentFollowUpTask {
+  id              String               @id @default(uuid()) @db.Uuid
+  studentId       String               @db.Uuid
+  guardianId      String?              @db.Uuid
+  consultationId  String?              @db.Uuid
+  sourceOpsTaskId String?              @db.Uuid
+  assignedToId    String?              @db.Uuid
+  title           String               @db.VarChar(255)
+  dueAt           DateTime
+  status          ParentFollowUpStatus @default(OPEN)
+  completedAt     DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  student         Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guardian        Guardian?            @relation(fields: [guardianId], references: [id], onDelete: SetNull)
+  consultation    ParentConsultation?  @relation(fields: [consultationId], references: [id], onDelete: SetNull)
+  sourceOpsTask   OpsTask?             @relation(fields: [sourceOpsTaskId], references: [id], onDelete: SetNull)
+  assignedTo      User?                @relation("ParentFollowUpAssignedTo", fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([dueAt, status])
+  @@index([studentId, status])
+  @@index([guardianId])
+  @@index([consultationId])
+  @@index([sourceOpsTaskId])
+  @@map("parent_follow_up_tasks")
+}
+
+model ParentConsultationReport {
+  id             String             @id @default(uuid()) @db.Uuid
+  consultationId String             @db.Uuid
+  studentId      String             @db.Uuid
+  guardianId     String?            @db.Uuid
+  tokenId        String             @unique @db.VarChar(64)
+  message        String             @db.VarChar(500)
+  expiresAt      DateTime
+  viewedAt       DateTime?
+  createdAt      DateTime           @default(now())
+  consultation   ParentConsultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  student        Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  guardian       Guardian?          @relation(fields: [guardianId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, createdAt])
+  @@index([consultationId])
+  @@index([expiresAt])
+  @@map("parent_consultation_reports")
+}
+
 model RankingSnapshot {
   id          String                @id @default(uuid()) @db.Uuid
   rankingType RankingType
@@ -626,6 +1102,7 @@ model Badge {
   isActive      Boolean        @default(true)
   createdAt     DateTime       @default(now())
   studentBadges StudentBadge[]
+  rules         BadgeRule[]
 
   @@map("badges")
 }
@@ -770,6 +1247,8 @@ enum PointSource {
   STREAK_BONUS
   BADGE_EARNED
   ITEM_PURCHASE
+  DAILY_MISSION
+  LEVEL_UP_BONUS
   ADMIN_GRANT
 }
 
@@ -799,17 +1278,46 @@ enum ItemCategory {
   EXPRESSION
 }
 
+enum CharacterXpSource {
+  STUDY_SESSION
+  DAILY_MISSION
+  LEVEL_UP_BONUS
+  ADMIN_GRANT
+}
+
+enum MediaAssetKind {
+  TARGET_UNIVERSITY
+  HOME_BACKGROUND
+  CHECKIN_BACKGROUND
+}
+
+enum BadgeRuleMetric {
+  ATTENDANCE_STREAK_DAYS
+  DAILY_STUDY_MINUTES
+  DAILY_ACHIEVED_RATE
+  WEEKLY_STUDY_MINUTES
+  MONTHLY_STUDY_MINUTES
+  PROBLEMS_SOLVED
+  PAGES_COMPLETED
+}
+
+enum FocusPolicyMode {
+  SOFT_LOCK
+  ANDROID_DEVICE_OWNER
+  IOS_SCREEN_TIME
+}
+
 model CharacterItem {
-  id          String       @id @default(uuid()) @db.Uuid
-  category    ItemCategory
-  name        String       @db.VarChar(100)
-  description String?      @db.VarChar(255)
-  price       Int          @default(0)
-  svgKey      String       @db.VarChar(100)
-  sortOrder   Int          @default(0)
-  isDefault   Boolean      @default(false)
-  isActive    Boolean      @default(true)
-  createdAt   DateTime     @default(now())
+  id           String        @id @default(uuid()) @db.Uuid
+  category     ItemCategory
+  name         String        @db.VarChar(100)
+  description  String?       @db.VarChar(255)
+  price        Int           @default(0)
+  svgKey       String        @db.VarChar(100)
+  sortOrder    Int           @default(0)
+  isDefault    Boolean       @default(false)
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
   studentItems StudentItem[]
 
   @@index([category])
@@ -830,16 +1338,90 @@ model StudentItem {
 }
 
 model StudentCharacter {
-  id           String  @id @default(uuid()) @db.Uuid
-  studentId    String  @unique @db.Uuid
-  hatItemId    String? @db.Uuid
-  glassesItemId String? @db.Uuid
-  outfitItemId String? @db.Uuid
-  bgItemId     String? @db.Uuid
-  expressionItemId String? @db.Uuid
-  student      Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String    @id @default(uuid()) @db.Uuid
+  studentId        String    @unique @db.Uuid
+  hatItemId        String?   @db.Uuid
+  glassesItemId    String?   @db.Uuid
+  outfitItemId     String?   @db.Uuid
+  bgItemId         String?   @db.Uuid
+  expressionItemId String?   @db.Uuid
+  level            Int       @default(1)
+  xp               Int       @default(0)
+  growthStage      String    @default("stage_01") @db.VarChar(40)
+  lastLevelUpAt    DateTime?
+  student          Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@map("student_characters")
+}
+
+model CharacterXpTransaction {
+  id           String            @id @default(uuid()) @db.Uuid
+  studentId    String            @db.Uuid
+  source       CharacterXpSource
+  amount       Int
+  points       Int               @default(0)
+  levelBefore  Int               @default(1)
+  levelAfter   Int               @default(1)
+  xpAfter      Int               @default(0)
+  balanceAfter Int
+  referenceKey String            @db.VarChar(160)
+  memo         String?           @db.VarChar(255)
+  createdAt    DateTime          @default(now())
+  student      Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, referenceKey])
+  @@index([studentId, createdAt])
+  @@map("character_xp_transactions")
+}
+
+// ─── Motivation Personalization ─────────────────────
+
+model MediaAsset {
+  id           String         @id @default(uuid()) @db.Uuid
+  studentId    String         @db.Uuid
+  kind         MediaAssetKind
+  originalName String         @db.VarChar(255)
+  mimeType     String         @db.VarChar(100)
+  byteSize     Int
+  storageKey   String         @unique @db.VarChar(500)
+  publicUrl    String         @db.VarChar(700)
+  createdAt    DateTime       @default(now())
+  student      Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, kind])
+  @@map("media_assets")
+}
+
+model BadgeRule {
+  id         String          @id @default(uuid()) @db.Uuid
+  badgeId    String          @db.Uuid
+  metric     BadgeRuleMetric
+  threshold  Int
+  windowDays Int?
+  isActive   Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  badge      Badge           @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@index([badgeId])
+  @@index([metric, isActive])
+  @@map("badge_rules")
+}
+
+model FocusPolicy {
+  id                    String          @id @default(uuid()) @db.Uuid
+  policyName            String          @db.VarChar(100)
+  mode                  FocusPolicyMode @default(SOFT_LOCK)
+  isEnabled             Boolean         @default(false)
+  blockedPackages       Json            @default("[]")
+  allowedPackages       Json            @default("[]")
+  graceSeconds          Int             @default(15)
+  opsQueueThreshold     Int             @default(2)
+  parentReportThreshold Int             @default(3)
+  updatedAt             DateTime        @updatedAt
+  createdAt             DateTime        @default(now())
+
+  @@map("focus_policies")
 }

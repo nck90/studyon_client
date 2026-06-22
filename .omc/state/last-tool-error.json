@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"deploy list 2>&1 | head -20; echo '---'; ls -la /Users/bagjun-won/studyon/.deploy 2>&1; ls /Users/bagjun-won/studyon/apps/api/.deploy 2>&1\",\"description\":\"List deploy projects and check pr...",
+  "error": "Exit code 1\nerror: unknown command 'list'\n---\nls: /Users/bagjun-won/studyon/.deploy: No such file or directory\nls: /Users/bagjun-won/studyon/apps/api/.deploy: No such file or directory",
+  "timestamp": "2026-05-01T00:10:38.309Z",
+  "retry_count": 1
+}

@@ -107,38 +107,44 @@ async function main() {
     },
   });
 
-  await prisma.attendancePolicy.create({
-    data: {
-      policyName: 'Default Attendance Policy',
-      lateCutoffTime: '09:00',
-      earlyLeaveCutoffTime: '22:00',
-      autoCheckoutEnabled: false,
-      isActive: true,
-      createdById: adminUser.id,
-    },
-  }).catch(() => undefined);
+  await prisma.attendancePolicy
+    .create({
+      data: {
+        policyName: 'Default Attendance Policy',
+        lateCutoffTime: '09:00',
+        earlyLeaveCutoffTime: '22:00',
+        autoCheckoutEnabled: false,
+        isActive: true,
+        createdById: adminUser.id,
+      },
+    })
+    .catch(() => undefined);
 
-  await prisma.rankingPolicy.create({
-    data: {
-      policyName: 'Default Ranking Policy',
-      studyTimeWeight: 1,
-      studyVolumeWeight: 1,
-      attendanceWeight: 1,
-      tieBreakerRule: { order: ['score', 'subScore1', 'subScore2'] },
-      isActive: true,
-      createdById: adminUser.id,
-    },
-  }).catch(() => undefined);
+  await prisma.rankingPolicy
+    .create({
+      data: {
+        policyName: 'Default Ranking Policy',
+        studyTimeWeight: 1,
+        studyVolumeWeight: 1,
+        attendanceWeight: 1,
+        tieBreakerRule: { order: ['score', 'subScore1', 'subScore2'] },
+        isActive: true,
+        createdById: adminUser.id,
+      },
+    })
+    .catch(() => undefined);
 
-  await prisma.tvDisplaySetting.create({
-    data: {
-      activeScreen: 'RANKING',
-      rotationEnabled: true,
-      rotationIntervalSeconds: 30,
-      displayOptions: { rankingType: 'STUDY_TIME', periodType: 'DAILY' },
-      updatedById: adminUser.id,
-    },
-  }).catch(() => undefined);
+  await prisma.tvDisplaySetting
+    .create({
+      data: {
+        activeScreen: 'RANKING',
+        rotationEnabled: true,
+        rotationIntervalSeconds: 30,
+        displayOptions: { rankingType: 'STUDY_TIME', periodType: 'DAILY' },
+        updatedById: adminUser.id,
+      },
+    })
+    .catch(() => undefined);
 
   await prisma.badge.upsert({
     where: { code: 'ATTENDANCE_STARTER' },
@@ -200,33 +206,199 @@ async function main() {
     },
   });
 
+  const seededBadges = await prisma.badge.findMany({
+    where: {
+      code: { in: ['ATTENDANCE_STREAK_7', 'STUDY_5H', 'GOAL_ACHIEVER'] },
+    },
+  });
+  const badgeByCode = new Map(seededBadges.map((badge) => [badge.code, badge]));
+  const badgeRules = [
+    {
+      code: 'ATTENDANCE_STREAK_7',
+      metric: 'ATTENDANCE_STREAK_DAYS',
+      threshold: 7,
+    },
+    { code: 'STUDY_5H', metric: 'DAILY_STUDY_MINUTES', threshold: 300 },
+    { code: 'GOAL_ACHIEVER', metric: 'DAILY_ACHIEVED_RATE', threshold: 100 },
+  ] as const;
+  for (const rule of badgeRules) {
+    const badge = badgeByCode.get(rule.code);
+    if (!badge) continue;
+    const existing = await prisma.badgeRule.findFirst({
+      where: { badgeId: badge.id, metric: rule.metric },
+    });
+    if (existing) continue;
+    await prisma.badgeRule.create({
+      data: {
+        badgeId: badge.id,
+        metric: rule.metric,
+        threshold: rule.threshold,
+        isActive: true,
+      },
+    });
+  }
+
+  const existingFocusPolicy = await prisma.focusPolicy.findFirst();
+  if (!existingFocusPolicy) {
+    await prisma.focusPolicy.create({
+      data: {
+        policyName: '기본 집중모드 정책',
+        mode: 'SOFT_LOCK',
+        isEnabled: false,
+        blockedPackages: [],
+        allowedPackages: [],
+      },
+    });
+  }
+
   // ─── Character Items Seed ───
   const characterItems = [
     // HAT
-    { category: 'HAT', name: '야구모자', price: 100, svgKey: 'hat_cap', sortOrder: 1 },
-    { category: 'HAT', name: '왕관', price: 500, svgKey: 'hat_crown', sortOrder: 2 },
-    { category: 'HAT', name: '졸업모', price: 300, svgKey: 'hat_grad', sortOrder: 3 },
-    { category: 'HAT', name: '고양이귀', price: 200, svgKey: 'hat_catears', sortOrder: 4 },
+    {
+      category: 'HAT',
+      name: '야구모자',
+      price: 100,
+      svgKey: 'hat_cap',
+      sortOrder: 1,
+    },
+    {
+      category: 'HAT',
+      name: '왕관',
+      price: 500,
+      svgKey: 'hat_crown',
+      sortOrder: 2,
+    },
+    {
+      category: 'HAT',
+      name: '졸업모',
+      price: 300,
+      svgKey: 'hat_grad',
+      sortOrder: 3,
+    },
+    {
+      category: 'HAT',
+      name: '고양이귀',
+      price: 200,
+      svgKey: 'hat_catears',
+      sortOrder: 4,
+    },
     // GLASSES
-    { category: 'GLASSES', name: '둥근안경', price: 100, svgKey: 'glasses_round', sortOrder: 1 },
-    { category: 'GLASSES', name: '선글라스', price: 200, svgKey: 'glasses_sun', sortOrder: 2 },
-    { category: 'GLASSES', name: '하트안경', price: 300, svgKey: 'glasses_heart', sortOrder: 3 },
-    { category: 'GLASSES', name: 'VR 헤드셋', price: 500, svgKey: 'glasses_vr', sortOrder: 4 },
+    {
+      category: 'GLASSES',
+      name: '둥근안경',
+      price: 100,
+      svgKey: 'glasses_round',
+      sortOrder: 1,
+    },
+    {
+      category: 'GLASSES',
+      name: '선글라스',
+      price: 200,
+      svgKey: 'glasses_sun',
+      sortOrder: 2,
+    },
+    {
+      category: 'GLASSES',
+      name: '하트안경',
+      price: 300,
+      svgKey: 'glasses_heart',
+      sortOrder: 3,
+    },
+    {
+      category: 'GLASSES',
+      name: 'VR 헤드셋',
+      price: 500,
+      svgKey: 'glasses_vr',
+      sortOrder: 4,
+    },
     // OUTFIT
-    { category: 'OUTFIT', name: '후디', price: 200, svgKey: 'outfit_hoodie', sortOrder: 1 },
-    { category: 'OUTFIT', name: '교복', price: 100, svgKey: 'outfit_uniform', sortOrder: 2 },
-    { category: 'OUTFIT', name: '슈퍼히어로', price: 500, svgKey: 'outfit_hero', sortOrder: 3 },
-    { category: 'OUTFIT', name: '한복', price: 300, svgKey: 'outfit_hanbok', sortOrder: 4 },
+    {
+      category: 'OUTFIT',
+      name: '후디',
+      price: 200,
+      svgKey: 'outfit_hoodie',
+      sortOrder: 1,
+    },
+    {
+      category: 'OUTFIT',
+      name: '교복',
+      price: 100,
+      svgKey: 'outfit_uniform',
+      sortOrder: 2,
+    },
+    {
+      category: 'OUTFIT',
+      name: '슈퍼히어로',
+      price: 500,
+      svgKey: 'outfit_hero',
+      sortOrder: 3,
+    },
+    {
+      category: 'OUTFIT',
+      name: '한복',
+      price: 300,
+      svgKey: 'outfit_hanbok',
+      sortOrder: 4,
+    },
     // BACKGROUND
-    { category: 'BACKGROUND', name: '하늘', price: 100, svgKey: 'bg_sky', sortOrder: 1 },
-    { category: 'BACKGROUND', name: '우주', price: 300, svgKey: 'bg_space', sortOrder: 2 },
-    { category: 'BACKGROUND', name: '벚꽃', price: 200, svgKey: 'bg_sakura', sortOrder: 3 },
-    { category: 'BACKGROUND', name: '무지개', price: 500, svgKey: 'bg_rainbow', sortOrder: 4 },
+    {
+      category: 'BACKGROUND',
+      name: '하늘',
+      price: 100,
+      svgKey: 'bg_sky',
+      sortOrder: 1,
+    },
+    {
+      category: 'BACKGROUND',
+      name: '우주',
+      price: 300,
+      svgKey: 'bg_space',
+      sortOrder: 2,
+    },
+    {
+      category: 'BACKGROUND',
+      name: '벚꽃',
+      price: 200,
+      svgKey: 'bg_sakura',
+      sortOrder: 3,
+    },
+    {
+      category: 'BACKGROUND',
+      name: '무지개',
+      price: 500,
+      svgKey: 'bg_rainbow',
+      sortOrder: 4,
+    },
     // EXPRESSION
-    { category: 'EXPRESSION', name: '웃음', price: 0, svgKey: 'expr_smile', sortOrder: 1, isDefault: true },
-    { category: 'EXPRESSION', name: '졸림', price: 100, svgKey: 'expr_sleepy', sortOrder: 2 },
-    { category: 'EXPRESSION', name: '화남', price: 100, svgKey: 'expr_angry', sortOrder: 3 },
-    { category: 'EXPRESSION', name: '하트눈', price: 200, svgKey: 'expr_heartEyes', sortOrder: 4 },
+    {
+      category: 'EXPRESSION',
+      name: '웃음',
+      price: 0,
+      svgKey: 'expr_smile',
+      sortOrder: 1,
+      isDefault: true,
+    },
+    {
+      category: 'EXPRESSION',
+      name: '졸림',
+      price: 100,
+      svgKey: 'expr_sleepy',
+      sortOrder: 2,
+    },
+    {
+      category: 'EXPRESSION',
+      name: '화남',
+      price: 100,
+      svgKey: 'expr_angry',
+      sortOrder: 3,
+    },
+    {
+      category: 'EXPRESSION',
+      name: '하트눈',
+      price: 200,
+      svgKey: 'expr_heartEyes',
+      sortOrder: 4,
+    },
   ] as const;
 
   const existingItems = await prisma.characterItem.count();

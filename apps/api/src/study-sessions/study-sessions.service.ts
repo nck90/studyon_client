@@ -1,9 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import {
+  CharacterXpSource,
   NotificationChannel,
   NotificationType,
   StudySessionStatus,
 } from '@prisma/client';
+import { CharactersService } from '@/characters/characters.service';
 import { dateOnly, diffSeconds } from '@/common/utils/date.util';
 import { PrismaService } from '@/database/prisma.service';
 import { NotificationsService } from '@/notifications/notifications.service';
@@ -15,6 +17,7 @@ export class StudySessionsService {
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly pointsService: PointsService,
+    private readonly charactersService: CharactersService,
   ) {}
 
   active(studentId: string) {
@@ -223,6 +226,13 @@ export class StudySessionsService {
       result.id,
       result.studySeconds,
     );
+    const xpReward = await this.charactersService.awardXp(
+      studentId,
+      Math.min(60, Math.floor(result.studySeconds / 600)),
+      CharacterXpSource.STUDY_SESSION,
+      `study-session:${result.id}`,
+      `타이머 공부 ${result.studyMinutes}분`,
+    );
 
     await this.notifyStudent(
       studentId,
@@ -230,7 +240,22 @@ export class StudySessionsService {
       `이번 세션에서 ${result.studyMinutes}분 공부를 기록했어요.`,
     );
 
-    return { success: true, data: this.serializeSession(result), meta: {} };
+    return {
+      success: true,
+      data: {
+        ...this.serializeSession(result),
+        reward: {
+          points: 0,
+          xp: xpReward.duplicate
+            ? 0
+            : Math.min(60, Math.floor(result.studySeconds / 600)),
+          leveledUp: xpReward.leveledUp,
+          level: xpReward.level,
+          xpToNext: xpReward.xpToNext,
+        },
+      },
+      meta: {},
+    };
   }
 
   list(studentId: string, startDate?: string, endDate?: string) {

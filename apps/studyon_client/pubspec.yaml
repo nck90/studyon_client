@@ -2,7 +2,7 @@ name: studyon_client
 description: "StudyON admin client app"
 publish_to: 'none'
 
-version: 1.0.2+7
+version: 1.0.4+9
 
 environment:
   sdk: ^3.10.1
@@ -29,6 +29,9 @@ dependencies:
     path: ../../packages/api_client
   studyon_auth:
     path: ../../packages/auth
+  flutter_local_notifications: ^21.0.0
+  timezone: ^0.11.0
+  flutter_timezone: ^5.0.2
 
 dev_dependencies:
   flutter_test:
@@ -41,6 +44,7 @@ flutter:
   assets:
     - assets/fonts/
     - assets/images/
+    - assets/images/rpg/
 
   fonts:
     - family: TossFace

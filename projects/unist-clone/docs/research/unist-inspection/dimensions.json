@@ -1,0 +1,81 @@
+{
+  "bodyScrollHeight": 8462,
+  "documentScrollHeight": 8462,
+  "innerHeight": 900,
+  "innerWidth": 1440,
+  "sectionCount": 8,
+  "sections": [
+    {
+      "tag": "div",
+      "id": null,
+      "className": "people-vi-swiper swiper swiper-container-initialized swiper-container-horizontal",
+      "top": 86,
+      "left": 97,
+      "width": 1247,
+      "height": 487
+    },
+    {
+      "tag": "div",
+      "id": null,
+      "className": "main-vi-swiper swiper swiper-container-initialized swiper-container-horizontal",
+      "top": 0,
+      "left": 0,
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "tag": "div",
+      "id": null,
+      "className": "swiper-inner01-01 swiper",
+      "top": 256,
+      "left": 1440,
+      "width": 1440,
+      "height": 357
+    },
+    {
+      "tag": "div",
+      "id": null,
+      "className": "swiper-inner01-02 swiper",
+      "top": 574,
+      "left": 1474,
+      "width": 1474,
+      "height": 357
+    },
+    {
+      "tag": "div",
+      "id": null,
+      "className": "swiper-inner02 swiper swiper-container-initialized swiper-container-horizontal",
+      "top": 1260,
+      "left": 0,
+      "width": 837,
+      "height": 400
+    },
+    {
+      "tag": "div",
+      "id": null,
+      "className": "cont experience-swiper swiper",
+      "top": 2531,
+      "left": 0,
+      "width": 1440,
+      "height": 680
+    },
+    {
+      "tag": "div",
+      "id": null,
+      "className": "swiper-inner04 swiper swiper-container-initialized swiper-container-horizontal aos-init",
+      "top": 3134,
+      "left": 0,
+      "width": 1440,
+      "height": 685
+    },
+    {
+      "tag": "div",
+      "id": null,
+      "className": "swiper-inner06 swiper swiper-container-initialized swiper-container-horizontal aos-init",
+      "top": 7497,
+      "left": 0,
+      "width": 1440,
+      "height": 442
+    }
+  ]
+}

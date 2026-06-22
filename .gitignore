@@ -34,3 +34,6 @@
 
 # Misc
 *.log
+**/store-release.local.json
+**/fastlane/*.p8
+**/fastlane/api_key.json

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:studyon_design_system/studyon_design_system.dart';
 
 import '../../../shared/providers/student_providers.dart';
@@ -72,6 +73,12 @@ class _RecordsScreenState extends ConsumerState<RecordsScreen> {
                 children: [
                   Text('내 기록', style: AppTypography.headlineLarge),
                   const Spacer(),
+                  TextButton.icon(
+                    onPressed: () => context.push('/student/weekly-review'),
+                    icon: const Icon(Icons.auto_graph_rounded, size: 16),
+                    label: const Text('주간 회고'),
+                  ),
+                  const SizedBox(width: 8),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

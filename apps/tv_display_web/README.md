@@ -1,6 +1,6 @@
 # STUDYON TV Display Web
 
-TV 디스플레이용 Next.js 16 앱이다. 현재는 standalone 배포 기준으로 빌드할 수 있게 준비되어 있다.
+TV 디스플레이용 Next.js 16 앱이다. 학원 TV에서 실시간 랭킹, 좌석 현황, 메시지, 시계를 자동 순환 표시한다.
 
 ## Local run
 
@@ -34,5 +34,6 @@ PORT=11112 HOSTNAME=0.0.0.0 node .next/standalone/server.js
 
 - `PORT`: server port
 - `HOSTNAME`: bind address
+- `API_URL`: backend origin for `/api/*` rewrite target
 
 예시는 [.env.example](/Users/bagjun-won/studyon/apps/tv_display_web/.env.example:1)에 있다.

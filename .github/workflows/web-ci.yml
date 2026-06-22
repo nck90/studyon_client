@@ -1,0 +1,45 @@
+name: web-ci
+
+on:
+  push:
+    paths:
+      - "apps/admin_web/**"
+      - "apps/tv_display_web/**"
+      - ".github/workflows/web-ci.yml"
+  pull_request:
+    paths:
+      - "apps/admin_web/**"
+      - "apps/tv_display_web/**"
+      - ".github/workflows/web-ci.yml"
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        app:
+          - apps/admin_web
+          - apps/tv_display_web
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.app }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+
+      - name: Build
+        run: npm run build

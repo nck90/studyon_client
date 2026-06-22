@@ -1,5 +1,6 @@
 import { StudySessionStatus } from '@prisma/client';
 import { PrismaService } from '@/database/prisma.service';
+import { CharactersService } from '@/characters/characters.service';
 import { NotificationsService } from '@/notifications/notifications.service';
 import { PointsService } from '@/points/points.service';
 import { StudySessionsService } from './study-sessions.service';
@@ -17,6 +18,9 @@ describe('StudySessionsService', () => {
   let pointsService: {
     awardStudySessionTime: jest.Mock;
   };
+  let charactersService: {
+    awardXp: jest.Mock;
+  };
 
   beforeEach(() => {
     jest.useFakeTimers().setSystemTime(new Date('2026-04-30T10:00:00.000Z'));
@@ -32,10 +36,14 @@ describe('StudySessionsService', () => {
     pointsService = {
       awardStudySessionTime: jest.fn().mockResolvedValue(100),
     };
+    charactersService = {
+      awardXp: jest.fn().mockResolvedValue({ leveledUp: false }),
+    };
     service = new StudySessionsService(
       prisma as unknown as PrismaService,
       notificationsService as unknown as NotificationsService,
       pointsService as unknown as PointsService,
+      charactersService as unknown as CharactersService,
     );
     prisma.student.findUnique.mockResolvedValue({ userId: 'user-1' });
   });
@@ -102,6 +110,13 @@ describe('StudySessionsService', () => {
       'student-1',
       'session-1',
       1800,
+    );
+    expect(charactersService.awardXp).toHaveBeenCalledWith(
+      'student-1',
+      3,
+      'STUDY_SESSION',
+      'study-session:session-1',
+      '타이머 공부 30분',
     );
     expect(result.data.studySeconds).toBe(1800);
     expect(result.data.studyMinutes).toBe(30);

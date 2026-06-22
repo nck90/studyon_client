@@ -3,15 +3,15 @@ services:
     image: postgres:16-alpine
     container_name: studyon-postgres
     environment:
-      POSTGRES_USER: studyon
-      POSTGRES_PASSWORD: studyon
-      POSTGRES_DB: studyon
+      POSTGRES_USER: ${POSTGRES_USER:-studyon}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-studyon}
+      POSTGRES_DB: ${POSTGRES_DB:-studyon}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - studyon-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U studyon -d studyon"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,7 +20,7 @@ services:
     image: redis:7-alpine
     container_name: studyon-redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
     command: redis-server --appendonly yes
     volumes:
       - studyon-redis-data:/data
@@ -40,17 +40,102 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    env_file:
-      - ../../apps/api/.env.example
     environment:
-      DATABASE_URL: postgresql://studyon:studyon@postgres:5432/studyon?schema=public
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      APP_NAME: ${APP_NAME:-STUDYON API}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:11111,http://localhost:11112,http://localhost:11113}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-studyon}:${POSTGRES_PASSWORD:-studyon}@postgres:5432/${POSTGRES_DB:-studyon}?schema=public
       REDIS_URL: redis://redis:6379
-      NODE_ENV: production
-      LOG_LEVEL: info
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-access-secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh-secret}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-30d}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      RATE_LIMIT_TTL: ${RATE_LIMIT_TTL:-60000}
+      RATE_LIMIT_LIMIT: ${RATE_LIMIT_LIMIT:-100}
+      AUTO_LOGOUT_ENABLED: ${AUTO_LOGOUT_ENABLED:-true}
+      SESSION_IDLE_TIMEOUT_MINUTES: ${SESSION_IDLE_TIMEOUT_MINUTES:-120}
+      PARENT_PORTAL_SECRET: ${PARENT_PORTAL_SECRET:-change-me-parent-portal-secret}
+      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL:-admin@studyon.local}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-ChangeMe123!}
+      MEDIA_UPLOAD_DIR: /var/lib/studyon/student-media
     ports:
-      - "3000:3000"
+      - "${API_PORT:-3000}:3000"
+    volumes:
+      - studyon-media-data:/var/lib/studyon/student-media
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/v1/health >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  admin_web:
+    build:
+      context: ../../apps/admin_web
+      dockerfile: Dockerfile
+      args:
+        API_URL: ${ADMIN_API_URL:-http://api:3000}
+        NEXT_PUBLIC_PARENT_WEB_URL: ${PARENT_WEB_PUBLIC_URL:-http://localhost:11113}
+    container_name: studyon-admin-web
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 11111
+      HOSTNAME: 0.0.0.0
+      API_URL: ${ADMIN_API_URL:-http://api:3000}
+      NEXT_PUBLIC_PARENT_WEB_URL: ${PARENT_WEB_PUBLIC_URL:-http://localhost:11113}
+    ports:
+      - "${ADMIN_WEB_PORT:-11111}:11111"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:11111 >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  tv_display_web:
+    build:
+      context: ../../apps/tv_display_web
+      dockerfile: Dockerfile
+      args:
+        API_URL: ${TV_API_URL:-http://api:3000}
+    container_name: studyon-tv-display-web
+    environment:
+      NODE_ENV: production
+      PORT: 11112
+      HOSTNAME: 0.0.0.0
+      API_URL: ${TV_API_URL:-http://api:3000}
+    ports:
+      - "${TV_WEB_PORT:-11112}:11112"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:11112 >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  parent_web:
+    build:
+      context: ../../apps/parent_web
+      dockerfile: Dockerfile
+      args:
+        API_URL: ${PARENT_API_URL:-http://api:3000}
+    container_name: studyon-parent-web
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 11113
+      HOSTNAME: 0.0.0.0
+      API_URL: ${PARENT_API_URL:-http://api:3000}
+    ports:
+      - "${PARENT_WEB_PORT:-11113}:11113"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:11113 >/dev/null 2>&1 || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
@@ -58,3 +143,4 @@ services:
 volumes:
   studyon-postgres-data:
   studyon-redis-data:
+  studyon-media-data:

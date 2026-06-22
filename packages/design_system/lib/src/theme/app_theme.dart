@@ -6,6 +6,50 @@ import 'app_spacing.dart';
 class AppTheme {
   const AppTheme._();
 
+  static const Map<String, Color> themeSeeds = {
+    'default': AppColors.primary,
+    'mint': AppColors.accent,
+    'sky': Color(0xFF0984E3),
+    'coral': AppColors.hot,
+    'night': Color(0xFF4C6FFF),
+  };
+
+  static ThemeData byPreset({required String preset, required bool darkMode}) {
+    final normalized = themeSeeds.containsKey(preset) ? preset : 'default';
+    final seed = themeSeeds[normalized] ?? AppColors.primary;
+    final base = darkMode || normalized == 'night' ? dark : light;
+    return base.copyWith(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: seed,
+        brightness: darkMode || normalized == 'night'
+            ? Brightness.dark
+            : Brightness.light,
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(color: seed),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          return states.contains(WidgetState.selected) ? seed : null;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          return states.contains(WidgetState.selected)
+              ? seed.withValues(alpha: 0.38)
+              : null;
+        }),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: seed,
+          foregroundColor: AppColors.textOnPrimary,
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            fontFamily: 'Pretendard',
+          ),
+        ),
+      ),
+    );
+  }
+
   static ThemeData get light => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
@@ -35,7 +79,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
         ),
         textStyle: const TextStyle(
-          fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.2,
         ),
       ),
     ),
@@ -91,8 +137,11 @@ class AppTheme {
       centerTitle: false,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       titleTextStyle: TextStyle(
-        fontSize: 18, fontWeight: FontWeight.w700,
-        color: AppColors.textPrimary, letterSpacing: -0.3, fontFamily: 'Pretendard',
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textPrimary,
+        letterSpacing: -0.3,
+        fontFamily: 'Pretendard',
       ),
     ),
 
@@ -102,12 +151,22 @@ class AppTheme {
       unselectedItemColor: AppColors.textTertiary,
       type: BottomNavigationBarType.fixed,
       elevation: 0,
-      selectedLabelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, fontFamily: 'Pretendard'),
-      unselectedLabelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w400, fontFamily: 'Pretendard'),
+      selectedLabelStyle: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        fontFamily: 'Pretendard',
+      ),
+      unselectedLabelStyle: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w400,
+        fontFamily: 'Pretendard',
+      ),
     ),
 
     dividerTheme: const DividerThemeData(
-      color: AppColors.divider, thickness: 1, space: 0,
+      color: AppColors.divider,
+      thickness: 1,
+      space: 0,
     ),
 
     chipTheme: ChipThemeData(
@@ -159,11 +218,14 @@ class AppTheme {
       selectedIconTheme: IconThemeData(color: AppColors.primary),
       unselectedIconTheme: IconThemeData(color: AppColors.textTertiary),
       selectedLabelTextStyle: TextStyle(
-        color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600,
+        color: AppColors.primary,
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
         fontFamily: 'Pretendard',
       ),
       unselectedLabelTextStyle: TextStyle(
-        color: AppColors.textTertiary, fontSize: 12,
+        color: AppColors.textTertiary,
+        fontSize: 12,
         fontFamily: 'Pretendard',
       ),
     ),
@@ -196,7 +258,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
         ),
         textStyle: const TextStyle(
-          fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.2,
         ),
       ),
     ),
@@ -252,8 +316,11 @@ class AppTheme {
       centerTitle: false,
       systemOverlayStyle: SystemUiOverlayStyle.light,
       titleTextStyle: TextStyle(
-        fontSize: 18, fontWeight: FontWeight.w700,
-        color: AppColors.darkText, letterSpacing: -0.3, fontFamily: 'Pretendard',
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        color: AppColors.darkText,
+        letterSpacing: -0.3,
+        fontFamily: 'Pretendard',
       ),
     ),
 
@@ -263,12 +330,22 @@ class AppTheme {
       unselectedItemColor: AppColors.darkTextSub,
       type: BottomNavigationBarType.fixed,
       elevation: 0,
-      selectedLabelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, fontFamily: 'Pretendard'),
-      unselectedLabelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w400, fontFamily: 'Pretendard'),
+      selectedLabelStyle: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        fontFamily: 'Pretendard',
+      ),
+      unselectedLabelStyle: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w400,
+        fontFamily: 'Pretendard',
+      ),
     ),
 
     dividerTheme: const DividerThemeData(
-      color: AppColors.darkCard, thickness: 1, space: 0,
+      color: AppColors.darkCard,
+      thickness: 1,
+      space: 0,
     ),
 
     chipTheme: ChipThemeData(
@@ -320,11 +397,14 @@ class AppTheme {
       selectedIconTheme: IconThemeData(color: AppColors.primary),
       unselectedIconTheme: IconThemeData(color: AppColors.darkTextSub),
       selectedLabelTextStyle: TextStyle(
-        color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.w600,
+        color: AppColors.primary,
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
         fontFamily: 'Pretendard',
       ),
       unselectedLabelTextStyle: TextStyle(
-        color: AppColors.darkTextSub, fontSize: 12,
+        color: AppColors.darkTextSub,
+        fontSize: 12,
         fontFamily: 'Pretendard',
       ),
     ),

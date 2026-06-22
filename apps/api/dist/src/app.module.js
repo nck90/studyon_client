@@ -38,6 +38,7 @@ const metrics_module_1 = require("./metrics/metrics.module");
 const parent_module_1 = require("./parent/parent.module");
 const points_module_1 = require("./points/points.module");
 const characters_module_1 = require("./characters/characters.module");
+const media_module_1 = require("./media/media.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -92,6 +93,7 @@ exports.AppModule = AppModule = __decorate([
             parent_module_1.ParentModule,
             points_module_1.PointsModule,
             characters_module_1.CharactersModule,
+            media_module_1.MediaModule,
             admin_module_1.AdminModule,
         ],
     })

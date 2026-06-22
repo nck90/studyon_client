@@ -52,4 +52,19 @@ export class ParentController {
   ) {
     return this.parentService.getStudyReport(authorization, startDate, endDate);
   }
+
+  @Public()
+  @Get('parent/action-report')
+  actionReport(
+    @Headers('authorization') authorization?: string,
+    @Query('token') token?: string,
+  ) {
+    return this.parentService.getActionReport(authorization, token);
+  }
+
+  @Public()
+  @Get('parent/consultation-report')
+  consultationReport(@Query('token') token?: string) {
+    return this.parentService.getConsultationReport(token);
+  }
 }

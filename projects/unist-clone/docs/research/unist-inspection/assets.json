@@ -1,0 +1,1162 @@
+{
+  "stylesheets": [
+    "https://www.unist.ac.kr/_res/_common/css/cms.css",
+    "https://www.unist.ac.kr/_res/unist/_share/css/cms-common.css?01860",
+    "https://unpkg.com/aos@2.3.1/dist/aos.css",
+    "https://unpkg.com/lenis@1.3.13/dist/lenis.css",
+    "https://www.unist.ac.kr/_res/unist/_share/css/swiper.css",
+    "https://www.unist.ac.kr/_res/unist/unist/css/life-at-unist-management.widget.css?04066",
+    "https://www.unist.ac.kr/_res/unist/unist/css/cms-common.css?20590",
+    "https://www.unist.ac.kr/_res/unist/unist/css/main-content-02.content.css?14065",
+    "https://www.unist.ac.kr/_res/unist/unist/css/footer.content.css?97176",
+    "https://www.unist.ac.kr/_res/unist/unist/css/main-content-03-demo2.content.css?40090",
+    "https://www.unist.ac.kr/_res/unist/unist/css/main-content-01-widget-translation.content.css?81173",
+    "https://www.unist.ac.kr/_res/unist/unist/css/main-content-04-widget-translation.content.css?81259",
+    "https://www.unist.ac.kr/_res/unist/unist/css/main-content-05.content.css?07076",
+    "https://www.unist.ac.kr/_res/unist/unist/css/main-content-06.content.css?81291",
+    "https://www.unist.ac.kr/_res/unist/unist/css/unist_youtube.content.css?29442",
+    "https://www.unist.ac.kr/_res/unist/unist/css/header.content.css?53042"
+  ],
+  "scripts": [
+    "https://www.youtube.com/s/player/4b0d80ee/www-widgetapi.vflset/www-widgetapi.js",
+    "https://www.unist.ac.kr/_res/_common/js/jquery/jquery-2.2.4.min.js",
+    "https://www.unist.ac.kr/_res/_common/js/jquery/jquery-ui-1.12.1.min.js",
+    "https://www.unist.ac.kr/_res/_common/js/cms.js?11989",
+    "https://www.unist.ac.kr/_res/unist/_share/js/cms-common.js?28875",
+    "https://www.unist.ac.kr/_res/unist/unist/js/cms-common.js?21125",
+    "https://unpkg.com/aos@2.3.1/dist/aos.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js",
+    "https://unpkg.com/lenis@1.3.13/dist/lenis.min.js",
+    "https://www.unist.ac.kr/_res/unist/_share/js/swiper.js?78371",
+    "https://cdn.jsdelivr.net/npm/jquery.marquee@1.6.0/jquery.marquee.min.js",
+    "https://www.unist.ac.kr/_res/unist/unist/js/main-content-02.content.js?14065",
+    "https://www.unist.ac.kr/_res/unist/unist/js/footer.content.js?97176",
+    "https://www.unist.ac.kr/_res/unist/unist/js/main-content-03-demo2.content.js?40090",
+    "https://www.unist.ac.kr/_res/unist/unist/js/main-content-01-widget-translation.content.js?81173",
+    "https://www.unist.ac.kr/_res/unist/unist/js/main-content-04-widget-translation.content.js?81259",
+    "https://www.unist.ac.kr/_res/unist/unist/js/main-content-05.content.js?07076",
+    "https://www.unist.ac.kr/_res/unist/unist/js/main-content-06.content.js?81293",
+    "https://www.unist.ac.kr/_res/unist/unist/js/unist_youtube.content.js?29442",
+    "https://www.unist.ac.kr/_res/unist/unist/js/header.content.js?53043",
+    "https://www.unist.ac.kr/_res/unist/unist/js/life-at-unist-management.widget.js?04066",
+    "https://www.unist.ac.kr/_res/unist/unist/js/google-paid-translate.widget.js?55915",
+    "https://www.unist.ac.kr/_res/unist/_share/js/unified-search-popular-search-terms-unist.widget.js?96944",
+    "https://www.googletagmanager.com/gtag/js?id=G-YHGGZ5JBJY",
+    "https://www.youtube.com/iframe_api"
+  ],
+  "inlineScriptPreviews": [
+    "//<![CDATA[\n\tvar CMS = {\"contentEditAuth\":false,\"isDevelopAllContent\":false,\"editImageLimitSize\":1200,\"editToastUIYn\":\"N\",\"isCallAdm\":false,\"editActive\":true,\"resourcePath\":\"\\/_res\\/unist\\/unist\\/\",\"e",
+    "window.dataLayer = window.dataLayer || [];\n\t\tfunction gtag(){dataLayer.push(arguments);}\n\t\tgtag('js', new Date());\n\t\tgtag('config', 'G-YHGGZ5JBJY');"
+  ],
+  "libHints": {
+    "swiper": [
+      "https://www.unist.ac.kr/_res/unist/_share/css/swiper.css",
+      "https://www.unist.ac.kr/_res/unist/_share/js/swiper.js?78371"
+    ],
+    "gsap": [
+      "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/scrolltrigger.min.js",
+      "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/scrolltoplugin.min.js"
+    ],
+    "scrolltrigger": [
+      "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/scrolltrigger.min.js"
+    ],
+    "lenis": [
+      "https://unpkg.com/lenis@1.3.13/dist/lenis.css",
+      "https://unpkg.com/lenis@1.3.13/dist/lenis.min.js"
+    ],
+    "aos": [
+      "https://unpkg.com/aos@2.3.1/dist/aos.css",
+      "https://unpkg.com/aos@2.3.1/dist/aos.js"
+    ],
+    "jquery": [
+      "https://www.unist.ac.kr/_res/_common/js/jquery/jquery-2.2.4.min.js",
+      "https://www.unist.ac.kr/_res/_common/js/jquery/jquery-ui-1.12.1.min.js",
+      "https://cdn.jsdelivr.net/npm/jquery.marquee@1.6.0/jquery.marquee.min.js"
+    ]
+  },
+  "resources": [
+    {
+      "name": "https://www.unist.ac.kr/_res/_common/css/cms.css",
+      "type": "link",
+      "transferSize": 2568,
+      "duration": 27
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/_share/css/cms-common.css?01860",
+      "type": "link",
+      "transferSize": 1472,
+      "duration": 52
+    },
+    {
+      "name": "https://unpkg.com/aos@2.3.1/dist/aos.css",
+      "type": "link",
+      "transferSize": 0,
+      "duration": 55
+    },
+    {
+      "name": "https://unpkg.com/lenis@1.3.13/dist/lenis.css",
+      "type": "link",
+      "transferSize": 0,
+      "duration": 55
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/css/life-at-unist-management.widget.css?04066",
+      "type": "link",
+      "transferSize": 1751,
+      "duration": 82
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/_share/css/swiper.css",
+      "type": "link",
+      "transferSize": 3987,
+      "duration": 94
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/css/main-content-02.content.css?14065",
+      "type": "link",
+      "transferSize": 2771,
+      "duration": 93
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/css/cms-common.css?20590",
+      "type": "link",
+      "transferSize": 1909,
+      "duration": 94
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/css/main-content-03-demo2.content.css?40090",
+      "type": "link",
+      "transferSize": 3217,
+      "duration": 85
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/css/main-content-01-widget-translation.content.css?81173",
+      "type": "link",
+      "transferSize": 5612,
+      "duration": 107
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/css/main-content-04-widget-translation.content.css?81259",
+      "type": "link",
+      "transferSize": 2319,
+      "duration": 116
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/css/main-content-05.content.css?07076",
+      "type": "link",
+      "transferSize": 2913,
+      "duration": 116
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/css/footer.content.css?97176",
+      "type": "link",
+      "transferSize": 2272,
+      "duration": 118
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/css/main-content-06.content.css?81291",
+      "type": "link",
+      "transferSize": 1968,
+      "duration": 116
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/css/unist_youtube.content.css?29442",
+      "type": "link",
+      "transferSize": 2546,
+      "duration": 115
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/css/header.content.css?53042",
+      "type": "link",
+      "transferSize": 10779,
+      "duration": 131
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/_common/js/jquery/jquery-2.2.4.min.js",
+      "type": "script",
+      "transferSize": 37791,
+      "duration": 191
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/_common/js/jquery/jquery-ui-1.12.1.min.js",
+      "type": "script",
+      "transferSize": 84074,
+      "duration": 349
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/_share/js/cms-common.js?28875",
+      "type": "script",
+      "transferSize": 4015,
+      "duration": 357
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/cms-common.js?21125",
+      "type": "script",
+      "transferSize": 753,
+      "duration": 364
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/_common/js/cms.js?11989",
+      "type": "script",
+      "transferSize": 145391,
+      "duration": 401
+    },
+    {
+      "name": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+      "type": "script",
+      "transferSize": 25815,
+      "duration": 59
+    },
+    {
+      "name": "https://unpkg.com/aos@2.3.1/dist/aos.js",
+      "type": "script",
+      "transferSize": 0,
+      "duration": 59
+    },
+    {
+      "name": "https://unpkg.com/lenis@1.3.13/dist/lenis.min.js",
+      "type": "script",
+      "transferSize": 0,
+      "duration": 53
+    },
+    {
+      "name": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js",
+      "type": "script",
+      "transferSize": 2024,
+      "duration": 59
+    },
+    {
+      "name": "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js",
+      "type": "script",
+      "transferSize": 16204,
+      "duration": 59
+    },
+    {
+      "name": "https://cdn.jsdelivr.net/npm/jquery.marquee@1.6.0/jquery.marquee.min.js",
+      "type": "script",
+      "transferSize": 2620,
+      "duration": 48
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/_share/js/swiper.js?78371",
+      "type": "script",
+      "transferSize": 41095,
+      "duration": 372
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/main-content-02.content.js?14065",
+      "type": "script",
+      "transferSize": 653,
+      "duration": 357
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/footer.content.js?97176",
+      "type": "script",
+      "transferSize": 1126,
+      "duration": 366
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/main-content-03-demo2.content.js?40090",
+      "type": "script",
+      "transferSize": 2227,
+      "duration": 373
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/main-content-01-widget-translation.content.js?81173",
+      "type": "script",
+      "transferSize": 2361,
+      "duration": 377
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/main-content-05.content.js?07076",
+      "type": "script",
+      "transferSize": 3024,
+      "duration": 386
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/main-content-04-widget-translation.content.js?81259",
+      "type": "script",
+      "transferSize": 584,
+      "duration": 387
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/main-content-06.content.js?81293",
+      "type": "script",
+      "transferSize": 597,
+      "duration": 394
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/unist_youtube.content.js?29442",
+      "type": "script",
+      "transferSize": 2671,
+      "duration": 394
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/header.content.js?53043",
+      "type": "script",
+      "transferSize": 6336,
+      "duration": 401
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/life-at-unist-management.widget.js?04066",
+      "type": "script",
+      "transferSize": 590,
+      "duration": 409
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/js/google-paid-translate.widget.js?55915",
+      "type": "script",
+      "transferSize": 4765,
+      "duration": 415
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/_share/js/unified-search-popular-search-terms-unist.widget.js?96944",
+      "type": "script",
+      "transferSize": 1376,
+      "duration": 419
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/img-logo.png",
+      "type": "img",
+      "transferSize": 2720,
+      "duration": 152
+    },
+    {
+      "name": "https://www.googletagmanager.com/gtag/js?id=G-YHGGZ5JBJY",
+      "type": "script",
+      "transferSize": 0,
+      "duration": 831
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/img-logo-b.png",
+      "type": "img",
+      "transferSize": 3418,
+      "duration": 152
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/img-logo-sp.png",
+      "type": "img",
+      "transferSize": 1710,
+      "duration": 175
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/img-logo-sp-b.png",
+      "type": "img",
+      "transferSize": 2342,
+      "duration": 173
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/logo-sp-unist.png",
+      "type": "img",
+      "transferSize": 739,
+      "duration": 190
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-ultil-user.png",
+      "type": "img",
+      "transferSize": 759,
+      "duration": 414
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-ultil-search.png",
+      "type": "img",
+      "transferSize": 545,
+      "duration": 418
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-ultil-user-on.png",
+      "type": "img",
+      "transferSize": 1062,
+      "duration": 420
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-ultil-search-on.png",
+      "type": "img",
+      "transferSize": 614,
+      "duration": 426
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-ultil-sitemap.png",
+      "type": "img",
+      "transferSize": 495,
+      "duration": 442
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-search.png",
+      "type": "img",
+      "transferSize": 1019,
+      "duration": 432
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-search-sp.png",
+      "type": "img",
+      "transferSize": 981,
+      "duration": 438
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/img-vector.png",
+      "type": "img",
+      "transferSize": 629,
+      "duration": 438
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/img-vector-sp.png",
+      "type": "img",
+      "transferSize": 624,
+      "duration": 450
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/m-union01.png",
+      "type": "img",
+      "transferSize": 895,
+      "duration": 510
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/m-union02.png",
+      "type": "img",
+      "transferSize": 794,
+      "duration": 513
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/m-people02.png",
+      "type": "img",
+      "transferSize": 955,
+      "duration": 512
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/m-people01.png",
+      "type": "img",
+      "transferSize": 1214,
+      "duration": 513
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/m-graducation01.png",
+      "type": "img",
+      "transferSize": 898,
+      "duration": 528
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/icon-people02.png",
+      "type": "img",
+      "transferSize": 1988,
+      "duration": 487
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/m-graducation02.png",
+      "type": "img",
+      "transferSize": 749,
+      "duration": 526
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/icon-people01.png",
+      "type": "img",
+      "transferSize": 2557,
+      "duration": 539
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/icon-union01.png",
+      "type": "img",
+      "transferSize": 1490,
+      "duration": 540
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/icon-union02.png",
+      "type": "img",
+      "transferSize": 1443,
+      "duration": 532
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563858_1776327847000.do",
+      "type": "img",
+      "transferSize": 23013,
+      "duration": 486
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/img-vector02.png",
+      "type": "img",
+      "transferSize": 647,
+      "duration": 497
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/icon-graducation02.png",
+      "type": "img",
+      "transferSize": 1170,
+      "duration": 527
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/icon-graducation01.png",
+      "type": "img",
+      "transferSize": 1382,
+      "duration": 544
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563857_1776323727000.do",
+      "type": "img",
+      "transferSize": 21291,
+      "duration": 553
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563856_1776314599000.do",
+      "type": "img",
+      "transferSize": 23893,
+      "duration": 553
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563843_1776234182000.do",
+      "type": "img",
+      "transferSize": 32588,
+      "duration": 575
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563847_1776304203000.do",
+      "type": "img",
+      "transferSize": 273621,
+      "duration": 619
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563620_1776065115000.do",
+      "type": "img",
+      "transferSize": 18148,
+      "duration": 479
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563633_1776140011000.do",
+      "type": "img",
+      "transferSize": 256625,
+      "duration": 619
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563837_1776216939000.do",
+      "type": "img",
+      "transferSize": 19315,
+      "duration": 709
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563627_1776129098000.do",
+      "type": "img",
+      "transferSize": 23876,
+      "duration": 576
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563619_1776064688000.do",
+      "type": "img",
+      "transferSize": 26781,
+      "duration": 579
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563830_1776149551000.do",
+      "type": "img",
+      "transferSize": 28544,
+      "duration": 606
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563441_1775457988000.do",
+      "type": "img",
+      "transferSize": 47473,
+      "duration": 606
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563611_1776046519000.do",
+      "type": "img",
+      "transferSize": 25891,
+      "duration": 607
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563617_1776063042000.do",
+      "type": "img",
+      "transferSize": 29881,
+      "duration": 632
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563493_1775621969000.do",
+      "type": "img",
+      "transferSize": 30008,
+      "duration": 648
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563559_1775719829000.do",
+      "type": "img",
+      "transferSize": 46341,
+      "duration": 647
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563514_1775632865000.do",
+      "type": "img",
+      "transferSize": 353342,
+      "duration": 713
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563586_1775788547000.do",
+      "type": "img",
+      "transferSize": 38158,
+      "duration": 656
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563570_1775723111000.do",
+      "type": "img",
+      "transferSize": 29887,
+      "duration": 666
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563455_1775526125000.do",
+      "type": "img",
+      "transferSize": 33808,
+      "duration": 670
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_560797_1775182676000.do",
+      "type": "img",
+      "transferSize": 32935,
+      "duration": 675
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563480_1775542598000.do",
+      "type": "img",
+      "transferSize": 36980,
+      "duration": 681
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563474_1775541355000.do",
+      "type": "img",
+      "transferSize": 22579,
+      "duration": 693
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563468_1775539931000.do",
+      "type": "img",
+      "transferSize": 27505,
+      "duration": 698
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/banner02.png",
+      "type": "img",
+      "transferSize": 615297,
+      "duration": 844
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec02-ico01.png",
+      "type": "img",
+      "transferSize": 19813,
+      "duration": 717
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec02-bg.jpg",
+      "type": "img",
+      "transferSize": 139252,
+      "duration": 757
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec02-03.png",
+      "type": "img",
+      "transferSize": 514959,
+      "duration": 813
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec02-ico03.png",
+      "type": "img",
+      "transferSize": 1821,
+      "duration": 732
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec02-ico02.png",
+      "type": "img",
+      "transferSize": 1292,
+      "duration": 738
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/star.png",
+      "type": "img",
+      "transferSize": 637,
+      "duration": 742
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/experience-ico-01.png",
+      "type": "img",
+      "transferSize": 1442,
+      "duration": 768
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/experience-01-01.png",
+      "type": "img",
+      "transferSize": 486142,
+      "duration": 877
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/experience-ico-02.png",
+      "type": "img",
+      "transferSize": 2145,
+      "duration": 780
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/experience-01-02.png",
+      "type": "img",
+      "transferSize": 817326,
+      "duration": 949
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/experience-ico-03.png",
+      "type": "img",
+      "transferSize": 1996,
+      "duration": 800
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/experience-01-04.png",
+      "type": "img",
+      "transferSize": 650591,
+      "duration": 971
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/experience-01-03.png",
+      "type": "img",
+      "transferSize": 933850,
+      "duration": 1029
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/experience-ico-04.png",
+      "type": "img",
+      "transferSize": 2272,
+      "duration": 833
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563841_1776232768000.do",
+      "type": "img",
+      "transferSize": 23893,
+      "duration": 854
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563632_1776138221000.do",
+      "type": "img",
+      "transferSize": 27315,
+      "duration": 871
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563624_1776068721000.do",
+      "type": "img",
+      "transferSize": 32588,
+      "duration": 879
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563614_1776061131000.do",
+      "type": "img",
+      "transferSize": 19315,
+      "duration": 897
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563578_1775782436000.do",
+      "type": "img",
+      "transferSize": 18148,
+      "duration": 903
+    },
+    {
+      "name": "https://www.unist.ac.kr/app/board/attach/image/thumb_563576_1775779690000.do",
+      "type": "img",
+      "transferSize": 26781,
+      "duration": 903
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/star-white.png",
+      "type": "img",
+      "transferSize": 556,
+      "duration": 920
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/insight02.png",
+      "type": "img",
+      "transferSize": 604551,
+      "duration": 1110
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/insight01.png",
+      "type": "img",
+      "transferSize": 439540,
+      "duration": 1020
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/insight04.png",
+      "type": "img",
+      "transferSize": 463143,
+      "duration": 1038
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/insight03.png",
+      "type": "img",
+      "transferSize": 528348,
+      "duration": 1070
+    },
+    {
+      "name": "https://img.youtube.com/vi/5FthgIBchzE/maxresdefault.jpg",
+      "type": "img",
+      "transferSize": 121500,
+      "duration": 948
+    },
+    {
+      "name": "https://img.youtube.com/vi/7Otr6eB4A4g/maxresdefault.jpg",
+      "type": "img",
+      "transferSize": 127727,
+      "duration": 950
+    },
+    {
+      "name": "https://img.youtube.com/vi/KtszYvsYq8o/maxresdefault.jpg",
+      "type": "img",
+      "transferSize": 240641,
+      "duration": 983
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/insight05.png",
+      "type": "img",
+      "transferSize": 516343,
+      "duration": 1135
+    },
+    {
+      "name": "https://img.youtube.com/vi/sKjTCPBFcak/maxresdefault.jpg",
+      "type": "img",
+      "transferSize": 121162,
+      "duration": 930
+    },
+    {
+      "name": "https://img.youtube.com/vi/1VkD3Zp3ZmE/maxresdefault.jpg",
+      "type": "img",
+      "transferSize": 214625,
+      "duration": 983
+    },
+    {
+      "name": "https://img.youtube.com/vi/EB1eFMUP9h4/maxresdefault.jpg",
+      "type": "img",
+      "transferSize": 228409,
+      "duration": 983
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/logo-f.png",
+      "type": "img",
+      "transferSize": 838,
+      "duration": 1042
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/slogan-f.png",
+      "type": "img",
+      "transferSize": 8097,
+      "duration": 1062
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/slogan-f-sp.png",
+      "type": "img",
+      "transferSize": 6040,
+      "duration": 1068
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/_common/css/define.min.css",
+      "type": "css",
+      "transferSize": 1442,
+      "duration": 106
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/_common/_plugin/froala-editor/latest/css/froala_style.min.css",
+      "type": "css",
+      "transferSize": 2175,
+      "duration": 115
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/_share/css/table.css",
+      "type": "css",
+      "transferSize": 1974,
+      "duration": 87
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/_share/css/guide.css",
+      "type": "css",
+      "transferSize": 10935,
+      "duration": 96
+    },
+    {
+      "name": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,100;0,400;1,100&display=swap",
+      "type": "css",
+      "transferSize": 878,
+      "duration": 228
+    },
+    {
+      "name": "https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap",
+      "type": "css",
+      "transferSize": 1981,
+      "duration": 236
+    },
+    {
+      "name": "https://cdn.jsdelivr.net/gh/fonts-archive/Pretendard/Pretendard.css",
+      "type": "css",
+      "transferSize": 598,
+      "duration": 14
+    },
+    {
+      "name": "https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap",
+      "type": "css",
+      "transferSize": 1406,
+      "duration": 236
+    },
+    {
+      "name": "https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&display=swap",
+      "type": "css",
+      "transferSize": 1099,
+      "duration": 237
+    },
+    {
+      "name": "https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap",
+      "type": "css",
+      "transferSize": 1259,
+      "duration": 250
+    },
+    {
+      "name": "https://www.youtube.com/embed/Uk1x6hsoPkY?autoplay=1&mute=1&loop=1&playlist=Uk1x6hsoPkY&rel=0&modestbranding=1&vq=hd2160&playsinline=1&enablejsapi=1",
+      "type": "iframe",
+      "transferSize": 0,
+      "duration": 1212
+    },
+    {
+      "name": "https://www.youtube.com/embed/w8DgeLT7p7E?autoplay=1&mute=1&loop=1&playlist=w8DgeLT7p7E&rel=0&modestbranding=1&vq=hd2160&playsinline=1&enablejsapi=1",
+      "type": "iframe",
+      "transferSize": 0,
+      "duration": 1574
+    },
+    {
+      "name": "https://www.youtube.com/embed/iZf2t6_DTDw?autoplay=1&mute=1&loop=1&playlist=iZf2t6_DTDw&rel=0&modestbranding=1&vq=hd2160&playsinline=1&enablejsapi=1",
+      "type": "iframe",
+      "transferSize": 0,
+      "duration": 1209
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/select-lang.png",
+      "type": "css",
+      "transferSize": 862,
+      "duration": 123
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/bg-util.png",
+      "type": "css",
+      "transferSize": 920,
+      "duration": 155
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-close-search-people.png",
+      "type": "css",
+      "transferSize": 1463,
+      "duration": 130
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/btn-prev-people.png",
+      "type": "css",
+      "transferSize": 663,
+      "duration": 95
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/btn-next-people.png",
+      "type": "css",
+      "transferSize": 637,
+      "duration": 105
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/btn-vi.png",
+      "type": "css",
+      "transferSize": 500,
+      "duration": 98
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-search02.png",
+      "type": "css",
+      "transferSize": 700,
+      "duration": 119
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/range-v2.png",
+      "type": "css",
+      "transferSize": 891,
+      "duration": 99
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec02-link01.png",
+      "type": "css",
+      "transferSize": 500,
+      "duration": 719
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec02-link02.png",
+      "type": "css",
+      "transferSize": 660,
+      "duration": 738
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec02-arrow.png",
+      "type": "css",
+      "transferSize": 630,
+      "duration": 751
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec02-bor.png",
+      "type": "css",
+      "transferSize": 943,
+      "duration": 740
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/experience-btn-link.png",
+      "type": "css",
+      "transferSize": 2742,
+      "duration": 740
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/bg-research-impact.png",
+      "type": "css",
+      "transferSize": 87112,
+      "duration": 784
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec04-link01.png",
+      "type": "css",
+      "transferSize": 449,
+      "duration": 759
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec04-arrow.png",
+      "type": "css",
+      "transferSize": 469,
+      "duration": 764
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/bg-unist-insight.jpg",
+      "type": "css",
+      "transferSize": 547492,
+      "duration": 948
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-link02.png",
+      "type": "css",
+      "transferSize": 500,
+      "duration": 799
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec05-more.png",
+      "type": "css",
+      "transferSize": 739,
+      "duration": 787
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-youtube.png",
+      "type": "css",
+      "transferSize": 811,
+      "duration": 787
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/selectbox.png",
+      "type": "css",
+      "transferSize": 532,
+      "duration": 803
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/linkedin-sub.png",
+      "type": "css",
+      "transferSize": 687,
+      "duration": 807
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/fb-sub.png",
+      "type": "css",
+      "transferSize": 617,
+      "duration": 809
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ins-sub.png",
+      "type": "css",
+      "transferSize": 874,
+      "duration": 809
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/youtube-sub.png",
+      "type": "css",
+      "transferSize": 712,
+      "duration": 835
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/bg-list-white.png",
+      "type": "css",
+      "transferSize": 1112,
+      "duration": 685
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/ico-link.png",
+      "type": "css",
+      "transferSize": 574,
+      "duration": 686
+    },
+    {
+      "name": "https://www.unist.ac.kr/search/front/favoriteWeekly.jsp",
+      "type": "xmlhttprequest",
+      "transferSize": 833,
+      "duration": 23
+    },
+    {
+      "name": "https://www.youtube.com/embed/Uk1x6hsoPkY?autoplay=1&mute=1&loop=1&playlist=Uk1x6hsoPkY&rel=0&modestbranding=1&vq=hd2160&playsinline=1&enablejsapi=1",
+      "type": "iframe",
+      "transferSize": 0,
+      "duration": 931
+    },
+    {
+      "name": "https://www.youtube.com/embed/iZf2t6_DTDw?autoplay=1&mute=1&loop=1&playlist=iZf2t6_DTDw&rel=0&modestbranding=1&vq=hd2160&playsinline=1&enablejsapi=1",
+      "type": "iframe",
+      "transferSize": 0,
+      "duration": 1346
+    },
+    {
+      "name": "https://www.youtube.com/iframe_api",
+      "type": "script",
+      "transferSize": 0,
+      "duration": 184
+    },
+    {
+      "name": "https://www.youtube.com/s/player/4b0d80ee/www-widgetapi.vflset/www-widgetapi.js",
+      "type": "script",
+      "transferSize": 0,
+      "duration": 103
+    },
+    {
+      "name": "https://www.google-analytics.com/g/collect?v=2&tid=G-YHGGZ5JBJY&gtm=45je64f1v9104974776za200zd9104974776&_p=1776393914797&gcd=13l3l3l3l1l1&npa=0&dma=0&are=1&cid=970706045.1776393915&frm=0&pscdl=noapi&rcb=10&sr=800x600&uaa=&uab=&uafvl=&uam=&uamb=0&uap=&uapv=&uaw=0&ul=ko-kr&_s=1&tag_exp=0~115938465~115938469~116363097~117266400~118131810&sid=1776393915&sct=1&seg=0&dl=https%3A%2F%2Fwww.unist.ac.kr%2Funist%2Findex.do&dt=UNIST&en=page_view&_fv=1&_nsi=1&_ss=1&_ee=1&tfd=1364",
+      "type": "fetch",
+      "transferSize": 0,
+      "duration": 173
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/_share/img/main/favicon.ico",
+      "type": "other",
+      "transferSize": 1450,
+      "duration": 33
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/common/btn-menu-sp.png",
+      "type": "css",
+      "transferSize": 893,
+      "duration": 31
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec01-more.png",
+      "type": "css",
+      "transferSize": 672,
+      "duration": 30
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/sec02-arrow-02.png",
+      "type": "css",
+      "transferSize": 512,
+      "duration": 20
+    },
+    {
+      "name": "https://www.unist.ac.kr/_res/unist/unist/img/main/bg-research-impact-sp.png",
+      "type": "css",
+      "transferSize": 29388,
+      "duration": 28
+    },
+    {
+      "name": "https://www.google-analytics.com/g/collect?v=2&tid=G-YHGGZ5JBJY&gtm=45je64f1v9104974776za200zd9104974776&_p=1776393914797&gcd=13l3l3l3l1l1&npa=0&dma=0&_eu=AEAAAAQ&ae=a&are=1&cid=970706045.1776393915&frm=0&pscdl=noapi&rcb=10&sr=800x600&uaa=&uab=&uafvl=&uam=&uamb=0&uap=&uapv=&uaw=0&ul=ko-kr&tag_exp=0~115938465~115938469~116363097~117266400~118131810&sid=1776393915&sct=1&seg=0&dl=https%3A%2F%2Fwww.unist.ac.kr%2Funist%2Findex.do&dt=UNIST&_s=2&tfd=7719",
+      "type": "fetch",
+      "transferSize": 0,
+      "duration": 58
+    }
+  ]
+}

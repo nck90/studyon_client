@@ -1,29 +1,64 @@
-'use client';
-import { useState, useEffect } from 'react';
-import { getRankings } from '@/lib/api';
-import type { RankingsResponse } from '@/lib/api';
-import { Trophy, Award, X } from 'lucide-react';
-import { PageHeader } from '@/components/page-header';
+"use client";
+import { useState, useEffect } from "react";
+import { getRankings } from "@/lib/api";
+import type { RankingsResponse } from "@/lib/api";
+import { Trophy, Award, X } from "lucide-react";
+import { PageHeader } from "@/components/page-header";
 
-type Period = 'DAILY' | 'WEEKLY' | 'MONTHLY';
-const periodLabel: Record<Period, string> = { DAILY: '일간', WEEKLY: '주간', MONTHLY: '월간' };
+type Period = "DAILY" | "WEEKLY" | "MONTHLY";
+const periodLabel: Record<Period, string> = {
+  DAILY: "일간",
+  WEEKLY: "주간",
+  MONTHLY: "월간",
+};
 
 const rankStyle = (rank: number) => {
-  if (rank === 1) return { color: 'text-gold', bg: 'bg-warm-light', border: 'border-gold/20' };
-  if (rank === 2) return { color: 'text-silver', bg: 'bg-gray-100', border: 'border-silver/20' };
-  if (rank === 3) return { color: 'text-bronze', bg: 'bg-orange-50', border: 'border-bronze/20' };
-  return { color: 'text-text-tertiary', bg: 'bg-bg', border: 'border-transparent' };
+  if (rank === 1)
+    return {
+      color: "text-gold",
+      bg: "bg-warm-light",
+      border: "border-gold/20",
+    };
+  if (rank === 2)
+    return {
+      color: "text-silver",
+      bg: "bg-gray-100",
+      border: "border-silver/20",
+    };
+  if (rank === 3)
+    return {
+      color: "text-bronze",
+      bg: "bg-orange-50",
+      border: "border-bronze/20",
+    };
+  return {
+    color: "text-text-tertiary",
+    bg: "bg-bg",
+    border: "border-transparent",
+  };
 };
 
 export default function RankingsPage() {
-  const [period, setPeriod] = useState<Period>('DAILY');
+  const [period, setPeriod] = useState<Period>("DAILY");
   const [data, setData] = useState<RankingsResponse | null>(null);
   const [showAward, setShowAward] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    getRankings(period, 'STUDY_TIME').then(setData).catch(() => setData(null)).finally(() => setLoading(false));
+    let cancelled = false;
+    getRankings(period, "STUDY_TIME")
+      .then((next) => {
+        if (!cancelled) setData(next);
+      })
+      .catch(() => {
+        if (!cancelled) setData(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [period]);
 
   const items = data?.items ?? [];
@@ -47,12 +82,14 @@ export default function RankingsPage() {
 
       {/* Segmented control */}
       <div className="flex bg-bg rounded-xl p-1 mb-6 w-full md:w-fit border border-card-border">
-        {(['DAILY', 'WEEKLY', 'MONTHLY'] as Period[]).map(p => (
+        {(["DAILY", "WEEKLY", "MONTHLY"] as Period[]).map((p) => (
           <button
             key={p}
             onClick={() => setPeriod(p)}
             className={`flex-1 md:flex-none px-5 py-2 md:py-1.5 rounded-lg text-sm font-semibold transition-all press-scale ${
-              period === p ? 'bg-white text-text-primary shadow-sm' : 'text-text-tertiary hover:text-text-secondary'
+              period === p
+                ? "bg-white text-text-primary shadow-sm"
+                : "text-text-tertiary hover:text-text-secondary"
             }`}
           >
             {periodLabel[p]}
@@ -82,19 +119,35 @@ export default function RankingsPage() {
                 return (
                   <div
                     key={entry.id}
-                    className={`bg-white rounded-2xl p-4 md:p-5 border border-card-border card-shadow text-center press-scale ${isFirst ? '-mt-2 md:-mt-4' : 'mt-2 md:mt-0'}`}
+                    className={`bg-white rounded-2xl p-4 md:p-5 border border-card-border card-shadow text-center press-scale ${isFirst ? "-mt-2 md:-mt-4" : "mt-2 md:mt-0"}`}
                   >
                     {isFirst && (
                       <div className="text-lg mb-1 toss-face">👑</div>
                     )}
-                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-xl ${style.bg} border ${style.border} flex items-center justify-center mx-auto ${isFirst ? 'mb-2' : 'mb-2 md:mb-3'}`}>
-                      <span className={`text-base md:text-lg font-extrabold ${style.color}`}>{actualRank}</span>
+                    <div
+                      className={`w-8 h-8 md:w-10 md:h-10 rounded-xl ${style.bg} border ${style.border} flex items-center justify-center mx-auto ${isFirst ? "mb-2" : "mb-2 md:mb-3"}`}
+                    >
+                      <span
+                        className={`text-base md:text-lg font-extrabold ${style.color}`}
+                      >
+                        {actualRank}
+                      </span>
                     </div>
-                    <div className={`${isFirst ? 'w-12 h-12' : 'w-10 h-10'} rounded-full bg-primary-surface flex items-center justify-center mx-auto mb-1.5 md:mb-2`}>
-                      <span className={`${isFirst ? 'text-base' : 'text-sm'} font-bold text-primary`}>{entry.student?.user?.name?.[0] ?? '?'}</span>
+                    <div
+                      className={`${isFirst ? "w-12 h-12" : "w-10 h-10"} rounded-full bg-primary-surface flex items-center justify-center mx-auto mb-1.5 md:mb-2`}
+                    >
+                      <span
+                        className={`${isFirst ? "text-base" : "text-sm"} font-bold text-primary`}
+                      >
+                        {entry.student?.user?.name?.[0] ?? "?"}
+                      </span>
                     </div>
-                    <p className="font-bold text-text-primary text-xs md:text-sm truncate">{entry.student?.user?.name ?? '-'}</p>
-                    <p className={`text-primary font-extrabold tabular-nums ${isFirst ? 'text-base md:text-lg' : 'text-sm md:text-lg'} mt-0.5 md:mt-1`}>
+                    <p className="font-bold text-text-primary text-xs md:text-sm truncate">
+                      {entry.student?.user?.name ?? "-"}
+                    </p>
+                    <p
+                      className={`text-primary font-extrabold tabular-nums ${isFirst ? "text-base md:text-lg" : "text-sm md:text-lg"} mt-0.5 md:mt-1`}
+                    >
                       {Math.floor(minutes / 60)}h {minutes % 60}m
                     </p>
                   </div>
@@ -112,16 +165,26 @@ export default function RankingsPage() {
                 <div
                   key={entry.id}
                   className={`flex items-center gap-3 md:gap-4 px-4 md:px-5 py-3.5 md:py-4 hover:bg-bg/50 transition-colors press-scale ${
-                    idx !== items.length - 1 ? 'border-b border-divider/50' : ''
+                    idx !== items.length - 1 ? "border-b border-divider/50" : ""
                   }`}
                 >
-                  <div className={`w-8 h-8 rounded-lg ${style.bg} flex items-center justify-center shrink-0`}>
-                    <span className={`text-sm font-extrabold tabular-nums ${style.color}`}>{entry.rankNo}</span>
+                  <div
+                    className={`w-8 h-8 rounded-lg ${style.bg} flex items-center justify-center shrink-0`}
+                  >
+                    <span
+                      className={`text-sm font-extrabold tabular-nums ${style.color}`}
+                    >
+                      {entry.rankNo}
+                    </span>
                   </div>
                   <div className="w-8 h-8 rounded-full bg-primary-surface flex items-center justify-center shrink-0">
-                    <span className="text-[11px] font-bold text-primary">{entry.student?.user?.name?.[0] ?? '?'}</span>
+                    <span className="text-[11px] font-bold text-primary">
+                      {entry.student?.user?.name?.[0] ?? "?"}
+                    </span>
                   </div>
-                  <span className="flex-1 font-semibold text-text-primary text-sm truncate">{entry.student?.user?.name ?? '-'}</span>
+                  <span className="flex-1 font-semibold text-text-primary text-sm truncate">
+                    {entry.student?.user?.name ?? "-"}
+                  </span>
                   <span className="tabular-nums font-bold text-primary text-sm shrink-0">
                     {Math.floor(minutes / 60)}h {minutes % 60}m
                   </span>
@@ -140,7 +203,7 @@ export default function RankingsPage() {
         >
           <div
             className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm text-center animate-fade-in relative"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setShowAward(false)}
@@ -156,14 +219,20 @@ export default function RankingsPage() {
             </p>
             {top1 && (
               <>
-                <p className="text-2xl font-extrabold text-text-primary mb-1">{top1.student?.user?.name ?? '-'}</p>
+                <p className="text-2xl font-extrabold text-text-primary mb-1">
+                  {top1.student?.user?.name ?? "-"}
+                </p>
                 <p className="text-sm text-text-tertiary mb-6 tabular-nums">
-                  총 {Math.floor(Number(top1.score) / 60)}시간 {Math.round(Number(top1.score)) % 60}분
+                  총 {Math.floor(Number(top1.score) / 60)}시간{" "}
+                  {Math.round(Number(top1.score)) % 60}분
                 </p>
               </>
             )}
             <button
-              onClick={() => { alert('시상 처리 완료!'); setShowAward(false); }}
+              onClick={() => {
+                alert("시상 처리 완료!");
+                setShowAward(false);
+              }}
               className="w-full h-12 gradient-primary text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
             >
               시상하기

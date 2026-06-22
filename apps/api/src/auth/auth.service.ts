@@ -364,11 +364,9 @@ export class AuthService {
 
   async refresh(refreshToken: string) {
     const payload = await this.verifyToken(refreshToken, 'refresh');
-    const saved = await this.redis.client.get(
-      this.refreshTokenKey(payload.sessionId),
-    );
+    const saved = await this.redis.get(this.refreshTokenKey(payload.sessionId));
 
-    if (!saved || saved !== refreshToken) {
+    if (saved !== undefined && (!saved || saved !== refreshToken)) {
       throw new UnauthorizedException('세션이 만료되었습니다.');
     }
 
@@ -423,11 +421,10 @@ export class AuthService {
       data: { sessionStatus: SessionStatus.LOGGED_OUT, endedAt: new Date() },
     });
 
-    await this.redis.client.del(this.refreshTokenKey(sessionId));
-    await this.redis.client.set(
+    await this.redis.del(this.refreshTokenKey(sessionId));
+    await this.redis.set(
       this.blacklistTokenKey(refreshToken),
       '1',
-      'EX',
       60 * 60 * 24 * 30,
     );
 
@@ -584,10 +581,9 @@ export class AuthService {
       }),
     ]);
 
-    await this.redis.client.set(
+    await this.redis.set(
       this.refreshTokenKey(payload.sessionId),
       refreshToken,
-      'EX',
       60 * 60 * 24 * 30,
     );
 
@@ -598,9 +594,7 @@ export class AuthService {
     token: string,
     tokenType: 'access' | 'refresh',
   ): Promise<JwtPayload> {
-    const blacklistExists = await this.redis.client.get(
-      this.blacklistTokenKey(token),
-    );
+    const blacklistExists = await this.redis.get(this.blacklistTokenKey(token));
     if (blacklistExists) {
       throw new UnauthorizedException('토큰이 만료되었습니다.');
     }
@@ -642,7 +636,7 @@ export class AuthService {
 
     await Promise.all(
       existing.map((session) =>
-        this.redis.client.del(this.refreshTokenKey(session.id)),
+        this.redis.del(this.refreshTokenKey(session.id)),
       ),
     );
   }

@@ -13,35 +13,60 @@ exports.HealthController = void 0;
 const common_1 = require("@nestjs/common");
 const terminus_1 = require("@nestjs/terminus");
 const swagger_1 = require("@nestjs/swagger");
+const node_fs_1 = require("node:fs");
+const node_path_1 = require("node:path");
 const public_decorator_1 = require("../common/decorators/public.decorator");
 const prisma_service_1 = require("../database/prisma.service");
 const redis_service_1 = require("../redis/redis.service");
+const MEDIA_UPLOAD_DIR = process.env.MEDIA_UPLOAD_DIR ?? 'uploads/student-media';
 let HealthController = class HealthController {
-    health;
     prismaHealthIndicator;
     prisma;
     redis;
-    constructor(health, prismaHealthIndicator, prisma, redis) {
-        this.health = health;
+    constructor(prismaHealthIndicator, prisma, redis) {
         this.prismaHealthIndicator = prismaHealthIndicator;
         this.prisma = prisma;
         this.redis = redis;
     }
     async check() {
-        return this.health.check([
-            async () => this.prismaHealthIndicator.pingCheck('postgres', this.prisma),
-            async () => {
-                await this.redis.client.ping();
-                return { redis: { status: 'up' } };
+        const postgres = await this.prismaHealthIndicator.pingCheck('postgres', this.prisma);
+        const redisPing = await this.redis.ping();
+        const redisStatus = redisPing === true ? 'up' : this.redis.isEnabled() ? 'down' : 'disabled';
+        const media = await this.checkMediaStorage();
+        const hasDegradedDependency = redisStatus === 'down' || media.status === 'down';
+        return {
+            status: hasDegradedDependency ? 'degraded' : 'ok',
+            info: {
+                ...postgres,
+                redis: { status: redisStatus },
+                media,
             },
-        ]);
+            error: {},
+            details: {
+                ...postgres,
+                redis: { status: redisStatus },
+                media,
+            },
+        };
+    }
+    async checkMediaStorage() {
+        const probePath = (0, node_path_1.join)(MEDIA_UPLOAD_DIR, `.healthcheck-${process.pid}-${Date.now()}`);
+        try {
+            await node_fs_1.promises.mkdir(MEDIA_UPLOAD_DIR, { recursive: true });
+            await node_fs_1.promises.writeFile(probePath, 'ok');
+            await node_fs_1.promises.unlink(probePath);
+            return { status: 'up', path: MEDIA_UPLOAD_DIR };
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : 'unknown media storage error';
+            return { status: 'down', path: MEDIA_UPLOAD_DIR, message };
+        }
     }
 };
 exports.HealthController = HealthController;
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Get)('health'),
-    (0, terminus_1.HealthCheck)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
@@ -49,8 +74,7 @@ __decorate([
 exports.HealthController = HealthController = __decorate([
     (0, swagger_1.ApiTags)('health'),
     (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [terminus_1.HealthCheckService,
-        terminus_1.PrismaHealthIndicator,
+    __metadata("design:paramtypes", [terminus_1.PrismaHealthIndicator,
         prisma_service_1.PrismaService,
         redis_service_1.RedisService])
 ], HealthController);

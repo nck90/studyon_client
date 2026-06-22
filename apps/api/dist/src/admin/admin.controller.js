@@ -92,6 +92,114 @@ let AdminController = class AdminController {
     auditLogs(actionType, targetType) {
         return this.adminService.auditLogs(actionType, targetType);
     }
+    badgeRules() {
+        return this.adminService.getBadgeRules();
+    }
+    updateBadgeRules(body) {
+        return this.adminService.updateBadgeRules(body.rules ?? []);
+    }
+    focusPolicy() {
+        return this.adminService.getFocusPolicy();
+    }
+    updateFocusPolicy(body) {
+        return this.adminService.updateFocusPolicy(body);
+    }
+    focusOverview(date) {
+        return this.adminService.focusOverview(date);
+    }
+    focusStudents(date, classId, status) {
+        return this.adminService.focusStudents({ date, classId, status });
+    }
+    focusEvents(date, studentId) {
+        return this.adminService.focusEvents({ date, studentId });
+    }
+    retentionOverview() {
+        return this.adminService.retentionOverview();
+    }
+    opsOverview(date) {
+        return this.adminService.opsOverview(date);
+    }
+    generateOpsTasks() {
+        return this.adminService.generateOpsTasks();
+    }
+    opsTasks(date, status, reasonType, severity) {
+        return this.adminService.opsTasks({ date, status, reasonType, severity });
+    }
+    sendOpsStudentMessage(user, taskId, body) {
+        return this.adminService.sendOpsStudentMessage(taskId, user.sub, body.message);
+    }
+    createOpsParentReport(user, taskId, body) {
+        return this.adminService.createOpsParentReport(taskId, user.sub, body.message);
+    }
+    resolveOpsTask(user, taskId) {
+        return this.adminService.resolveOpsTask(taskId, user.sub);
+    }
+    dismissOpsTask(user, taskId) {
+        return this.adminService.dismissOpsTask(taskId, user.sub);
+    }
+    parentCrmOverview() {
+        return this.adminService.parentCrmOverview();
+    }
+    parentGuardians(studentId, keyword) {
+        return this.adminService.parentGuardians({ studentId, keyword });
+    }
+    createParentGuardian(body) {
+        return this.adminService.createParentGuardian(body);
+    }
+    updateParentGuardian(guardianId, body) {
+        return this.adminService.updateParentGuardian(guardianId, body);
+    }
+    parentConsultations(studentId, guardianId) {
+        return this.adminService.parentConsultations({ studentId, guardianId });
+    }
+    createParentConsultation(user, body) {
+        return this.adminService.createParentConsultation(user.sub, body);
+    }
+    parentFollowUps(status, studentId) {
+        return this.adminService.parentFollowUps({ status, studentId });
+    }
+    createParentFollowUp(body) {
+        return this.adminService.createParentFollowUp(body);
+    }
+    updateParentFollowUp(followUpId, body) {
+        return this.adminService.updateParentFollowUp(followUpId, body);
+    }
+    createParentConsultationReport(consultationId, body) {
+        return this.adminService.createParentConsultationReport(consultationId, body.message, body.expiresInDays);
+    }
+    createOpsParentFollowUp(taskId, body) {
+        return this.adminService.createOpsParentFollowUp(taskId, body);
+    }
+    retentionGoals() {
+        return this.adminService.retentionGoals();
+    }
+    retentionInterventions() {
+        return this.adminService.retentionInterventions();
+    }
+    generateRetentionInterventions() {
+        return this.adminService.generateRetentionInterventions();
+    }
+    messageRetentionIntervention(user, interventionId, body) {
+        return this.adminService.messageRetentionIntervention(interventionId, user.sub, body.message);
+    }
+    recommendRetentionPlan(user, interventionId) {
+        return this.adminService.recommendRetentionPlan(interventionId, user.sub);
+    }
+    retentionMissionTemplates() {
+        return this.adminService.retentionMissionTemplates();
+    }
+    createRetentionMissionTemplate(user, body) {
+        return this.adminService.createRetentionMissionTemplate(user.sub, body);
+    }
+    updateRetentionMissionTemplate(templateId, body) {
+        return this.adminService.updateRetentionMissionTemplate(templateId, body);
+    }
+    retentionDailyMissionOverview() {
+        return this.adminService.retentionDailyMissionOverview();
+    }
+    reviewRetentionGoal(user, studentId, body) {
+        return this.adminService.reviewRetentionGoal(studentId, body.status ?? 'PENDING', user.sub, body.memo);
+    }
     directorOverview(startDate, endDate) {
         return this.adminService.directorOverview(startDate, endDate);
     }
@@ -258,6 +366,311 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], AdminController.prototype, "auditLogs", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/badge-rules'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "badgeRules", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Patch)('admin/badge-rules'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "updateBadgeRules", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/focus-policy'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "focusPolicy", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Patch)('admin/focus-policy'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "updateFocusPolicy", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/focus/overview'),
+    __param(0, (0, common_1.Query)('date')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "focusOverview", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/focus/students'),
+    __param(0, (0, common_1.Query)('date')),
+    __param(1, (0, common_1.Query)('classId')),
+    __param(2, (0, common_1.Query)('status')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "focusStudents", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/focus/events'),
+    __param(0, (0, common_1.Query)('date')),
+    __param(1, (0, common_1.Query)('studentId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "focusEvents", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/retention/overview'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "retentionOverview", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/ops/overview'),
+    __param(0, (0, common_1.Query)('date')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "opsOverview", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/ops/tasks/generate'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "generateOpsTasks", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/ops/tasks'),
+    __param(0, (0, common_1.Query)('date')),
+    __param(1, (0, common_1.Query)('status')),
+    __param(2, (0, common_1.Query)('reasonType')),
+    __param(3, (0, common_1.Query)('severity')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "opsTasks", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/ops/tasks/:taskId/student-message'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('taskId')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "sendOpsStudentMessage", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/ops/tasks/:taskId/parent-report'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('taskId')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "createOpsParentReport", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/ops/tasks/:taskId/resolve'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('taskId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "resolveOpsTask", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/ops/tasks/:taskId/dismiss'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('taskId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "dismissOpsTask", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/parents/overview'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "parentCrmOverview", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/parents/guardians'),
+    __param(0, (0, common_1.Query)('studentId')),
+    __param(1, (0, common_1.Query)('keyword')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "parentGuardians", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/parents/guardians'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "createParentGuardian", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Patch)('admin/parents/guardians/:guardianId'),
+    __param(0, (0, common_1.Param)('guardianId')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "updateParentGuardian", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/parents/consultations'),
+    __param(0, (0, common_1.Query)('studentId')),
+    __param(1, (0, common_1.Query)('guardianId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "parentConsultations", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/parents/consultations'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "createParentConsultation", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/parents/follow-ups'),
+    __param(0, (0, common_1.Query)('status')),
+    __param(1, (0, common_1.Query)('studentId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "parentFollowUps", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/parents/follow-ups'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "createParentFollowUp", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Patch)('admin/parents/follow-ups/:followUpId'),
+    __param(0, (0, common_1.Param)('followUpId')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "updateParentFollowUp", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/parents/consultations/:consultationId/share-report'),
+    __param(0, (0, common_1.Param)('consultationId')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "createParentConsultationReport", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/ops/tasks/:taskId/parent-follow-up'),
+    __param(0, (0, common_1.Param)('taskId')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "createOpsParentFollowUp", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/retention/goals'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "retentionGoals", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/retention/interventions'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "retentionInterventions", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/retention/interventions/generate'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "generateRetentionInterventions", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/retention/interventions/:interventionId/message'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('interventionId')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "messageRetentionIntervention", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/retention/interventions/:interventionId/recommend-plan'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('interventionId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "recommendRetentionPlan", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/retention/mission-templates'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "retentionMissionTemplates", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/retention/mission-templates'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "createRetentionMissionTemplate", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Patch)('admin/retention/mission-templates/:templateId'),
+    __param(0, (0, common_1.Param)('templateId')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "updateRetentionMissionTemplate", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Get)('admin/retention/daily-missions/overview'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "retentionDailyMissionOverview", null);
+__decorate([
+    (0, roles_decorator_1.Roles)(client_1.UserRole.ADMIN, client_1.UserRole.DIRECTOR),
+    (0, common_1.Post)('admin/retention/goals/:studentId/review'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('studentId')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", void 0)
+], AdminController.prototype, "reviewRetentionGoal", null);
 __decorate([
     (0, roles_decorator_1.Roles)(client_1.UserRole.DIRECTOR),
     (0, common_1.Get)('director/overview'),

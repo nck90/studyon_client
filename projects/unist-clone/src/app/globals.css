@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-pretendard: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+
+  --color-ink-black:  #000000;
+  --color-ink-1:      #0A0A0A;
+  --color-ink-2:      #111111;
+  --color-ink-3:      #1A1A1A;
+  --color-ink-4:      #333333;
+  --color-ink-5:      #555555;
+  --color-ink-6:      #666666;
+  --color-ink-7:      #888888;
+  --color-ink-8:      #AAAAAA;
+  --color-ink-9:      #CCCCCC;
+  --color-ink-10:     #E5E5E5;
+  --color-ink-11:     #EAEAEA;
+  --color-ink-12:     #F0F0F0;
+  --color-ink-13:     #F7F7F7;
+  --color-ink-14:     #FAFAFA;
+  --color-ink-white:  #FFFFFF;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Scroll is driven entirely by Lenis — no CSS snap (snap conflicts with Lenis's RAF animation). */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+html.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+body {
+  font-family: var(--font-pretendard);
+  font-size: 16px;
+  line-height: 1.6;
+  color: #111;
+  background: #fff;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul, li {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ─── Selection ─── */
+::selection {
+  background: #111;
+  color: #fff;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #CCC;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ─── Focus ring ─── */
+:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 2px;
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
